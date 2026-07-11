@@ -34,8 +34,9 @@ The workbench integrates with tools you install yourself; nothing is bundled.
 ### KiCad (kicad-cli)
 
 - Install KiCad 7, 8 or 9 from <https://www.kicad.org/download/>. `kicad-cli`
-  ships with it. Some capabilities need newer versions: BOM export and ERC
-  JSON require KiCad 8+, board rendering requires KiCad 9+.
+  ships with it. Some capabilities need newer versions: ERC, DRC and BOM
+  export require KiCad 8+; board rendering requires KiCad 9+. Netlist and
+  gerber/drill export work on KiCad 7+.
 
 After installing, open **Diagnostics** in the app and press **Re-detect
 tools**. If a tool is installed somewhere unusual, set its executable path in

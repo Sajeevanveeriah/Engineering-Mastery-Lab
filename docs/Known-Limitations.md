@@ -23,8 +23,10 @@
   supported, and `.control` blocks in user netlists are rejected by design.
 - AC results are recorded as magnitude and phase columns (no complex raw
   vectors); operating-point results come from `print all` parsing.
-- KiCad BOM export needs KiCad 8+, ERC JSON 8+, board render 9+; with older
-  versions those capabilities fail with an explanatory message.
+- KiCad ERC, DRC and BOM export need KiCad 8+ (the `pcb drc`/`sch erc`
+  subcommands are absent in KiCad 7), board render needs 9+; netlist and
+  gerber/drill export work on 7+. Below the required version a capability fails
+  with an explanatory message rather than invoking the tool.
 - Manifest `schemaVersion` 1 only; newer versions are rejected (no migration
   yet), and there is no schematic capture of requirement pass/fail criteria —
   the evidence report records results, not verdicts.
@@ -33,6 +35,19 @@
 - Symlinks inside a workspace are not rejected; do not open untrusted
   workspaces (see SECURITY.md).
 - Evidence reports are Markdown only (no HTML render in v0.1).
+- Input-file hashes in the evidence report (section 4) are computed when the
+  report is generated, not captured at simulation run time. If a netlist is
+  edited between running a simulation and generating the report, the report's
+  input hash reflects the current file, not the exact bytes simulated. Mitigate
+  by generating the report immediately after the runs it documents. (Generated
+  *output* files are hashed at run time and are not affected.)
+- "Open in KiCad" / open-in-external-app is deferred in v0.1: the `openPath`
+  bridge method exists but the OS-opener capability grant was removed for
+  least privilege, so it is not wired to any UI action yet.
+- Directory-producing exports (gerbers, drill) do not use the pre-run
+  stale-output sentinel that ERC/DRC and single-file exports use; re-running
+  overwrites same-named files, but a renamed-away output from a prior run could
+  linger in the results subfolder.
 - Cancellation kills the external process but does not roll back partial
   output files; re-running overwrites them deterministically.
 - The recent-projects list and tool-path overrides live in browser storage

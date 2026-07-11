@@ -16,8 +16,9 @@ The file exists but is not the expected tool (or is a wrapper that swallows
 `--version`). Point the override at the real binary.
 
 **KiCad capability says "requires kicad-cli 8.0/9.0 or newer"**
-BOM export and ERC JSON need KiCad 8+; board rendering needs KiCad 9+. Update
-KiCad or avoid those capabilities.
+ERC, DRC and BOM export need KiCad 8+ (the `pcb drc` and `sch erc` subcommands
+did not exist in KiCad 7); board rendering needs KiCad 9+. Netlist and
+gerber/drill export work on KiCad 7+. Update KiCad or avoid those capabilities.
 
 ## Running simulations
 
