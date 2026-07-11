@@ -115,8 +115,34 @@ describe("kicad adapter", () => {
       { bridge, workspaceRoot: "/ws" }
     );
     expect(result.status).toBe("failed");
-    expect(result.message).toMatch(/produced no report/);
+    expect(result.message).toMatch(/without writing a report/);
     expect(result.message).toMatch(/Unable to load/);
+  });
+
+  it("does not report a stale ERC/DRC report when a rerun writes nothing", async () => {
+    const bridge = readyBridge();
+    // First run writes a real report.
+    bridge.onRun = (req, opts) => {
+      if (req.tool === "kicad-cli") bridge.seedFile(opts.workspaceRoot, req.outputRelPath, ERC_REPORT_CLEAN);
+      return okProcess();
+    };
+    const req = { capabilityId: "kicad.erc", params: { inputRelPath: "pcb/design.kicad_sch" } };
+    const first = await adapter.execute(req, { bridge, workspaceRoot: "/ws" });
+    expect(first.status).toBe("ok");
+    // Second run fails to write (e.g. corrupt design) but exits 0.
+    bridge.onRun = () => okProcess();
+    const second = await adapter.execute(req, { bridge, workspaceRoot: "/ws" });
+    expect(second.status).toBe("failed");
+    expect(second.message).toMatch(/without writing a report/);
+  });
+
+  it("gates DRC to KiCad 8+ (pcb drc does not exist in KiCad 7)", async () => {
+    const result = await adapter.execute(
+      { capabilityId: "kicad.drc", params: { inputRelPath: "pcb/board.kicad_pcb" } },
+      { bridge: readyBridge("7.0.11"), workspaceRoot: "/ws" }
+    );
+    expect(result.status).toBe("failed");
+    expect(result.message).toMatch(/requires kicad-cli 8.0 or newer/);
   });
 
   it("gates capabilities on the detected version", async () => {

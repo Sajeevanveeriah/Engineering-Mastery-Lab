@@ -38,7 +38,7 @@ interface CapabilitySpec {
 
 const CAPABILITIES: CapabilitySpec[] = [
   { id: "kicad.erc", title: "Schematic ERC", description: "Electrical rules check with structured findings.", subcommand: "sch-erc", minMajor: 8, input: "schematic", outputIsDir: false, outputKind: "report" },
-  { id: "kicad.drc", title: "PCB DRC", description: "Design rules check with structured findings.", subcommand: "pcb-drc", minMajor: 7, input: "pcb", outputIsDir: false, outputKind: "report" },
+  { id: "kicad.drc", title: "PCB DRC", description: "Design rules check with structured findings.", subcommand: "pcb-drc", minMajor: 8, input: "pcb", outputIsDir: false, outputKind: "report" },
   { id: "kicad.export-netlist", title: "Netlist export", description: "Export the schematic netlist.", subcommand: "sch-export-netlist", minMajor: 7, input: "schematic", outputIsDir: false, outputKind: "netlist" },
   { id: "kicad.export-bom", title: "BOM export", description: "Export the bill of materials as CSV.", subcommand: "sch-export-bom", minMajor: 8, input: "schematic", outputIsDir: false, outputKind: "csv" },
   { id: "kicad.export-gerbers", title: "Gerber export", description: "Export fabrication gerbers.", subcommand: "pcb-export-gerbers", minMajor: 7, input: "pcb", outputIsDir: true, outputKind: "gerber" },
@@ -129,6 +129,16 @@ export class KicadAdapter implements EngineAdapter {
       : `results/${runId}.${outputExtension(spec)}`;
     await bridge.createDirAll(root, spec.outputIsDir ? outputRelPath : "results");
 
+    // Guard against a stale report being read as a fresh result: overwrite the
+    // output file with a sentinel before the run. kicad-cli erc/drc exits 0
+    // even with violations, so "did the tool write a fresh report" is the
+    // reliable success signal, not the exit code.
+    const sentinel = `__ewb_no_report__${runId}__`;
+    const isReportRun = spec.subcommand === "sch-erc" || spec.subcommand === "pcb-drc";
+    if (isReportRun && !spec.outputIsDir) {
+      await bridge.writeTextFileAtomic(root, outputRelPath, sentinel);
+    }
+
     const proc = await bridge.runTool(
       { tool: "kicad-cli", subcommand: spec.subcommand, inputRelPath, outputRelPath },
       { workspaceRoot: root, timeoutMs: ctx.timeoutMs, signal: ctx.signal, toolPathOverride: this.options.executablePath }
@@ -143,9 +153,9 @@ export class KicadAdapter implements EngineAdapter {
       });
     }
 
-    // ERC/DRC: kicad-cli exits non-zero when violations exist (or on failure);
-    // a parsable report distinguishes "design has findings" from "tool failed".
-    if (spec.subcommand === "sch-erc" || spec.subcommand === "pcb-drc") {
+    // ERC/DRC: success is signalled by a freshly written report (kicad-cli
+    // exits 0 even when the design has violations), not by the exit code.
+    if (isReportRun) {
       let reportText: string;
       try {
         reportText = await bridge.readTextFile(root, outputRelPath);
@@ -154,6 +164,14 @@ export class KicadAdapter implements EngineAdapter {
           request.capabilityId,
           "failed",
           `kicad-cli exited with code ${proc.exitCode ?? "unknown"} and produced no report. ${firstLine(proc.stderr)}`.trim(),
+          { raw, durationMs: proc.durationMs, toolVersion: detection.version }
+        );
+      }
+      if (reportText.trim() === sentinel) {
+        return failureResult(
+          request.capabilityId,
+          "failed",
+          `kicad-cli exited with code ${proc.exitCode ?? "unknown"} without writing a report. ${firstLine(proc.stderr) || firstLine(proc.stdout)}`.trim(),
           { raw, durationMs: proc.durationMs, toolVersion: detection.version }
         );
       }

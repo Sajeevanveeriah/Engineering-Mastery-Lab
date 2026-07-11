@@ -1,4 +1,5 @@
-* Series RLC step response (underdamped: f0 ~= 1.59 kHz, zeta ~= 0.16)
+* Series RLC step response (underdamped: f0 ~= 1.59 kHz, zeta = 0.5)
+* zeta = (R/2)*sqrt(C/L) = 50 * 0.01 = 0.5
 * Example circuit 3: transient ringing of the capacitor voltage.
 V1 in 0 PULSE(0 5 0 1u 1u 0.1 0.2)
 R1 in n1 100

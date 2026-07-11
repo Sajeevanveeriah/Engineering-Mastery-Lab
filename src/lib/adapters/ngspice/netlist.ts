@@ -26,13 +26,25 @@ export function validateNetlist(text: string): ValidationIssue[] {
   if (!lower.some((l) => l === ".end")) {
     issues.push({ severity: "error", message: "Netlist must contain a final .end line." });
   }
-  if (lower.some((l) => l.startsWith(".control"))) {
+  // Compact form: drop comment lines (`*`) and inline comments (`$`/`;`), then
+  // remove ALL whitespace. This defeats attempts to smuggle a `.control` block
+  // or shell escape past a per-line check by splitting keywords across SPICE
+  // continuation lines (a `+` line concatenates onto the previous one).
+  const compact = lines
+    .map((l) => l.trim())
+    .filter((l) => !l.startsWith("*"))
+    .map((l) => l.replace(/[$;].*$/, "")) // strip inline comments
+    .map((l) => l.replace(/^\+/, "")) // drop SPICE continuation marker
+    .join("")
+    .replace(/\s+/g, "")
+    .toLowerCase();
+  if (compact.includes(".control") || compact.includes(".endc")) {
     issues.push({
       severity: "error",
       message: "Netlist must not contain a .control block; analyses are configured in the workbench."
     });
   }
-  if (lower.some((l) => l.startsWith("shell") || l.includes("system("))) {
+  if (compact.includes("shell") || compact.includes("system(") || compact.includes("exec(")) {
     issues.push({ severity: "error", message: "Netlist contains shell escapes, which are not allowed." });
   }
   const first = lines[0]?.trim() ?? "";

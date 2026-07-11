@@ -35,13 +35,16 @@ export interface EvidenceReportInput {
   limitations: string[];
 }
 
+// "Completed" means the tool ran and produced parseable output — NOT that a
+// design check passed. ERC/DRC can complete with errors; the findings and
+// scalar counts below carry the verdict, not this label.
 const STATUS_LABEL: Record<AdapterResult["status"], string> = {
-  ok: "PASS (completed)",
-  failed: "FAIL",
-  timeout: "FAIL (timeout)",
+  ok: "COMPLETED",
+  failed: "FAILED",
+  timeout: "FAILED (timeout)",
   cancelled: "NOT RUN (cancelled)",
   "tool-missing": "NOT RUN (tool missing)",
-  "invalid-input": "FAIL (invalid input)"
+  "invalid-input": "FAILED (invalid input)"
 };
 
 function fmtNum(v: number): string {
@@ -142,7 +145,12 @@ export function buildEvidenceReport(input: EvidenceReportInput): string {
       push();
       continue;
     }
-    push(`Result: **${STATUS_LABEL[result.status]}** — ${mdEscape(result.message)}`);
+    // Surface a check verdict for validation runs that report error counts,
+    // so a completed-with-errors ERC/DRC is not mistaken for a clean pass.
+    const errorCount = result.scalars.errorCount;
+    const verdict =
+      typeof errorCount === "number" ? (errorCount > 0 ? " · findings: NOT CLEAN" : " · findings: clean") : "";
+    push(`Result: **${STATUS_LABEL[result.status]}**${verdict} — ${mdEscape(result.message)}`);
     if (result.toolVersion) push(`Tool version: ${result.toolVersion}`);
     push();
     const scalarKeys = Object.keys(result.scalars).sort();

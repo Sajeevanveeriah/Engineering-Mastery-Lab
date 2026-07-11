@@ -170,7 +170,15 @@ describe("path safety", () => {
       "",
       "~/x",
       "a/./b",
-      "nul\0byte"
+      "nul\0byte",
+      // NTFS alternate data streams and Windows reserved device names
+      "report.txt:hidden",
+      "sub/file:stream",
+      "con",
+      "results/con",
+      "com1.txt",
+      "LPT1",
+      "aux.log"
     ]) {
       expect(isSafeRelPath(bad), bad).toBe(false);
     }

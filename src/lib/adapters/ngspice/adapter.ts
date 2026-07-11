@@ -144,6 +144,14 @@ export class NgspiceAdapter implements EngineAdapter {
     await bridge.createDirAll(root, "results");
     await bridge.writeTextFileAtomic(root, deckRelPath, deck);
 
+    // Guard against stale output: overwrite the data file with a sentinel
+    // before the run so a run that exits 0 without producing fresh output
+    // cannot be parsed as the previous run's results (evidence integrity).
+    const sentinel = `__ewb_no_output__${runId}__`;
+    if (params.analysis.kind !== "op") {
+      await bridge.writeTextFileAtomic(root, dataRelPath, sentinel);
+    }
+
     const proc = await bridge.runTool(
       { tool: "ngspice", netlistRelPath: deckRelPath, outputDirRelPath: "results" },
       { workspaceRoot: root, timeoutMs: ctx.timeoutMs, signal: ctx.signal, toolPathOverride: this.options.executablePath }
@@ -199,6 +207,15 @@ export class NgspiceAdapter implements EngineAdapter {
       }
 
       const dataText = await bridge.readTextFile(root, dataRelPath);
+      if (dataText.trim() === sentinel) {
+        return failureResult(
+          request.capabilityId,
+          "failed",
+          "ngspice exited without producing output data. The most likely cause is a recorded vector that does not exist in the circuit " +
+            "(check the vector names against the netlist nodes) or an analysis that aborted with warnings. See diagnostics.",
+          { raw, diagnostics, generatedFiles, durationMs: proc.durationMs, toolVersion: detection.version }
+        );
+      }
       const table = parseWrData(dataText, `${request.capabilityId} — ${params.netlistRelPath}`);
       const csv = tableToCsv(table);
       await bridge.writeTextFileAtomic(root, csvRelPath, csv);

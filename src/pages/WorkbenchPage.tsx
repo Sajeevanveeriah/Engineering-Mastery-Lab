@@ -31,15 +31,21 @@ export function WorkbenchPage() {
   const registry = useMemo(() => createRegistry(loadToolSettings()), []);
 
   useEffect(() => {
-    void getPlatformBridge().then(setBridge);
+    getPlatformBridge().then(setBridge, (err) => {
+      setBridge(null);
+      setError(`Failed to initialise the desktop bridge: ${err instanceof Error ? err.message : String(err)}`);
+    });
   }, []);
 
   const openAt = useCallback(
     async (root: string) => {
+      if (running !== null) return; // don't switch workspaces mid-run
       const b = await getPlatformBridge();
       if (!b) return;
       try {
         const ws = await openWorkspace(b, root);
+        abortRef.current?.abort();
+        abortRef.current = null;
         setWorkspace(ws);
         setResults({});
         setError(null);
@@ -49,7 +55,7 @@ export function WorkbenchPage() {
         setError(err instanceof Error ? err.message : String(err));
       }
     },
-    []
+    [running]
   );
 
   const pickAndOpen = async () => {
@@ -200,10 +206,10 @@ export function WorkbenchPage() {
       <div className="card">
         <h2>Project</h2>
         <p>
-          <button className="btn" onClick={() => void pickAndCreate()}>
+          <button className="btn" onClick={() => void pickAndCreate()} disabled={running !== null}>
             New project…
           </button>{" "}
-          <button className="btn" onClick={() => void pickAndOpen()}>
+          <button className="btn" onClick={() => void pickAndOpen()} disabled={running !== null}>
             Open project…
           </button>{" "}
           {workspace && (

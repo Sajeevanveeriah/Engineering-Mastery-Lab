@@ -39,7 +39,12 @@ export function DiagnosticsPage() {
   }, []);
 
   useEffect(() => {
-    void refresh(settings);
+    refresh(settings).catch((err) => {
+      setBusy(false);
+      setRows([]);
+      setIsDesktop(false);
+      console.error("Diagnostics refresh failed", err);
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

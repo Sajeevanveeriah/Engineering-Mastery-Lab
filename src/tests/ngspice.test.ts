@@ -46,6 +46,16 @@ describe("netlist validation", () => {
     expect(issues.some((i) => i.message.includes("shell"))).toBe(true);
   });
 
+  it("catches .control smuggled across a SPICE continuation line", () => {
+    // ".cont" + "+rol" reassembles to ".control" in ngspice's parser.
+    const split = "* t\nR1 a b 1k\n.cont\n+rol\nshell echo pwned\n.endc\n.end\n";
+    const issues = validateNetlist(split);
+    expect(issues.some((i) => i.message.includes(".control"))).toBe(true);
+    // shell escape split across a continuation too
+    const splitShell = "* t\nR1 a b 1k\n.control\nsh\n+ell echo pwned\n.endc\n.end\n";
+    expect(validateNetlist(splitShell).some((i) => i.message.includes("shell"))).toBe(true);
+  });
+
   it("validates analysis parameters", () => {
     expect(validateAnalysis({ kind: "dc", source: "V1", start: 0, stop: 5, step: 0.1 }, ["v(out)"])).toEqual([]);
     expect(validateAnalysis({ kind: "dc", source: "V1; rm", start: 0, stop: 5, step: 0.1 }, ["v(out)"])[0].message).toMatch(/Invalid swept source/);
@@ -203,6 +213,28 @@ describe("ngspice adapter execution (memory bridge)", () => {
     expect(failed.status).toBe("failed");
     expect(failed.message).toMatch(/exited with code 1/);
     expect(failed.diagnostics.some((d) => d.severity === "error")).toBe(true);
+  });
+
+  it("does not report stale data when a rerun produces no fresh output", async () => {
+    const bridge = readyBridge();
+    // First run writes real data.
+    bridge.onRun = (_req, opts) => {
+      bridge.seedFile(opts.workspaceRoot, "results/ngspice-tran-circuits-rc-cir.data.txt", TRAN_WRDATA);
+      return okProcess();
+    };
+    const adapter = new NgspiceAdapter();
+    const request = {
+      capabilityId: "ngspice.tran",
+      params: { netlistRelPath: "circuits/rc.cir", analysis: { kind: "tran", tStep: 1e-5, tStop: 1e-3 }, vectors: ["v(out)"] }
+    };
+    const first = await adapter.execute(request, { bridge, workspaceRoot: "/ws" });
+    expect(first.status).toBe("ok");
+    // Second run exits 0 but writes nothing new: the adapter must NOT re-read
+    // the previous data file as a fresh result.
+    bridge.onRun = () => okProcess();
+    const second = await adapter.execute(request, { bridge, workspaceRoot: "/ws" });
+    expect(second.status).toBe("failed");
+    expect(second.message).toMatch(/without producing output data/);
   });
 
   it("handles malformed tool output without crashing", async () => {

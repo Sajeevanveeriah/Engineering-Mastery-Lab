@@ -10,6 +10,8 @@ pub enum PathError {
     NotRelative,
     ForbiddenComponent(String),
     RootInvalid(String),
+    /// The resolved path escaped the workspace root (e.g. via a symlink/junction).
+    EscapesRoot(String),
 }
 
 impl std::fmt::Display for PathError {
@@ -19,8 +21,24 @@ impl std::fmt::Display for PathError {
             PathError::NotRelative => write!(f, "path must be workspace-relative (no absolute paths, drive letters or UNC prefixes)"),
             PathError::ForbiddenComponent(c) => write!(f, "path contains a forbidden component: {c:?}"),
             PathError::RootInvalid(msg) => write!(f, "workspace root is invalid: {msg}"),
+            PathError::EscapesRoot(p) => write!(f, "path resolves outside the workspace root (blocked): {p:?}"),
         }
     }
+}
+
+/// Windows reserved device names (case-insensitive, with or without extension).
+const RESERVED_NAMES: &[&str] = &[
+    "con", "prn", "aux", "nul", "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8",
+    "com9", "lpt1", "lpt2", "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9",
+];
+
+fn is_reserved_name(segment: &str) -> bool {
+    let stem = segment
+        .split('.')
+        .next()
+        .unwrap_or(segment)
+        .to_ascii_lowercase();
+    RESERVED_NAMES.contains(&stem.as_str())
 }
 
 /// Lexical validation of a workspace-relative path (POSIX separators required).
@@ -43,6 +61,15 @@ pub fn validate_rel_path(rel: &str) -> Result<(), PathError> {
         if seg.is_empty() || seg == "." || seg == ".." {
             return Err(PathError::ForbiddenComponent(seg.to_string()));
         }
+        // Reject NTFS alternate data streams ("file:stream") and reserved
+        // Windows device names ("con", "nul", "com1", ...) on every platform so
+        // workspaces remain portable and safe to copy onto Windows.
+        if seg.contains(':') {
+            return Err(PathError::ForbiddenComponent(seg.to_string()));
+        }
+        if is_reserved_name(seg) {
+            return Err(PathError::ForbiddenComponent(seg.to_string()));
+        }
     }
     // Belt and braces: let std parse it too, rejecting anything that is not a
     // plain Normal component (catches platform-specific prefixes).
@@ -55,18 +82,42 @@ pub fn validate_rel_path(rel: &str) -> Result<(), PathError> {
     Ok(())
 }
 
-/// Canonicalise the workspace root and join a validated relative path.
-/// The joined path is guaranteed to stay under the root because the relative
-/// part contains only `Normal` components (no `..`, no absolute segments).
+/// Verify the joined path stays under the canonical root even after symlink /
+/// junction resolution. Because the target may not exist yet (writes), we
+/// canonicalise the deepest existing ancestor and require it to stay under the
+/// root; the non-existent tail is composed only of validated `Normal`
+/// components so it cannot escape.
+fn assert_within_root(root_canonical: &Path, joined: &Path) -> Result<(), PathError> {
+    let mut probe = joined;
+    loop {
+        match probe.canonicalize() {
+            Ok(resolved) => {
+                if resolved.starts_with(root_canonical) {
+                    return Ok(());
+                }
+                return Err(PathError::EscapesRoot(joined.display().to_string()));
+            }
+            Err(_) => match probe.parent() {
+                // Reached an existing ancestor? Loop tries its parent next.
+                Some(parent) if parent != probe => probe = parent,
+                _ => {
+                    // No existing ancestor resolved (root itself is canonical),
+                    // and every tail component was validated as Normal.
+                    return Ok(());
+                }
+            },
+        }
+    }
+}
+
+/// Canonicalise the workspace root and join a validated relative path, then
+/// confirm the result stays under the root after symlink resolution.
 pub fn safe_join(root: &str, rel: &str) -> Result<PathBuf, PathError> {
     validate_rel_path(rel)?;
-    let root_path = Path::new(root)
-        .canonicalize()
-        .map_err(|e| PathError::RootInvalid(e.to_string()))?;
-    if !root_path.is_dir() {
-        return Err(PathError::RootInvalid("not a directory".into()));
-    }
-    Ok(root_path.join(rel))
+    let root_path = canonical_root(root)?;
+    let joined = root_path.join(rel);
+    assert_within_root(&root_path, &joined)?;
+    Ok(joined)
 }
 
 /// Canonicalise the root alone (for use as a process working directory).
@@ -109,6 +160,14 @@ mod tests {
             "a\\b",
             "a//b",
             "nul\0byte",
+            "report.txt:hidden",
+            "sub/file:stream",
+            "con",
+            "nul",
+            "results/con",
+            "com1.txt",
+            "LPT1",
+            "aux.log",
         ] {
             assert!(
                 validate_rel_path(bad).is_err(),
@@ -126,5 +185,28 @@ mod tests {
         assert!(joined.starts_with(dir.canonicalize().unwrap()));
         assert!(safe_join(root, "../escape.txt").is_err());
         assert!(safe_join("Z:/definitely/not/a/real/root", "a.txt").is_err());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn safe_join_rejects_symlink_escape() {
+        use std::os::unix::fs::symlink;
+        let base = std::env::temp_dir().join(format!("ewb-symlink-{}", std::process::id()));
+        let root = base.join("workspace");
+        let outside = base.join("outside");
+        std::fs::create_dir_all(&root).unwrap();
+        std::fs::create_dir_all(&outside).unwrap();
+        std::fs::write(outside.join("secret.txt"), "top secret").unwrap();
+        let link = root.join("escape");
+        let _ = std::fs::remove_file(&link);
+        symlink(&outside, &link).unwrap();
+
+        let root_str = root.to_str().unwrap();
+        assert!(matches!(
+            safe_join(root_str, "escape/secret.txt"),
+            Err(PathError::EscapesRoot(_))
+        ));
+        std::fs::write(root.join("real.txt"), "ok").unwrap();
+        assert!(safe_join(root_str, "real.txt").is_ok());
     }
 }

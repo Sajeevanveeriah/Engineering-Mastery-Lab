@@ -107,7 +107,7 @@ describe("evidence report", () => {
     expect(report).toContain("`" + "c".repeat(64) + "`");
     expect(report).toContain('"aFirst": 2'); // config JSON present, keys sorted
     expect(report.indexOf('"aFirst"')).toBeLessThan(report.indexOf('"zLast"'));
-    expect(report).toContain("Result: **PASS (completed)** — completed");
+    expect(report).toContain("Result: **COMPLETED** — completed");
     expect(report).toContain("Result: **NOT RUN** in this report."); // sim-a has no run
     expect(report).toMatch(/3 points × 2 columns/);
     expect(report).toContain("- **error** a error");
