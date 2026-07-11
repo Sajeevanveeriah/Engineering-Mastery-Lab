@@ -56,13 +56,15 @@ export interface RunOptions {
   workspaceRoot: string;
   timeoutMs?: number;
   signal?: AbortSignal;
-  /** User-configured executable override (validated by the host). */
-  toolPathOverride?: string;
 }
 
 export interface PlatformBridge {
   readonly isDesktop: boolean;
-  detectTool(tool: ToolId, overridePath?: string): Promise<ToolDetection>;
+  detectTool(tool: ToolId): Promise<ToolDetection>;
+  /** Choose and host-validate a tool executable with the native file picker. */
+  pickToolExecutable(tool: ToolId): Promise<ToolDetection | null>;
+  /** Forget a session selection and return to trusted host auto-discovery. */
+  clearToolExecutable(tool: ToolId): Promise<void>;
   runTool(request: ToolRunRequest, options: RunOptions): Promise<ProcessResult>;
   readTextFile(root: string, relPath: string, maxBytes?: number): Promise<string>;
   writeTextFileAtomic(root: string, relPath: string, contents: string): Promise<void>;
@@ -72,8 +74,6 @@ export interface PlatformBridge {
   createDirAll(root: string, relPath: string): Promise<void>;
   fileExists(root: string, relPath: string): Promise<boolean>;
   pickDirectory(title: string): Promise<string | null>;
-  /** Open a validated absolute path with the OS default application. */
-  openPath(absPath: string): Promise<void>;
 }
 
 /** Default and ceiling for external process timeouts (mirrored in Rust). */

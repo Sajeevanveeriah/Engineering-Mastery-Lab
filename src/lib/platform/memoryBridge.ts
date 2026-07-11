@@ -18,8 +18,9 @@ export class MemoryBridge implements PlatformBridge {
   private files = new Map<string, string>();
   private dirs = new Set<string>();
   detections = new Map<ToolId, ToolDetection>();
+  pickedDetections = new Map<ToolId, ToolDetection | null>();
+  private selectedDetections = new Map<ToolId, ToolDetection>();
   onRun: ScriptedRun | null = null;
-  openedPaths: string[] = [];
 
   private key(root: string, relPath: string): string {
     assertSafeRelPath(relPath);
@@ -30,8 +31,18 @@ export class MemoryBridge implements PlatformBridge {
     this.files.set(this.key(root, relPath), contents);
   }
 
-  async detectTool(tool: ToolId, _overridePath?: string): Promise<ToolDetection> {
-    return this.detections.get(tool) ?? { found: false, error: `${tool} is not installed (memory bridge)` };
+  async detectTool(tool: ToolId): Promise<ToolDetection> {
+    return this.selectedDetections.get(tool) ?? this.detections.get(tool) ?? { found: false, error: `${tool} is not installed (memory bridge)` };
+  }
+
+  async pickToolExecutable(tool: ToolId): Promise<ToolDetection | null> {
+    const picked = this.pickedDetections.get(tool) ?? null;
+    if (picked) this.selectedDetections.set(tool, picked);
+    return picked;
+  }
+
+  async clearToolExecutable(tool: ToolId): Promise<void> {
+    this.selectedDetections.delete(tool);
   }
 
   async runTool(request: ToolRunRequest, options: RunOptions): Promise<ProcessResult> {
@@ -91,9 +102,6 @@ export class MemoryBridge implements PlatformBridge {
     return null;
   }
 
-  async openPath(absPath: string): Promise<void> {
-    this.openedPaths.push(absPath);
-  }
 }
 
 /**

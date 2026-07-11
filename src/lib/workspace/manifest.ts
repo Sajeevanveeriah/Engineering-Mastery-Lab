@@ -162,10 +162,12 @@ export function parseManifest(json: string): WorkspaceManifest {
         typeof s.id !== "string" ||
         s.id.length === 0 ||
         typeof s.title !== "string" ||
+        s.title.length === 0 ||
         typeof s.capabilityId !== "string" ||
+        s.capabilityId.length === 0 ||
         !isRecord(s.params) ||
         !Array.isArray(s.requirementIds) ||
-        !s.requirementIds.every((x) => typeof x === "string")
+        !s.requirementIds.every((x) => typeof x === "string" && x.length > 0)
       ) {
         issues.push({
           path: `simulations[${i}]`,
@@ -173,11 +175,13 @@ export function parseManifest(json: string): WorkspaceManifest {
         });
         return;
       }
-      // Any params field that looks like a path must be safe and relative.
-      for (const [k, val] of Object.entries(s.params)) {
-        if (/RelPath$/.test(k) && (typeof val !== "string" || !isSafeManifestRelPath(val))) {
-          issues.push({ path: `simulations[${i}].params.${k}`, message: "must be a safe relative path" });
-        }
+      validateParameterPaths(s.params, `simulations[${i}].params`, issues);
+      const duplicateLink = findDuplicate(s.requirementIds as string[]);
+      if (duplicateLink) {
+        issues.push({
+          path: `simulations[${i}].requirementIds`,
+          message: `contains duplicate requirement id "${duplicateLink}"`
+        });
       }
       simulations.push({
         id: s.id,
@@ -193,6 +197,21 @@ export function parseManifest(json: string): WorkspaceManifest {
   if (dupSim) issues.push({ path: "simulations", message: `duplicate simulation id "${dupSim}"` });
   const dupReq = findDuplicate(requirements.map((r) => r.id));
   if (dupReq) issues.push({ path: "requirements", message: `duplicate requirement id "${dupReq}"` });
+
+  // Traceability links must resolve inside this manifest. A dangling id can
+  // look like verification coverage in reports even though no requirement
+  // exists, so reject it at the workspace boundary.
+  const knownRequirementIds = new Set(requirements.map((requirement) => requirement.id));
+  simulations.forEach((simulation, simulationIndex) => {
+    simulation.requirementIds.forEach((requirementId, referenceIndex) => {
+      if (!knownRequirementIds.has(requirementId)) {
+        issues.push({
+          path: `simulations[${simulationIndex}].requirementIds[${referenceIndex}]`,
+          message: `references unknown requirement id "${requirementId}"`
+        });
+      }
+    });
+  });
 
   if (issues.length > 0) {
     throw new ManifestError(
@@ -235,10 +254,126 @@ export function serializeManifest(m: WorkspaceManifest): string {
   return JSON.stringify(ordered, null, 2) + "\n";
 }
 
+/**
+ * Validate an in-memory manifest before it is allowed near the filesystem.
+ * JSON serialisation can otherwise silently drop values such as `undefined`
+ * or coerce non-finite numbers to `null`, so check parameter values before the
+ * normal parse validation creates a defensive canonical copy.
+ */
+export function validateManifestForWrite(m: WorkspaceManifest): WorkspaceManifest {
+  const issues: ManifestIssue[] = [];
+  m.simulations.forEach((simulation, index) => {
+    validateJsonValue(simulation.params, `simulations[${index}].params`, issues, new Set<object>());
+  });
+  if (issues.length > 0) throwManifestIssues(issues);
+  return parseManifest(serializeManifest(m));
+}
+
+/** Return only existing simulation ids whose evidence definition changed. */
+export function affectedSimulationIds(
+  previous: WorkspaceManifest,
+  next: WorkspaceManifest
+): Set<string> {
+  const affected = new Set<string>();
+  const nextById = new Map(next.simulations.map((simulation) => [simulation.id, simulation]));
+  for (const simulation of previous.simulations) {
+    const nextSimulation = nextById.get(simulation.id);
+    if (!nextSimulation || simulationDefinitionKey(previous, simulation) !== simulationDefinitionKey(next, nextSimulation)) {
+      affected.add(simulation.id);
+    }
+  }
+  return affected;
+}
+
 function sortKeys(obj: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const k of Object.keys(obj).sort()) out[k] = obj[k];
   return out;
+}
+
+function validateJsonValue(
+  value: unknown,
+  path: string,
+  issues: ManifestIssue[],
+  ancestors: Set<object>
+): void {
+  if (value === null || typeof value === "string" || typeof value === "boolean") return;
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) issues.push({ path, message: "must be a finite JSON number" });
+    return;
+  }
+  if (typeof value !== "object") {
+    issues.push({ path, message: `contains unsupported ${typeof value} value` });
+    return;
+  }
+  const object = value as object;
+  if (ancestors.has(object)) {
+    issues.push({ path, message: "must not contain circular references" });
+    return;
+  }
+  ancestors.add(object);
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => validateJsonValue(item, `${path}[${index}]`, issues, ancestors));
+  } else {
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype !== Object.prototype && prototype !== null) {
+      issues.push({ path, message: "must contain only plain JSON objects" });
+    } else {
+      Object.entries(value as Record<string, unknown>).forEach(([key, child]) => {
+        validateJsonValue(child, `${path}.${key}`, issues, ancestors);
+      });
+    }
+  }
+  ancestors.delete(object);
+}
+
+function validateParameterPaths(value: unknown, path: string, issues: ManifestIssue[]): void {
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => validateParameterPaths(item, `${path}[${index}]`, issues));
+    return;
+  }
+  if (!isRecord(value)) return;
+  Object.entries(value).forEach(([key, child]) => {
+    const childPath = `${path}.${key}`;
+    if (/RelPath$/i.test(key) && (typeof child !== "string" || !isSafeManifestRelPath(child))) {
+      issues.push({ path: childPath, message: "must be a safe relative path" });
+    }
+    validateParameterPaths(child, childPath, issues);
+  });
+}
+
+function simulationDefinitionKey(manifest: WorkspaceManifest, simulation: SimulationConfig): string {
+  const requirementById = new Map(manifest.requirements.map((requirement) => [requirement.id, requirement]));
+  const linkedRequirements = simulation.requirementIds
+    .map((id) => requirementById.get(id) ?? { id, title: "", sourceRelPath: undefined })
+    .sort((a, b) => a.id.localeCompare(b.id));
+  return JSON.stringify(sortKeysDeep({
+    simulation: {
+      id: simulation.id,
+      title: simulation.title,
+      capabilityId: simulation.capabilityId,
+      params: simulation.params,
+      requirementIds: [...simulation.requirementIds].sort()
+    },
+    linkedRequirements
+  }));
+}
+
+function sortKeysDeep(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sortKeysDeep);
+  if (isRecord(value)) {
+    const out: Record<string, unknown> = {};
+    Object.keys(value).sort().forEach((key) => { out[key] = sortKeysDeep(value[key]); });
+    return out;
+  }
+  return value;
+}
+
+function throwManifestIssues(issues: ManifestIssue[]): never {
+  throw new ManifestError(
+    `workbench.json failed validation: ${issues.map((issue) => `${issue.path}: ${issue.message}`).join("; ")}`,
+    issues
+  );
 }
 
 function findDuplicate(ids: string[]): string | null {

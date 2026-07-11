@@ -1,147 +1,175 @@
-# Engineering Workbench (Engineering Mastery Lab)
+# Engineering Workbench
 
-**Engineering Workbench v0.1.0** is a cross-platform desktop application
-(Tauri 2) and web app. It combines the original Engineering Mastery Lab — an
-interactive, fully client-side learning site — with a local engineering
-workbench: portable project workspaces, ngspice circuit simulation, KiCad CLI
-validation/export, toolchain diagnostics and deterministic evidence reports.
+Engineering Workbench v0.1.0 is a functional completion candidate that combines
+the Engineering Mastery Lab learning application with a local desktop project
+workflow. The shared React and TypeScript interface runs in the browser and in
+a Tauri 2 desktop shell. Desktop-only features use a narrow Rust command
+boundary for workspace files, ngspice, KiCad CLI and evidence capture.
 
-The web build (GitHub Pages) keeps every learning lab; the desktop build adds
-the external-tool workbench. See [docs/Installation.md](docs/Installation.md)
-for both.
+This branch is not a production release. The current implementation and its
+remaining release gates are recorded in
+[docs/Release-Readiness-Report.md](docs/Release-Readiness-Report.md).
 
-## Workbench (desktop) features
+## What is included
 
-- **Project workspaces** — portable directories with a versioned
-  `workbench.json` manifest, requirement traceability and standard folders
-  (see [examples/rc-filter-workspace](examples/rc-filter-workspace)).
-- **ngspice adapter** — netlist validation, DC operating point, DC sweep, AC
-  and transient analyses of an already-installed ngspice, with parsed
-  numerical output, plots and CSV export.
-- **KiCad CLI adapter** — ERC/DRC with structured findings, netlist/BOM/
-  gerber/drill export and board rendering via an already-installed
-  `kicad-cli`, gated on the detected KiCad version.
-- **Toolchain diagnostics** — every engine and tool with executable, version,
-  readiness, capabilities and remediation. The app stays fully usable when
-  external tools are missing.
-- **Evidence reports** — deterministic Markdown reports covering metadata,
-  requirements, tool versions, input hashes, configurations, results,
-  limitations and reproduction steps.
-- **Security model** — no shell strings, allow-listed subcommands, workspace-
-  scoped path validation, process timeouts and output caps
-  ([ADR-0004](docs/adr/ADR-0004-External-Process-Security.md)).
+### Learning application
 
-ngspice and KiCad are **not bundled**; the workbench integrates with existing
-installations and degrades gracefully without them.
+- A redesigned responsive dashboard with progress, current sprint, priority
+  skills, module status and portfolio evidence.
+- A searchable skills matrix covering 15 domains and 3 levels per domain.
+- Seven guided learning pathways.
+- Eight engineering labs, each using the complete Learn, Simulate, Challenge,
+  Diagnose, Build, Evidence, Reflect and Next cycle:
+  - PID control
+  - Electrical and electronics
+  - Embedded systems
+  - PLC and SCADA
+  - Robotics
+  - AI and ML
+  - Mechanical dynamics
+  - Professional engineering practice
+- Responsive navigation, light and dark themes, keyboard-operated tabs,
+  accessible chart descriptions and progress export, import and undo.
+- Browser-local storage only. No account, backend or telemetry is required.
 
-## Learning labs
+### Desktop project workbench
 
-An interactive, fully client-side learning experience for applied engineering:
-controls, electrical/electronics, embedded systems, PLC/SCADA, robotics,
-AI/ML, mechanical dynamics and professional engineering practice.
+- Create and open portable workspace directories with a validated,
+  versioned `workbench.json` manifest.
+- Author project metadata, requirements, requirement links and typed simulation
+  or validation configurations in the app.
+- Create and edit bounded text inputs under `circuits/` and `requirements/`.
+- Run registered built-in analyses, ngspice simulations and KiCad CLI checks.
+- Inspect status, duration, quantities, plots, findings and generated files.
+- Capture the exact adapter result and pre-run input SHA-256 hashes in
+  `evidence/latest-run.json`.
+- Generate a deterministic Markdown evidence report at
+  `reports/evidence.md`. Reports distinguish linked requirements from verified
+  outcomes and call out missing, failed or stale evidence.
+- Diagnose external-tool availability and use safe static SPICE validation in
+  the browser without executing a process.
 
-Learn by **simulating, passing challenges, diagnosing faults and building a
-portfolio** — not by reading passive notes.
+ngspice and KiCad are not bundled. The workbench reports missing-tool states
+without disabling the learning application.
 
-## Features
+## Desktop workspace authority
 
-- **Dashboard** — domain skill scores, recommended next module, weekly sprint
-  checklist, portfolio artefact tracker, JSON progress export/import.
-- **Skills matrix** — 15 domains × 3 levels with outcomes, practice tasks,
-  linked simulators, self-ratings and evidence fields.
-- **7 learning pathways** — ordered routes through the labs.
-- **8 interactive labs**, each with the full module structure (Learn /
-  Simulate / Challenge / Diagnose / Build / Evidence / Reflect / Next):
-  - PID Control (1st/2nd-order plants, disturbance, saturation, step metrics)
-  - Electrical & Electronics (Ohm, RC charge/filter, RLC, divider + ADC)
-  - Embedded (FSM, debounce, interrupt vs polling, UART/SPI/I2C frames)
-  - PLC & SCADA (tank with alarms/trip, conveyor with interlocks, HMI, trend)
-  - Robotics (differential drive, noisy odometry, waypoints, A* planner)
-  - AI/ML (regression, kNN + confusion matrix, anomaly detection, RUL)
-  - Mechanical (gears/power, spring-mass-damper, vibration explorer)
-  - Practice (traceability matrix, FMEA, risk register, FAT/SAT, decision log)
-- Dark/light mode, mobile-first responsive layout, keyboard-accessible
-  controls, no backend, no tracking, no secrets.
+The desktop renderer cannot grant itself access to an arbitrary path. A
+workspace root must first be selected through the Rust-controlled native folder
+picker. The canonical root is authorised for the current desktop session, and
+all workspace file commands and tool runs require an exact match to that
+authority.
+
+Recent-project entries are convenience identifiers stored in browser storage.
+After a restart, opening a recent project requires re-selecting its folder in
+the native picker. The selected canonical root must match the saved recent
+location before any project file is read.
+
+## Workspace layout
+
+```text
+<project>/
+  workbench.json
+  requirements/
+  circuits/
+  pcb/
+  simulations/
+  results/
+  evidence/
+    latest-run.json
+  reports/
+```
+
+An example is available at
+[`examples/rc-filter-workspace`](examples/rc-filter-workspace).
+
+## Security boundary
+
+- External programs are launched with argument vectors, never shell strings.
+- Rust allow-lists tool identities, operations, input types and output zones.
+- ngspice receives only generated batch decks that pass a Rust-side grammar
+  check immediately before spawn.
+- Paths are workspace-relative, lexically checked and canonicalised with
+  symlink and junction containment checks.
+- File replacement uses a flushed unique sibling temporary file and atomic
+  same-directory replacement. There is no delete-the-old-file fallback.
+- Process timeouts, cancellation and 2 MiB output caps are enforced.
+- The desktop capability manifest does not grant external open or reveal
+  access.
+
+See [SECURITY.md](SECURITY.md) and
+[ADR-0004](docs/adr/ADR-0004-External-Process-Security.md) for the threat model
+and residual risks.
 
 ## Setup
 
-Requires Node.js 20+ (22 recommended).
+Node.js 20 or newer is required. Node.js 22 is recommended.
 
 ```bash
 npm install
-npm run dev        # local dev server
+npm run dev
 ```
 
-## Test, lint, build
+## Quality commands
 
 ```bash
-npm test           # vitest unit tests for all simulation engines + storage
-npm run lint       # TypeScript strict type-check (tsc --noEmit)
-npm run build      # type-check + production build into dist/
-npm run preview    # serve the production build locally
+npm run lint
+npm test
+npm run build
 ```
 
-## Deploy to GitHub Pages
-
-1. In the repository settings, set **Pages → Source → GitHub Actions**.
-2. Push to `main`. The workflow in `.github/workflows/deploy.yml` runs tests,
-   builds and deploys automatically.
-3. The site appears at `https://<user>.github.io/engineering-mastery-lab/`.
-
-If you fork under a different repository name, update `base` in
-`vite.config.ts` to match.
-
-## Progress data
-
-Progress (ratings, challenges, reflections, artefacts, theme) is stored in
-your browser's `localStorage` only. Use **Dashboard → Export progress** to
-back it up as JSON and **Import progress** to restore or move devices. The
-Practice Lab tools export their artefacts as standalone JSON files.
-
-## Desktop build
-
-Requires the Rust toolchain (stable) plus platform webview dependencies — see
+Desktop development also needs the stable Rust toolchain and the platform
+webview dependencies described in
 [docs/Development-Setup.md](docs/Development-Setup.md).
 
 ```bash
-npm run tauri dev      # desktop app with hot reload
-npm run build:desktop  # unsigned installers into src-tauri/target/release/bundle/
+npm run tauri dev
+npm run build:desktop
 ```
 
-CI builds unsigned Windows/macOS/Linux packages with checksums on version tags
-(`.github/workflows/desktop.yml`).
+Run Rust checks from `src-tauri/`:
+
+```bash
+cargo fmt --check
+cargo clippy --all-targets --all-features -- -D warnings
+cargo test
+```
+
+The latest recorded checks are evidence, not a promise that a changed working
+tree remains green. Consult the release-readiness report before publishing.
+
+## Web and desktop behaviour
+
+| Capability | Web build | Tauri desktop |
+|---|---|---|
+| Learning labs and progress | Available | Available |
+| Static SPICE validation | Available | Available |
+| Local workspace files | Explanatory fallback | Native picker authority required |
+| External ngspice or KiCad execution | Not available | Available when installed and detected |
+| Workspace run receipts and reports | Not available | Available |
+
+The GitHub Pages workflow in `.github/workflows/deploy.yml` builds the shared
+web application. `HashRouter` keeps deep links compatible with static hosting.
 
 ## Documentation
 
-- [docs/Architecture.md](docs/Architecture.md) — layers, components, decisions
-- [docs/adr/](docs/adr) — architecture decision records (Tauri, adapters,
-  workspace schema, process security, code sharing)
-- [docs/Installation.md](docs/Installation.md) — installing the app and tools
-- [docs/Development-Setup.md](docs/Development-Setup.md) — dev environment
-- [docs/Adapter-Authoring-Guide.md](docs/Adapter-Authoring-Guide.md) — add a tool
-- [docs/Troubleshooting.md](docs/Troubleshooting.md) — common problems
-- [docs/Known-Limitations.md](docs/Known-Limitations.md) — current boundaries
-- [docs/Release-Checklist.md](docs/Release-Checklist.md) — release gates
-- [docs/Third-Party-Licences.md](docs/Third-Party-Licences.md) — dependency licences
-- [SECURITY.md](SECURITY.md) · [CONTRIBUTING.md](CONTRIBUTING.md) ·
-  [CHANGELOG.md](CHANGELOG.md)
-- [docs/Learning_Roadmap.md](docs/Learning_Roadmap.md) — suggested 12-week plan
-- [docs/Future_Supabase_Integration.md](docs/Future_Supabase_Integration.md) —
-  auth/cloud sync/Vercel roadmap
+- [Architecture](docs/Architecture.md)
+- [Installation](docs/Installation.md)
+- [Development setup](docs/Development-Setup.md)
+- [Adapter authoring guide](docs/Adapter-Authoring-Guide.md)
+- [Known limitations](docs/Known-Limitations.md)
+- [Release checklist](docs/Release-Checklist.md)
+- [Release-readiness report](docs/Release-Readiness-Report.md)
+- [Completion receipt](docs/20260711-Engineering-Workbench-Completion-Receipt-Rev00.md)
+- [Architecture decision records](docs/adr)
 
-## Licence
+## Licence and engineering use
 
-Not yet licensed for redistribution (`private: true`, no LICENSE file). All
-direct npm dependencies are MIT; the Rust dependency tree is permissive
-(MIT/Apache-2.0/BSD/Zlib/Unicode, a few MPL-2.0 crates — file-level copyleft
-only), so **MIT**, **Apache-2.0** or dual MIT/Apache-2.0 (the Rust convention)
-are all viable. Recommendation: **Apache-2.0** for its explicit patent grant,
-given the engineering-tooling audience. Details in
-[docs/Third-Party-Licences.md](docs/Third-Party-Licences.md).
+There is no `LICENSE` file. Source availability does not itself grant
+redistribution rights, so an explicit licence decision is required before a
+public release.
 
-## Disclaimer
-
-All simulations are simplified educational models using synthetic data. This
-site does not replace professional engineering judgement, does not demonstrate
-compliance with any engineering standard, and must never be used as a source
-of procedures for live machinery or safety systems.
+The learning simulations are simplified educational models using synthetic or
+user-supplied data. They do not demonstrate compliance with an engineering
+standard and do not replace professional engineering judgement, verified
+calculations, vendor instructions or safety procedures.

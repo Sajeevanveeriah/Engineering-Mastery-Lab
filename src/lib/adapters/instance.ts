@@ -1,15 +1,15 @@
-// Application-wide adapter registry, built from the current tool settings.
+// Application-wide adapter registry. External executable authority stays in
+// the Rust host; the renderer registry contains no executable paths.
 
 import { AdapterRegistry } from "./registry";
 import { createBuiltinAdapters } from "./builtin";
 import { NgspiceAdapter } from "./ngspice/adapter";
 import { KicadAdapter } from "./kicad/adapter";
-import { ToolSettings } from "../settings";
 
-export function createRegistry(settings: ToolSettings = {}): AdapterRegistry {
+export function createRegistry(): AdapterRegistry {
   const registry = new AdapterRegistry();
   for (const adapter of createBuiltinAdapters()) registry.register(adapter);
-  registry.register(new NgspiceAdapter({ executablePath: settings.ngspicePath }));
-  registry.register(new KicadAdapter({ executablePath: settings.kicadCliPath }));
+  registry.register(new NgspiceAdapter());
+  registry.register(new KicadAdapter());
   return registry;
 }

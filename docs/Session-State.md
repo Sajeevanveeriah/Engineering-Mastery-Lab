@@ -1,61 +1,95 @@
-# Session State — Engineering Workbench v0.1.0
+# Session state: Engineering Workbench v0.1.0
 
-Branch: `feature/engineering-workbench-v0.1`
-Last updated: 2026-07-11 (M11 in progress)
+Branch: `saj/complete-engineering-workbench`
 
-## Completed
+Tracked baseline: `ba8b722`
 
-### M0 — Repository recovery and baseline
-- `C:\Dev\Engineering-Mastery-Lab` was empty at session start; recovered by cloning
-  `https://github.com/sajeevanveeriah/engineering-mastery-lab`.
-- Baseline: `npm ci` clean; `npm test` 55/55; `npm run build` green.
-- Toolchain: Rust 1.97.0 + MSVC Build Tools 14.44 installed via winget during the
-  session. ngspice and kicad-cli are **not installed** on this host.
+Last updated: 2026-07-11
 
-### M1 — Plan and ADRs — commit `a20d069`
-### M2 — Adapter contract + registry + built-ins — commit `cc151ff` (69 tests)
-### M3 — Workspace manifest v1 + operations (85 tests)
-### M4 — ngspice adapter + fixtures + example workspace (108 tests)
-### M5 — KiCad CLI adapter + fixtures (121 tests)
-### M6 — Deterministic evidence report (126 tests)
-### M7 — Tauri 2 shell (Rust: 19 tests; clippy -D warnings clean; fmt clean)
-### M8 — Workbench + Diagnostics UI; web rendering verified in browser
-  (diagnostics/workbench/labs render, no console errors; external tools show
-  graceful missing-tool states in web mode)
-### M9 — CI workflows (ci.yml, desktop.yml) — YAML-validated; desktop build
-  verified locally on Windows: MSI + NSIS produced at
-  `src-tauri/target/release/bundle/{msi,nsis}/`
-### M10 — Documentation suite (README, ADRs, installation, dev setup, adapter
-  guide, troubleshooting, security policy, contributing, licence inventory,
-  release checklist, changelog, known limitations)
-### Dependency audit — production tree 0 vulnerabilities; dev-tree high/critical
-  cleared by upgrading vite→8, vitest→4, plugin-react→6 (all gates re-run green:
-  lint, 126 tests, build).
+Status: **Functional completion candidate with open release gates**
 
-### M11 — Verifier agents + fixes + final gates
-- Four fresh verifier agents ran (security, test/packaging, documentation,
-  architecture + simulation correctness). All HIGH findings fixed and re-tested:
-  - Security: symlink/junction workspace escape (post-join canonical containment
-    check); NTFS ADS + Windows reserved-name rejection; SPICE continuation-line
-    `.control`/shell bypass; removed unused wildcard opener grant.
-  - Architecture: stale-artefact sentinels (ngspice + KiCad); `kicad.drc` gated
-    to KiCad 8+; report labels `COMPLETED` with findings verdict; workbench
-    workspace-switch race + bridge-init rejection handling; RLC ζ comment.
-- Post-fix gates all green: `npm run lint`, `npm test` **130 passed**,
-  `npm run build`; `cargo fmt --check`, `cargo clippy -D warnings`,
-  `cargo test` **19 passed**; desktop rebuild produced fresh MSI + NSIS
-  (13:32/13:33) with SHA-256 checksums.
-- Docs review: no critical/high inaccuracies. `docs/Release-Readiness-Report.md`
-  written; KiCad DRC 8+ version notes propagated to Installation/Troubleshooting/
-  Known-Limitations.
+## Current source of truth
 
-## Blockers
+Use the current working tree first, then this session state, the dated
+completion receipt and the release-readiness report. Earlier milestone counts
+and prior package artefacts describe the baseline branch and must not be used
+as proof for the current completion source.
 
-None. macOS/Linux packaging is unverified on runners (workflows present and
-syntactically valid) — recorded in Known-Limitations.md.
+## Completed workstreams
 
-## Status
+| Workstream | Current result |
+|---|---|
+| Product shell | Responsive sidebar, mobile drawer, route focus, theme, error and not-found states |
+| Learning experience | Dashboard command centre, searchable skills, tracked pathways and full eight-stage lab modules |
+| Controls and plots | Keyboard tabs, persistent panel state, precise number entry, accessible plots and tables |
+| Progress | Versioned local persistence, import validation, backup and in-session import undo |
+| Desktop workbench | Create, open, save and close projects; author requirements, links, configurations and bounded text inputs |
+| Run evidence | Pre-run input hashes, exact latest receipt, strict receipt validation and deterministic Markdown report |
+| Workspace authority | Rust native picker, canonical session root allow-list and authority required by every workspace file command or tool run |
+| Process security | No shell, typed allow-list, path zones, ngspice deck grammar, timeouts, cancellation and bounded output |
+| File safety | Canonical containment and atomic same-directory replacement without delete-first fallback |
+| Integration coverage | Workspace, configuration, run, receipt, report, failure replacement and corrupt-receipt paths |
+| Documentation | README, changelog, security, architecture, limitations, ADRs, release gates and completion receipt refreshed |
 
-P0 complete; all local quality gates green; Windows desktop package built.
-Remaining before public release (see Release-Readiness-Report.md): verify
-macOS/Linux on CI runners, choose a licence, first real-tool run.
+## Recorded checks
+
+The workspace-authority checkpoint recorded:
+
+- `npm run lint`: passed.
+- `npm test`: 18 files and 152 tests passed.
+- `npm run build`: passed with 81 modules, CSS 45.98 kB and JS 427.49 kB.
+- Windows-targeted Tauri frontend build: passed.
+- `cargo fmt --check`: passed.
+- `cargo clippy --all-targets --all-features -- -D warnings`: passed.
+- `cargo test`: 39 passed.
+- Tauri capability generation: passed.
+- npm dependency audit: 0 vulnerabilities.
+- Final responsive audit: all 90 route and width cases passed with maximum
+  document overflow 0.
+- `npm run build:desktop`: passed and produced a non-empty release application,
+  MSI and NSIS bundle with recorded hashes.
+- `git diff --check`: passed after documentation reconciliation, with
+  line-ending conversion warnings only.
+
+Compliant Windows deliverables:
+
+- `src-tauri/target/release/bundle/deliverables/20260711-Engineering-Workbench-Windows-x64-MSI-Rev00.msi`,
+  3,256,320 bytes, SHA-256
+  `61a51da386d27d704f19c1c7f7127ab1b6412abcb3a7cdfec5b044f7e1bdfc39`.
+- `src-tauri/target/release/bundle/deliverables/20260711-Engineering-Workbench-Windows-x64-Setup-Rev00.exe`,
+  2,217,646 bytes, SHA-256
+  `be5d27d0250fb6c3007be208468785336a286c44c8a72e9274be74b507ced468`.
+
+These bundles were built and hashed, not installed, signed or interactively
+smoke-tested.
+
+## Recent-project flow
+
+`src/pages/WorkbenchPage.tsx` was then changed so a recent-project action:
+
+1. opens the native folder picker,
+2. obtains new session authority from Rust,
+3. compares the selected canonical identifier with the saved recent root, and
+4. opens the project only when the identifiers match.
+
+A different folder is rejected and cancellation reads no files. Lint, the full
+TypeScript test suite, the web production build and the Windows-targeted Tauri
+frontend build passed after this change.
+
+## Open release gates
+
+1. Install and interactively smoke-test the fresh Windows MSI and NSIS paths.
+2. Run real ngspice and KiCad end-to-end cases.
+3. Obtain actual macOS and Linux package and runtime results.
+4. Complete automated, zoom and assistive-technology accessibility review.
+5. Choose a licence before public redistribution.
+6. Decide the acceptable treatment for process descendants, executable
+   provenance and the narrow generated-deck race.
+
+## Working-tree and rollback note
+
+The completion work is not represented by the tracked baseline commit. It
+includes modified and untracked files. Preserve it with a reviewed commit or
+backup before any reset, clean or branch switch intended to discard changes.
+The non-destructive comparison point is commit `ba8b722` on
+`feature/engineering-workbench-v0.1`.

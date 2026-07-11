@@ -1,105 +1,149 @@
-# Release-Readiness Report — Engineering Workbench v0.1.0
+# Release-readiness report: Engineering Workbench v0.1.0
 
-Branch: `feature/engineering-workbench-v0.1` · Host: Windows 11, 2026-07-11
+Branch: `saj/complete-engineering-workbench`
 
-## Summary
+Assessment date: 2026-07-11
 
-The Engineering Mastery Lab web app was converted into **Engineering Workbench
-v0.1.0**, a Tauri 2 cross-platform desktop application, without disturbing the
-existing labs or the GitHub Pages web deployment. All P0 scope is implemented:
-versioned adapter architecture, local workspaces, ngspice and KiCad CLI
-adapters, toolchain diagnostics, deterministic evidence reports, cross-platform
-CI, and a full public-release documentation suite. Four fresh verifier agents
-reviewed the result; all HIGH findings were fixed and re-tested.
+Status: **Functional completion candidate, not a production release**
 
-## Quality gates (this host)
+## Decision
 
-| Gate | Command | Result |
+The current branch materially completes the requested application workflow and
+visual standard represented by the repository, its existing v0.1 workbench
+scope and the current completion task. It provides a coherent learning
+application, desktop project authoring, controlled engineering-tool execution,
+strict run receipts and evidence reporting.
+
+Production release is not approved. Current evidence includes a fresh Windows
+release application plus MSI and NSIS bundles, but those installers were not
+installed, signed or interactively smoke-tested. It does not include real
+ngspice or KiCad execution, macOS or Linux runtime results, a formal
+accessibility assessment or a public licence.
+
+No repository source found in this task can prove functions that were requested
+outside the current chat, current files and the public v0.1 workbench history.
+This report therefore evaluates the observable implementation rather than
+claiming undocumented requirements were satisfied.
+
+## Implemented completion scope
+
+### Product and visual experience
+
+- Responsive desktop sidebar and mobile drawer with grouped navigation.
+- Redesigned light and dark theme, page hierarchy, cards, tables, forms,
+  statuses, empty states and consistent iconography.
+- Dashboard command centre with sprint, priorities, module progress, portfolio
+  state and reversible progress import.
+- Eight labs, each retaining the complete eight-step learning cycle.
+- Searchable 15-domain by 3-level skills matrix and seven learning pathways.
+- Accessible tab relationships and keyboard behaviour, persistent hidden-panel
+  state, improved plots and precise slider input.
+
+### Workbench workflow
+
+- Native-authorised project creation and opening.
+- Project metadata, requirement, traceability and typed configuration editing.
+- Bounded circuit and requirement text-file editing.
+- Save and close flows with dirty-state and active-run guards.
+- Built-in, ngspice and KiCad adapter execution with result inspection.
+- Input hashes captured before execution and exact latest-result persistence.
+- Deterministic reports that distinguish configuration links from actual run
+  evidence and identify missing, failed or mismatched evidence.
+- Recent projects that require native folder re-selection and exact saved-root
+  comparison after restart.
+
+### Rust trust boundary
+
+- Session-scoped canonical workspace authority established only by the native
+  picker and required by all file and run commands.
+- Canonical path containment, including existing symlink and junction targets.
+- Atomic same-directory replacement without deleting the destination first.
+- No-shell process execution with timeouts, cancellation, bounded output and a
+  bounded post-process reader drain.
+- Tool-specific executable checks, KiCad 10 discovery and confined workspace
+  input and output zones.
+- Rust-side ngspice generated-deck validation immediately before spawn.
+
+## Recorded verification
+
+These checks ran after the workspace-authority, security and recent-project
+reauthorisation changes.
+
+| Check | Observed result |
+|---|---|
+| TypeScript strict check | `npm run lint` passed |
+| TypeScript tests | 18 files, 152 tests passed |
+| Web production build | Passed, 81 modules, CSS 45.98 kB, JS 427.49 kB |
+| Windows-targeted Tauri frontend build | Passed |
+| Rust formatting | `cargo fmt --check` passed |
+| Rust lint | Clippy passed for all targets and features with warnings denied |
+| Rust tests | 39 passed |
+| Tauri capabilities | Generation and capability checks passed |
+| Dependency audit | 0 vulnerabilities |
+| Responsive route audit | 90 of 90 route and width cases passed with maximum overflow 0 |
+| Windows desktop build | Release application, MSI and NSIS produced successfully |
+| Diff hygiene | `git diff --check` passed after documentation reconciliation; line-ending warnings only |
+
+The Windows artefacts were verified as non-empty and hashed. They were not
+installed, signed or launched through an interactive packaged-runtime smoke
+test.
+
+### Windows package evidence
+
+| Artefact | Size | SHA-256 |
+|---|---:|---|
+| `src-tauri/target/release/engineering-workbench.exe` | 9,499,648 bytes | Not recorded |
+| `src-tauri/target/release/bundle/deliverables/20260711-Engineering-Workbench-Windows-x64-MSI-Rev00.msi` | 3,256,320 bytes | `61a51da386d27d704f19c1c7f7127ab1b6412abcb3a7cdfec5b044f7e1bdfc39` |
+| `src-tauri/target/release/bundle/deliverables/20260711-Engineering-Workbench-Windows-x64-Setup-Rev00.exe` | 2,217,646 bytes | `be5d27d0250fb6c3007be208468785336a286c44c8a72e9274be74b507ced468` |
+
+The named MSI and NSIS deliverables are copies of the verified source bundles
+and retain the same hashes. `certutil -hashfile` independently reproduced the
+hashes for the source bundles and compliant deliverable copies.
+
+## Visual and interaction evidence
+
+- The redesigned dashboard was rendered and inspected at desktop and mobile
+  sizes.
+- The mobile drawer was observed opening, closing with Escape and restoring
+  focus to its trigger.
+- Module state was observed surviving navigation between simulator and
+  challenge panels.
+- Arrow-key tab selection was observed.
+- Contrast calculations recorded no failures for the checked semantic text and
+  chart tokens.
+- A 15-route by 6-width responsive audit passed all 90 cases at 320, 390, 480,
+  768, 1024 and 1280 CSS pixels with maximum document overflow 0.
+
+This is strong manual and scripted browser evidence, not a formal accessibility
+or Tauri-webview certification.
+
+## Residual risk matrix
+
+| Risk | Evidence state | Release action |
 |---|---|---|
-| TS type-check | `npm run lint` | pass |
-| TS tests | `npm test` | **131 passed** (14 files) |
-| Web build | `npm run build` | pass |
-| Rust format | `cargo fmt --check` | pass |
-| Rust clippy | `cargo clippy --all-targets -- -D warnings` | pass |
-| Rust tests | `cargo test` | **22 passed** |
-| Desktop package | `npm run build:desktop` | pass (Windows MSI + NSIS) |
-| Dependency audit | `npm audit` | 0 vulnerabilities (after vite 8 / vitest 4 upgrade) |
-| Secret scan | repo-wide pattern scan | no secrets, tokens or personal paths |
+| Real ngspice and KiCad execution | Fixtures only | Run representative cases on installed tools |
+| Current Windows package | Fresh application, MSI and NSIS built and hashed | Install and interactively smoke-test both installer paths |
+| macOS and Linux | No actual runner or runtime result | Run and inspect packages on both platforms |
+| Process descendants | Direct child only | Add platform process-tree containment or document acceptance |
+| Executable provenance | Name and banner checks only | Define trusted installation or signature policy |
+| Deck validation-to-use race | Narrow residual race | Consider immutable file handle or controlled copy strategy |
+| Accessibility | Responsive and browser interaction checks only | Run axe, assistive-technology and zoom review |
+| Public redistribution | No licence | Choose licence and refresh notices |
+| Evidence history | One latest receipt | Add append-only history only if required by product scope |
 
-## Verifier findings and resolution
+## Release decision gates
 
-Four independent reviewers (that did not write the code) covered security,
-test/packaging, documentation, and architecture/simulation correctness. Every
-HIGH finding was fixed and re-tested; actionable mediums were fixed, the rest
-recorded in Known-Limitations.md.
+The candidate is ready for continued desktop validation and packaging. It is
+not ready for a production or public release until the mandatory items in
+[Release-Checklist.md](Release-Checklist.md) are completed and recorded against
+the exact release commit.
 
-**Fixed (HIGH):**
-- Symlink/junction escape of the workspace root — added post-join canonical
-  containment check in `src-tauri/src/paths.rs`.
-- Stale-artefact hazard: a rerun that exits 0 without producing fresh output
-  could report the previous run's data. Added pre-run sentinels in the ngspice
-  and KiCad adapters so stale files can never be read as fresh results.
-- `kicad.drc` was gated at KiCad 7, where `pcb drc` does not exist — corrected
-  to KiCad 8+.
-- Tauri command boundary (`src-tauri/src/lib.rs`) had no tests — extracted the
-  pre-spawn `prepare_run` ordering and the `CancelRegistry` into testable units
-  and covered path-short-circuit ordering and cancel-after-complete.
+## Rollback
 
-**Fixed (MEDIUM):**
-- NTFS alternate data streams and Windows reserved device names now rejected in
-  both the Rust and TS path validators.
-- `.control`/shell escapes split across SPICE continuation lines now caught via
-  a whitespace-stripped compact check.
-- Unused `opener:allow-open-path` wildcard capability grant removed (least
-  privilege).
-- Evidence report labels runs `COMPLETED` (not `PASS`) and adds a findings
-  verdict, so a completed-with-errors ERC/DRC is not read as a pass.
-- Workbench blocks workspace switching mid-run and aborts in-flight runs on
-  open; bridge-init and diagnostics-refresh promise rejections are handled.
-- Corrected the RLC example damping-ratio comment (ζ = 0.5).
-- Evidence report picks the duplicate-`simulationId` winner by content, not
-  array order (fully order-independent); covered by a new determinism test.
-- CI: `desktop.yml` artefact check now fails on *partial* artefact loss (every
-  expected glob must match); the Rust job runs on all three OSes per-push;
-  `rpmbuild` installed for the Linux RPM target.
-
-**Documented rather than fixed (recorded in Known-Limitations.md):**
-- Evidence-report input hashes are computed at report time, not run time.
-- Directory exports (gerbers/drill) don't use the stale-output sentinel.
-- "Open in KiCad" deferred (opener capability removed for least privilege).
-- No automated Rust↔TS IPC contract test (field names kept in sync by hand;
-  Rust `prepare_run`/registry now tested, TS covered via `MemoryBridge`).
-- Rust timeout/cancellation tests use short wall-clock budgets (CI flake risk).
-
-## Platform verification
-
-- **Windows x64: verified** by an actual local desktop build (MSI + NSIS
-  installers produced).
-- **macOS / Linux: unverified on runners.** CI workflows are present and
-  YAML-validated but require an actual runner result to be considered verified
-  (per the mission's rule against fabricating cross-platform success).
-
-## Definition-of-done check
-
-- Existing functionality operational — yes (all labs/routes/tests preserved;
-  web rendering verified in-browser, no console errors).
-- P0 features implemented — yes.
-- Local quality gates pass — yes (table above).
-- Desktop package builds on this host — yes (Windows).
-- Cross-platform CI present and syntactically valid — yes.
-- Missing external tools fail gracefully — yes (diagnostics + `tool-missing`
-  results with remediation).
-- Example workspace demonstrates an end-to-end workflow — yes
-  (`examples/rc-filter-workspace`, three ngspice analyses).
-- Documentation reflects the implementation — yes (verified by a reviewer).
-- No secrets/fabricated results/unverifiable claims — confirmed.
-
-## Recommended next actions before making the repository public
-
-1. Run the `Desktop packages` workflow on a tag to verify macOS and Linux
-   builds on real runners.
-2. Choose and add a licence (recommended: Apache-2.0) and update the
-   `UNLICENSED` fields; regenerate the licence inventory.
-3. First real-tool run against installed ngspice/KiCad following the release
-   checklist's functional verification (adapters are fixture-verified only on
-   the dev host).
+The completion work is isolated on `saj/complete-engineering-workbench` and is
+currently represented by working-tree changes over commit `ba8b722`. Before
+discarding or switching away, create a reviewed commit or backup. To return to
+the prior tracked baseline after preserving any needed work, restore from
+commit `ba8b722` or switch to `feature/engineering-workbench-v0.1`. Do not use
+destructive reset or clean commands until untracked completion files have been
+backed up or committed.

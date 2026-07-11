@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ModuleShell } from "../components/ModuleShell";
 import { LinePlot } from "../components/LinePlot";
-import { Tabs } from "../components/Tabs";
+import { Tabs, useTabPanelActive } from "../components/Tabs";
 import { moduleById } from "../data/modules";
 import {
   tankStep,
@@ -16,6 +16,7 @@ import { round } from "../lib/metrics";
 const DT = 0.1;
 
 function TankTool() {
+  const panelActive = useTabPanelActive();
   const [tank, setTank] = useState<TankState>({
     level: 30,
     fillValveOpen: false,
@@ -28,6 +29,7 @@ function TankTool() {
   const time = useRef(0);
 
   useEffect(() => {
+    if (!panelActive) return;
     const id = setInterval(() => {
       setTank((s) => {
         const next = tankStep(s, defaultTankConfig, DT);
@@ -37,7 +39,7 @@ function TankTool() {
       });
     }, 100);
     return () => clearInterval(id);
-  }, []);
+  }, [panelActive]);
 
   const alarms: string[] = [];
   if (tank.highHighTrip) alarms.push("LEVEL HIGH-HIGH TRIP — FILL VALVE FORCED CLOSED (LATCHED)");
@@ -74,10 +76,12 @@ function TankTool() {
             </button>
           )}
         </p>
-        <h3>Alarm list</h3>
-        {alarms.length === 0 ? <p className="small muted">No active alarms.</p> : (
-          <ul className="alarm-list">{alarms.map((a, i) => <li key={i}>{a}</li>)}</ul>
-        )}
+        <div aria-live="polite" aria-atomic="true">
+          <h3>Alarm list</h3>
+          {alarms.length === 0 ? <p className="small muted">No active alarms.</p> : (
+            <ul className="alarm-list">{alarms.map((a, i) => <li key={i}>{a}</li>)}</ul>
+          )}
+        </div>
         <p className="small muted">Limits: low {defaultTankConfig.lowLimit}%, high {defaultTankConfig.highLimit}%, high-high trip {defaultTankConfig.highHighLimit}%.</p>
       </div>
       <div className="card">
@@ -88,7 +92,7 @@ function TankTool() {
           yLabel="%"
           yMin={0}
           yMax={100}
-          series={[{ name: "Level", color: "#4da3ff", points: trend.map((p) => ({ x: p.t, y: p.level })) }]}
+          series={[{ name: "Level", color: "var(--chart-1)", points: trend.map((p) => ({ x: p.t, y: p.level })) }]}
         />
         <h3>Structured-text style logic</h3>
         <pre className="small" style={{ background: "var(--bg-inset)", padding: "0.6rem", borderRadius: 8, overflowX: "auto" }}>{`(* every scan *)
@@ -104,6 +108,7 @@ IF ResetPB AND Level < H_LIMIT THEN TripLatched := FALSE; END_IF;`}</pre>
 }
 
 function ConveyorTool() {
+  const panelActive = useTabPanelActive();
   const [inputs, setInputs] = useState<ConveyorInputs>({
     startPb: false,
     stopPb: false,
@@ -113,15 +118,21 @@ function ConveyorTool() {
     resetPb: false
   });
   const [state, setState] = useState(initialConveyorState);
+  const inputsRef = useRef(inputs);
 
   useEffect(() => {
+    inputsRef.current = inputs;
+  }, [inputs]);
+
+  useEffect(() => {
+    if (!panelActive) return;
     const id = setInterval(() => {
-      setState((s) => conveyorScan(s, inputs));
+      setState((s) => conveyorScan(s, inputsRef.current));
       // Momentary pushbuttons release themselves after the scan.
       setInputs((i) => ({ ...i, startPb: false, stopPb: false, resetPb: false }));
     }, 100);
     return () => clearInterval(id);
-  }, [inputs]);
+  }, [panelActive]);
 
   const toggle = (k: keyof ConveyorInputs) => setInputs((i) => ({ ...i, [k]: !i[k] }));
   const pulse = (k: keyof ConveyorInputs) => setInputs((i) => ({ ...i, [k]: true }));
@@ -160,10 +171,12 @@ function ConveyorTool() {
             <label htmlFor="guard" style={{ color: "inherit" }}>Guard closed</label>
           </li>
         </ul>
-        <h3>Alarm list</h3>
-        {state.alarms.length === 0 ? <p className="small muted">No active alarms.</p> : (
-          <ul className="alarm-list">{state.alarms.map((a, i) => <li key={i}>{a}</li>)}</ul>
-        )}
+        <div aria-live="polite" aria-atomic="true">
+          <h3>Alarm list</h3>
+          {state.alarms.length === 0 ? <p className="small muted">No active alarms.</p> : (
+            <ul className="alarm-list">{state.alarms.map((a, i) => <li key={i}>{a}</li>)}</ul>
+          )}
+        </div>
       </div>
       <div className="card">
         <h3 style={{ marginTop: 0 }}>Ladder-style logic</h3>
@@ -190,6 +203,7 @@ function ConveyorTool() {
 function Simulator() {
   return (
     <Tabs
+      ariaLabel="PLC and SCADA simulators"
       tabs={[
         { id: "tank", label: "Tank process", content: <TankTool /> },
         { id: "conveyor", label: "Conveyor & interlocks", content: <ConveyorTool /> }

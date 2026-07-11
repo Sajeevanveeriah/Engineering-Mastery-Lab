@@ -1,43 +1,106 @@
-# ADR-0003: Portable workspace directory with a versioned JSON manifest
+# ADR-0003: Portable workspace and versioned evidence files
 
-Date: 2026-07-11 · Status: Accepted
+Date: 2026-07-11
+
+Status: Accepted, amended by the completion branch
 
 ## Context
 
-Projects must be portable (copyable between machines and OSes), reviewable in git, and safe
-against version skew and partial writes.
+Engineering projects must remain portable, reviewable in version control and
+recoverable after a failed write. Project intent and actual run evidence also
+need separate schemas so a configured link is not misrepresented as a verified
+result.
+
+The desktop renderer is not trusted to establish access merely by providing an
+absolute path. A recent-project identifier from browser storage must not become
+persistent filesystem authority.
 
 ## Decision
 
-A workspace is a plain directory:
+### Directory structure
 
-```
+```text
 <project>/
-  workbench.json      # manifest, schemaVersion 1
+  workbench.json
   requirements/
   circuits/
   pcb/
   simulations/
   results/
   evidence/
+    latest-run.json
   reports/
 ```
 
-Manifest rules:
+Additional unrelated files in a selected directory are not deleted during
+project creation.
 
-- `schemaVersion: 1` (integer). Opening a manifest with a **greater** version fails with a
-  clear "created by a newer version" error; lesser/missing versions fail as invalid. No silent
-  migration in v0.1.
-- All file references inside the manifest are **relative POSIX-style paths**; absolute paths
-  and `..` segments are rejected at validation time.
-- Timestamps are ISO-8601 UTC strings; keys are emitted in stable sorted order so identical
-  states diff cleanly.
-- Writes are atomic where the platform allows: write `workbench.json.tmp`, then rename over the
-  target (implemented in the Rust bridge). The previous manifest is never truncated in place.
-- Recent-projects list is UI state (localStorage), not part of the workspace.
+### Manifest schema
+
+`workbench.json` uses manifest schema version 1.
+
+- It contains project metadata, requirements and simulation or validation
+  configurations.
+- File references are relative POSIX-style paths. Absolute paths, traversal,
+  backslashes, drive and UNC forms, NTFS alternate streams and Windows device
+  names are rejected.
+- Timestamps are ISO-8601 UTC values.
+- Serialisation is deterministic so equivalent manifests diff cleanly.
+- A newer, missing or malformed schema fails with an actionable error. There
+  is no silent migration in v0.1.
+
+### Run receipt schema
+
+`evidence/latest-run.json` uses a separate receipt schema version 1.
+
+- It stores one latest run, not a history.
+- It records the simulation identifier, capture time, exact adapter result and
+  SHA-256 hashes of declared inputs that existed immediately before execution.
+- Validation checks the manifest simulation and capability relationship, safe
+  paths, timestamps, hashes, result shape, collection limits and an 8 MiB
+  total size ceiling.
+- Non-finite result numbers use a lossless tagged JSON representation.
+- Corrupt or unsupported receipts fail closed and are not converted into a
+  synthetic result.
+
+### Workspace authority and recents
+
+- A root becomes usable only after the Rust-controlled native folder picker
+  canonicalises and registers it for the current desktop session.
+- Every workspace filesystem command and external-tool run requires an exact
+  registered canonical root.
+- Recent projects remain browser-profile convenience state. Their saved paths
+  are identifiers, not continuing authority.
+- Opening a recent project requires native folder re-selection. The selected
+  canonical identifier must match the saved recent root before the workspace
+  is opened.
+
+### Atomic replacement
+
+Each workspace text write:
+
+1. validates and resolves the destination under the authorised root,
+2. creates a unique sibling temporary file with exclusive creation,
+3. writes, flushes and synchronises the complete content,
+4. serialises replacement through a process-local lock, and
+5. atomically replaces the destination in the same directory.
+
+POSIX uses rename replacement. Windows uses `MoveFileExW` with
+replace-existing and write-through flags. There is no fallback that deletes the
+existing destination first. If replacement fails, the previous destination is
+preserved and temporary cleanup is attempted.
 
 ## Consequences
 
-- A workspace can be zipped, committed or synced with no path fix-ups.
-- Unknown-version and malformed manifests produce actionable errors instead of data loss.
-- An example workspace ships under `examples/rc-filter-workspace/` and doubles as test input.
+- A workspace can be copied, zipped, reviewed or versioned without rewriting
+  absolute project references.
+- Project configuration, actual run evidence and generated reports remain
+  distinguishable.
+- Restarting the desktop application intentionally requires folder
+  reauthorisation, including for recents.
+- Replacement is safe per file but not transactional across multiple files.
+- Only one latest receipt persists across sessions. A future run-history
+  feature needs a separate append or indexing design rather than weakening the
+  latest receipt contract.
+- The built-in editor remains a bounded editor for supported circuit and
+  requirement text files, not a general filesystem interface.

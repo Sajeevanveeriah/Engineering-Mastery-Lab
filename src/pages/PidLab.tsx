@@ -46,8 +46,8 @@ function Simulator() {
             xLabel="time (s)"
             yLabel="value"
             series={[
-              { name: "Setpoint", color: "#9aa7bd", dashed: true, points: points.map((pt) => ({ x: pt.t, y: pt.sp })) },
-              { name: "PV", color: "#4da3ff", points: points.map((pt) => ({ x: pt.t, y: pt.pv })) }
+              { name: "Setpoint", color: "var(--chart-2)", dashed: true, points: points.map((pt) => ({ x: pt.t, y: pt.sp })) },
+              { name: "PV", color: "var(--chart-1)", points: points.map((pt) => ({ x: pt.t, y: pt.pv })) }
             ]}
           />
           <LinePlot
@@ -55,7 +55,7 @@ function Simulator() {
             xLabel="time (s)"
             yLabel="u"
             height={160}
-            series={[{ name: "Control effort u", color: "#36c08e", points: points.map((pt) => ({ x: pt.t, y: pt.u })) }]}
+            series={[{ name: "Control effort u", color: "var(--chart-3)", points: points.map((pt) => ({ x: pt.t, y: pt.u })) }]}
           />
           <div className="metric-grid">
             <div className="metric">

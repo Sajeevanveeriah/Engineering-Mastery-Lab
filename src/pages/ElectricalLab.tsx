@@ -48,7 +48,7 @@ function RcChargeTool() {
         <div className="metric"><div className="label">τ = RC</div><div className="val">{round(tau, 3)} s</div></div>
         <div className="metric"><div className="label">63.2% at τ</div><div className="val">{round(vs * 0.632, 2)} V</div></div>
       </div>
-      <LinePlot title="RC charging" xLabel="time (s)" yLabel="V" series={[{ name: "Vc", color: "#4da3ff", points: pts.map((p) => ({ x: p.t, y: p.v })) }]} />
+      <LinePlot title="RC charging" xLabel="time (s)" yLabel="V" series={[{ name: "Vc", color: "var(--chart-1)", points: pts.map((p) => ({ x: p.t, y: p.v })) }]} />
     </div>
   );
 }
@@ -78,8 +78,8 @@ function RcFilterTool() {
         xLabel="time (s)"
         yLabel="V"
         series={[
-          { name: "Input", color: "#9aa7bd", dashed: true, points: wave.map((p) => ({ x: p.t, y: p.v })) },
-          { name: "Output", color: "#36c08e", points: filtered.map((p) => ({ x: p.t, y: p.v })) }
+          { name: "Input", color: "var(--chart-2)", dashed: true, points: wave.map((p) => ({ x: p.t, y: p.v })) },
+          { name: "Output", color: "var(--chart-3)", points: filtered.map((p) => ({ x: p.t, y: p.v })) }
         ]}
       />
     </div>
@@ -103,7 +103,7 @@ function RlcTool() {
         <div className="metric"><div className="label">Damping ζ</div><div className="val">{round(res.zeta, 3)}</div></div>
         <div className="metric"><div className="label">Regime</div><div className="val" style={{ fontSize: "0.9rem" }}>{res.regime}</div></div>
       </div>
-      <LinePlot title="RLC step response (Vc)" xLabel="time (s)" yLabel="V" series={[{ name: "Vc", color: "#f0a64a", points: res.points.map((p) => ({ x: p.t, y: p.v })) }]} />
+      <LinePlot title="RLC step response (Vc)" xLabel="time (s)" yLabel="V" series={[{ name: "Vc", color: "var(--chart-4)", points: res.points.map((p) => ({ x: p.t, y: p.v })) }]} />
     </div>
   );
 }

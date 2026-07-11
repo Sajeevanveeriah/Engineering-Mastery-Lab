@@ -23,18 +23,10 @@ import { extractDiagnostics, parseOpOutput, parseWrData } from "./parse";
 import { NgspiceAnalysis, NgspiceRunParams } from "./types";
 
 export const NGSPICE_REMEDIATION =
-  "Install ngspice (https://ngspice.sourceforge.io) and either add it to PATH or set its " +
-  "location in Diagnostics → ngspice → executable path.";
-
-export interface NgspiceAdapterOptions {
-  /** User-configured executable path override. */
-  executablePath?: string;
-}
+  "Install ngspice (https://ngspice.sourceforge.io), add it to PATH or choose the genuine executable in Diagnostics.";
 
 export class NgspiceAdapter implements EngineAdapter {
   readonly contractVersion = ADAPTER_CONTRACT_VERSION;
-
-  constructor(private options: NgspiceAdapterOptions = {}) {}
 
   describe(): AdapterInfo {
     return {
@@ -56,7 +48,7 @@ export class NgspiceAdapter implements EngineAdapter {
     if (!bridge) {
       return { ready: false, error: "External tools require the desktop app.", remediation: "Run the Engineering Workbench desktop build." };
     }
-    const det = await bridge.detectTool("ngspice", this.options.executablePath);
+    const det = await bridge.detectTool("ngspice");
     if (!det.found) {
       return { ready: false, error: det.error ?? "ngspice was not found.", remediation: NGSPICE_REMEDIATION };
     }
@@ -154,7 +146,7 @@ export class NgspiceAdapter implements EngineAdapter {
 
     const proc = await bridge.runTool(
       { tool: "ngspice", netlistRelPath: deckRelPath, outputDirRelPath: "results" },
-      { workspaceRoot: root, timeoutMs: ctx.timeoutMs, signal: ctx.signal, toolPathOverride: this.options.executablePath }
+      { workspaceRoot: root, timeoutMs: ctx.timeoutMs, signal: ctx.signal }
     );
 
     const diagnostics = extractDiagnostics(proc.stdout, proc.stderr);

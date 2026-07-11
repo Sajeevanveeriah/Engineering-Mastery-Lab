@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ModuleShell } from "../components/ModuleShell";
 import { Tabs } from "../components/Tabs";
+import { Icon } from "../components/Icon";
 import { moduleById } from "../data/modules";
 
 interface ColumnDef {
@@ -13,7 +14,7 @@ interface ColumnDef {
 
 type Row = Record<string, string>;
 
-function useStoredRows(storageKey: string, seed: Row[]): [Row[], (r: Row[]) => void] {
+function useStoredRows(storageKey: string, seed: Row[]): [Row[], (r: Row[]) => void, boolean] {
   const [rows, setRows] = useState<Row[]>(() => {
     try {
       const raw = localStorage.getItem(storageKey);
@@ -23,14 +24,16 @@ function useStoredRows(storageKey: string, seed: Row[]): [Row[], (r: Row[]) => v
     }
     return seed;
   });
+  const [persistenceAvailable, setPersistenceAvailable] = useState(true);
   useEffect(() => {
     try {
       localStorage.setItem(storageKey, JSON.stringify(rows));
+      setPersistenceAvailable(true);
     } catch {
-      /* storage unavailable; keep working in memory */
+      setPersistenceAvailable(false);
     }
   }, [rows, storageKey]);
-  return [rows, setRows];
+  return [rows, setRows, persistenceAvailable];
 }
 
 function TableBuilder({
@@ -48,13 +51,24 @@ function TableBuilder({
   seed: Row[];
   extra?: (rows: Row[]) => React.ReactNode;
 }) {
-  const [rows, setRows] = useStoredRows(storageKey, seed);
+  const [rows, setRows, persistenceAvailable] = useStoredRows(storageKey, seed);
+  const [deleted, setDeleted] = useState<{ row: Row; index: number } | null>(null);
 
   const setCell = (i: number, key: string, value: string) =>
     setRows(rows.map((r, idx) => (idx === i ? { ...r, [key]: value } : r)));
 
   const addRow = () => setRows([...rows, Object.fromEntries(columns.map((c) => [c.key, ""]))]);
-  const removeRow = (i: number) => setRows(rows.filter((_, idx) => idx !== i));
+  const removeRow = (i: number) => {
+    setDeleted({ row: rows[i], index: i });
+    setRows(rows.filter((_, idx) => idx !== i));
+  };
+  const undoRemove = () => {
+    if (!deleted) return;
+    const next = [...rows];
+    next.splice(Math.min(deleted.index, rows.length), 0, deleted.row);
+    setRows(next);
+    setDeleted(null);
+  };
 
   const exportJson = () => {
     const blob = new Blob([JSON.stringify({ artefact: title, exportedAt: new Date().toISOString(), rows }, null, 2)], {
@@ -72,14 +86,16 @@ function TableBuilder({
     <div className="card">
       <h3 style={{ marginTop: 0 }}>{title}</h3>
       <p className="small muted">{description}</p>
-      <div style={{ overflowX: "auto" }}>
+      {!persistenceAvailable && <p className="inline-message inline-message--neutral" role="status"><Icon name="alert" size={16} /> Browser storage is unavailable. This table will last for the current session only; export JSON before closing the app.</p>}
+      <div className="table-scroll" tabIndex={0} aria-label={`${title} editable table`}>
         <table>
+          <caption>{title}</caption>
           <thead>
             <tr>
               {columns.map((c) => (
-                <th key={c.key} style={c.width ? { width: c.width } : undefined}>{c.label}</th>
+                <th scope="col" key={c.key} style={c.width ? { width: c.width } : undefined}>{c.label}</th>
               ))}
-              <th style={{ width: "3rem" }} />
+              <th scope="col" aria-label="Actions" style={{ width: "3rem" }} />
             </tr>
           </thead>
           <tbody>
@@ -100,7 +116,7 @@ function TableBuilder({
                   </td>
                 ))}
                 <td>
-                  <button aria-label={`Delete row ${i + 1}`} onClick={() => removeRow(i)}>✕</button>
+                  <button className="icon-button" aria-label={`Delete row ${i + 1}`} onClick={() => removeRow(i)}><Icon name="close" size={16} /></button>
                 </td>
               </tr>
             ))}
@@ -111,6 +127,7 @@ function TableBuilder({
         <button onClick={addRow}>Add row</button>{" "}
         <button className="primary" onClick={exportJson}>Export JSON</button>
       </p>
+      {deleted && <p className="inline-message inline-message--neutral" role="status">Row deleted.<button className="btn--quiet" type="button" onClick={undoRemove}>Undo</button></p>}
       {extra?.(rows)}
     </div>
   );

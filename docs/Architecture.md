@@ -1,112 +1,165 @@
-# Architecture
+# Engineering Workbench architecture
 
-## Overview
+## Status and scope
 
-Engineering Mastery Lab is a fully client-side React + TypeScript single-page
-app built with Vite. There is no backend: all simulations run in the browser
-and all progress lives in `localStorage`, with JSON export/import for backup
-and portability.
+Engineering Workbench v0.1.0 is one React and TypeScript application with two
+runtime modes:
 
-## Layer separation
+- The web build provides the complete learning application, progress storage
+  and static SPICE validation.
+- The Tauri desktop build adds authorised local workspaces, external
+  engineering-tool adapters, persisted run receipts and evidence reports.
 
-```
-src/
-  lib/simulations/   Pure simulation engines (no React, fully unit tested)
-  lib/storage.ts     Progress persistence + import/export validation
-  lib/metrics.ts     Domain scoring derived from progress
-  data/              Static content: skills matrix, modules, pathways
-  components/        Reusable UI (plot, sliders, tabs, module shell, layout)
-  pages/             One page per app section; labs wire engines to UI
-  tests/             Vitest suites for every engine + storage round-trip
-```
+There is no application backend. Learning progress and recent-project
+identifiers use browser storage. Project data stays inside a user-selected
+workspace directory.
 
-Rules enforced by convention:
+## System view
 
-1. **`lib/` never imports React.** Every equation lives in a pure function so
-   it can be tested and reused (e.g. `simulatePid`, `rlcStepResponse`,
-   `conveyorScan`, `aStar`, `fitLinearRegression`).
-2. **`data/` is declarative content only.** Adding a module or skill domain is
-   a data change, not a code change — `ModuleShell`, `SkillsMatrix` and the
-   dashboard render whatever the data describes.
-3. **Pages own UI state, engines own physics.** Lab pages hold slider state in
-   React and call engines via `useMemo` (static plots) or `setInterval`
-   (live processes like the tank, conveyor and robot).
-
-## Key components
-
-- **`ModuleShell`** renders the standard module structure (Learn / Simulate /
-  Challenge / Diagnose / Build / Evidence / Reflect / Next) around any
-  simulator, and binds challenges, artefact checklists and reflections to the
-  progress store.
-- **`LinePlot`** is a dependency-free SVG plotter used by all labs.
-- **`ProgressContext`** loads progress once, persists on every change, and
-  applies the theme (`data-theme` attribute drives CSS variables).
-
-## Routing & deployment
-
-`HashRouter` is used so deep links work on GitHub Pages without a 404
-workaround. The Vite `base` is `/engineering-mastery-lab/` to match the
-project-pages URL. `.github/workflows/deploy.yml` runs tests, builds, and
-publishes `dist/` via the official Pages actions on every push to `main`.
-
-## Storage model
-
-`ProgressState` (versioned, currently v1) holds skill ratings + evidence,
-challenge results, reflections, artefact checkboxes, sprint checklist and
-theme. `importProgress` validates the version and shape before replacing
-state. The Practice Lab's artefact builders (FMEA, traceability, risk
-register, FAT, decision log) persist under separate `localStorage` keys and
-export standalone JSON artefacts.
-
-## Why these choices
-
-- **No charting/state libraries:** keeps the bundle small, the maths visible
-  and the code teachable — the app is itself a learning artefact.
-- **Deterministic randomness** (`makeRng`, sine-based noise): simulations are
-  reproducible and testable.
-- **Versioned progress schema:** enables future migration to Supabase (see
-  `Future_Supabase_Integration.md`) without breaking existing exports.
-
----
-
-# Engineering Workbench (v0.1) architecture
-
-The workbench extends the lab site into a Tauri 2 desktop application without
-forking the UI. Full decisions are recorded in `docs/adr/ADR-0001..0005`.
-
-## Layers
-
-```
-React UI (pages/)            WorkbenchPage, DiagnosticsPage + all existing labs
-   │
-Adapter registry (lib/adapters/)   contract v1: describe/detect/validate/execute
-   │            ├── builtin.ts     wraps the pure TS engines in-process
-   │            ├── ngspice/       netlist gen + wrdata/op parsers (pure TS)
-   │            └── kicad/         version gating + ERC/DRC report parsers
-   │
-PlatformBridge (lib/platform/)     one typed seam: TauriBridge | MemoryBridge | null
-   │
-Tauri IPC commands (src-tauri/src/)
-   ├── paths.rs         lexical rel-path validation + canonicalised roots
-   ├── process.rs       no-shell spawning, timeout, output caps, cancellation
-   ├── tools.rs         tool detection + allow-listed request → argv mapping
-   └── workspace_fs.rs  workspace-scoped read/write-atomic/list/hash
+```text
+User interface
+  Dashboard | Skills | Pathways | Labs | Workbench | Diagnostics
+        |
+        +-- Learning state and pure simulations
+        |     localStorage | src/lib/simulations | src/lib/metrics
+        |
+        +-- Adapter registry
+              built-in TypeScript adapters | ngspice | KiCad CLI
+                         |
+                    PlatformBridge
+              MemoryBridge | TauriBridge | web null state
+                         |
+                Typed Tauri IPC commands
+        native picker authority | workspace file IO | tool process runner
 ```
 
-Supporting modules: `lib/workspace/` (manifest schema v1 + project ops),
-`lib/report/evidence.ts` (deterministic Markdown reports), `lib/settings.ts`
-(tool path overrides).
+The browser build receives a `null` platform bridge and renders explicit
+desktop-only fallbacks. Unit and integration tests use `MemoryBridge` to
+exercise workspace and adapter behaviour without granting host access.
 
-## Invariants
+## Frontend layers
 
-1. Pure logic (engines, parsers, netlist/report generation, manifest
-   validation) imports neither React nor Tauri.
-2. Every desktop capability crosses `PlatformBridge`; the web build gets
-   `null` and renders informative desktop-only states.
-3. The frontend can never pass raw argument vectors or absolute paths to the
-   Rust side; requests are typed, subcommands allow-listed, and every path is
-   re-validated in Rust (defence in depth over the TS checks).
-4. External-tool behaviour is reproducible in tests through `MemoryBridge`
-   fixtures — no adapter requires the real tool to be verifiable.
-5. Web and desktop share one build; the Tauri CLI sets `TAURI_ENV_PLATFORM`,
-   which flips the Vite `base` from the Pages path to `./`.
+| Area | Responsibility |
+|---|---|
+| `src/data/` | Declarative skills, pathway and module content |
+| `src/lib/simulations/` | Pure engineering simulation functions |
+| `src/lib/adapters/` | Versioned adapter contract, registry and tool-specific request or result handling |
+| `src/lib/workspace/` | Manifest schema, workspace operations and input discovery or hashing |
+| `src/lib/report/` | Strict run receipt codec and deterministic Markdown evidence reporting |
+| `src/lib/platform/` | The only frontend seam for local filesystem and process capabilities |
+| `src/components/` | Shared shell, tabs, plots, module workflow and workspace editors |
+| `src/pages/` | Dashboard, matrices, pathways, labs, diagnostics and project workflow |
+| `src/tests/` | Simulation, storage, workspace, receipt, reporting and workflow tests |
+
+### UI state
+
+`ProgressContext` owns learning progress, ratings, challenges, reflections,
+artefacts, sprint items and theme. It persists a versioned value through
+`src/lib/storage.ts`. Import is validated before use, and the dashboard offers
+an in-session undo after replacement.
+
+`WorkbenchContext` owns the current desktop session, including the bridge,
+open workspace, results, latest receipts, dirty state, active run and recent
+identifiers. The Workbench page blocks run and report operations while the
+manifest is dirty so captured evidence stays aligned with `workbench.json`.
+
+### Module workflow
+
+`ModuleShell` implements the common eight-stage cycle:
+
+```text
+Learn -> Simulate -> Challenge -> Diagnose -> Build -> Evidence -> Reflect -> Next
+```
+
+The tab component follows roving-tabindex keyboard behaviour, keeps panel
+state mounted and connects tab and panel roles with stable identifiers. Live
+PLC and robotics timers pause when their simulator panel is hidden.
+
+### Plots
+
+`LinePlot` is a dependency-free SVG component. It handles line, scatter and
+dashed series, rejects non-finite points from geometry, exposes a text
+description and provides a tabular data equivalent. Series remain
+distinguishable without relying only on colour.
+
+## Desktop command boundary
+
+The Rust application registers only these command groups:
+
+| Group | Commands |
+|---|---|
+| Workspace authority | `pick_workspace_directory` |
+| Workspace files | `read_text_file`, `write_text_file_atomic`, `list_dir`, `hash_file`, `create_dir_all`, `file_exists` |
+| Engineering tools | `detect_tool`, `run_tool`, `cancel_run` |
+
+The renderer cannot establish root authority by supplying an absolute string.
+The native picker canonicalises and registers the selected directory in
+`WorkspaceAuthority`. Every file command and tool run requires that exact
+canonical root to remain authorised for the session.
+
+Recent projects deliberately do not bypass this rule. Their stored roots are
+display identifiers. Opening one invokes the native picker again and compares
+the selected root with the saved identifier before calling workspace APIs.
+
+## Workspace and evidence flow
+
+```text
+Select authorised root
+        |
+create or validate workbench.json
+        |
+author requirements, files and configurations
+        |
+save manifest
+        |
+hash declared inputs -> execute adapter -> capture exact result
+        |
+atomic save to evidence/latest-run.json
+        |
+compare receipt hashes with current inputs
+        |
+atomic save to reports/evidence.md
+```
+
+The workspace manifest and latest-run receipt are separate versioned schemas.
+The manifest describes intended project configuration. The receipt records one
+actual latest result and the hashes captured before that run. Reports use both
+and state when evidence is missing, failed, stale or incomplete.
+
+## External tool execution
+
+Rust constructs command arguments from a typed `ToolRunRequest`. It also
+re-validates all paths and tool-specific boundaries:
+
+- ngspice receives a generated deck from `simulations/` and writes under
+  `results/`. Rust checks the generated control grammar immediately before
+  launch and supplies `-n -b`.
+- KiCad commands accept only the declared schematic or PCB input extension and
+  write only beneath `results/`.
+- Tool overrides must have a supported executable name and return a successful
+  product-specific version response.
+- Execution uses no shell, a bounded timeout, cancellation and capped output.
+
+## File replacement
+
+`workspace_fs.rs` validates the path, creates a unique sibling temporary file
+with exclusive creation, writes, flushes and synchronises it, then replaces the
+destination. A process-local lock serialises replacements. POSIX uses a
+same-filesystem rename. Windows uses `MoveFileExW` with replace-existing and
+write-through flags. There is no fallback that first deletes the destination.
+
+## Routing and deployment
+
+`HashRouter` is retained for static GitHub Pages routes. Vite uses the project
+base for the web build and relative assets for the Tauri frontend. The shared
+source does not import Tauri modules eagerly in web mode.
+
+## Architectural boundaries
+
+- The desktop app is a controlled orchestrator, not a CAD, SPICE or PCB engine.
+- No cloud identity, sync, database or telemetry is required.
+- External open and reveal is deferred. No current Tauri capability grants it.
+- Cross-platform source and CI configuration exist, but current completion
+  evidence does not prove macOS or Linux runtime or packaging.
+- See [Known-Limitations.md](Known-Limitations.md) for verification gaps and
+  [ADR-0004](adr/ADR-0004-External-Process-Security.md) for security trade-offs.

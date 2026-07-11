@@ -56,7 +56,7 @@ function SmdTool() {
         title="Displacement response"
         xLabel="time (s)"
         yLabel="x (m)"
-        series={[{ name: "x(t)", color: "#4da3ff", points: res.points.map((p) => ({ x: p.t, y: p.x })) }]}
+        series={[{ name: "x(t)", color: "var(--chart-1)", points: res.points.map((p) => ({ x: p.t, y: p.x })) }]}
       />
     </div>
   );
