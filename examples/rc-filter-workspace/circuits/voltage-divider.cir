@@ -1,0 +1,6 @@
+* Resistive voltage divider (Vout = Vin * R2 / (R1 + R2) = 2/3 * Vin)
+* Example circuit 2: DC operating point and DC sweep of V1.
+V1 in 0 DC 5
+R1 in out 1k
+R2 out 0 2k
+.end

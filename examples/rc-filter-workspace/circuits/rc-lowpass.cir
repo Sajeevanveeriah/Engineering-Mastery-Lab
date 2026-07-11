@@ -1,0 +1,7 @@
+* RC low-pass filter (fc = 1/(2*pi*R*C) ~= 1.59 kHz)
+* Example circuit 1: AC frequency response and step transient.
+* Nodes: in = source, out = filter output.
+V1 in 0 AC 1 PULSE(0 5 0 1u 1u 1 2)
+R1 in out 1k
+C1 out 0 100n
+.end

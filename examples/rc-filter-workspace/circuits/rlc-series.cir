@@ -1,0 +1,7 @@
+* Series RLC step response (underdamped: f0 ~= 1.59 kHz, zeta ~= 0.16)
+* Example circuit 3: transient ringing of the capacitor voltage.
+V1 in 0 PULSE(0 5 0 1u 1u 0.1 0.2)
+R1 in n1 100
+L1 n1 out 10m
+C1 out 0 1u
+.end
