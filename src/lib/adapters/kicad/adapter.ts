@@ -20,8 +20,7 @@ import { isSafeRelPath } from "../../platform/paths";
 import { parseDrcReport, parseErcReport, parseKicadVersion } from "./parse";
 
 export const KICAD_REMEDIATION =
-  "Install KiCad 7 or newer (https://www.kicad.org/download/) and either add kicad-cli to PATH " +
-  "or set its location in Diagnostics → KiCad → executable path.";
+  "Install KiCad 7 or newer (https://www.kicad.org/download/), add kicad-cli to PATH or choose the genuine executable in Diagnostics.";
 
 interface CapabilitySpec {
   id: string;
@@ -46,14 +45,8 @@ const CAPABILITIES: CapabilitySpec[] = [
   { id: "kicad.render", title: "PCB render", description: "Raytraced board image (KiCad 9+).", subcommand: "pcb-render", minMajor: 9, input: "pcb", outputIsDir: false, outputKind: "image" }
 ];
 
-export interface KicadAdapterOptions {
-  executablePath?: string;
-}
-
 export class KicadAdapter implements EngineAdapter {
   readonly contractVersion = ADAPTER_CONTRACT_VERSION;
-
-  constructor(private options: KicadAdapterOptions = {}) {}
 
   describe(): AdapterInfo {
     return {
@@ -69,7 +62,7 @@ export class KicadAdapter implements EngineAdapter {
     if (!bridge) {
       return { ready: false, error: "External tools require the desktop app.", remediation: "Run the Engineering Workbench desktop build." };
     }
-    const det = await bridge.detectTool("kicad-cli", this.options.executablePath);
+    const det = await bridge.detectTool("kicad-cli");
     if (!det.found) {
       return { ready: false, error: det.error ?? "kicad-cli was not found.", remediation: KICAD_REMEDIATION };
     }
@@ -141,7 +134,7 @@ export class KicadAdapter implements EngineAdapter {
 
     const proc = await bridge.runTool(
       { tool: "kicad-cli", subcommand: spec.subcommand, inputRelPath, outputRelPath },
-      { workspaceRoot: root, timeoutMs: ctx.timeoutMs, signal: ctx.signal, toolPathOverride: this.options.executablePath }
+      { workspaceRoot: root, timeoutMs: ctx.timeoutMs, signal: ctx.signal }
     );
 
     const raw = { stdout: proc.stdout, stderr: proc.stderr, truncated: proc.truncated };

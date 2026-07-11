@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-clear-tool-executable"
+description = "Enables the clear_tool_executable command without any pre-configured scope."
+commands.allow = ["clear_tool_executable"]
+
+[[permission]]
+identifier = "deny-clear-tool-executable"
+description = "Denies the clear_tool_executable command without any pre-configured scope."
+commands.deny = ["clear_tool_executable"]

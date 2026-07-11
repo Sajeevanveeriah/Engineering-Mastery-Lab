@@ -21,7 +21,7 @@ function FsmTool() {
   const [events, setEvents] = useState<string[]>([]);
   const { trace, rejected } = useMemo(() => runFsm(trafficLightFsm, events), [events]);
   const current = trace[trace.length - 1];
-  const colors: Record<string, string> = { RED: "#ef5b6b", GREEN: "#36c08e", YELLOW: "#f0a64a", FAULT: "#9aa7bd" };
+  const colors: Record<string, string> = { RED: "var(--chart-5)", GREEN: "var(--chart-3)", YELLOW: "var(--chart-4)", FAULT: "var(--chart-2)" };
   return (
     <div className="card">
       <h3 style={{ marginTop: 0 }}>Traffic-light FSM</h3>
@@ -87,8 +87,8 @@ function DebounceTool() {
         yMin={-0.1}
         yMax={1.4}
         series={[
-          { name: "Raw", color: "#9aa7bd", points: raw.map((p) => ({ x: p.t, y: p.raw + 0.25 })) },
-          { name: "Debounced", color: "#4da3ff", points: clean.map((p) => ({ x: p.t, y: p.out })) }
+          { name: "Raw", color: "var(--chart-2)", points: raw.map((p) => ({ x: p.t, y: p.raw + 0.25 })) },
+          { name: "Debounced", color: "var(--chart-1)", points: clean.map((p) => ({ x: p.t, y: p.out })) }
         ]}
       />
       <p className="small muted">Raw trace offset +0.25 for visibility. One press should yield exactly one debounced edge.</p>
@@ -150,7 +150,7 @@ function BusTool() {
         yMin={-0.2}
         yMax={1.4}
         height={140}
-        series={[{ name: "line level", color: "#4da3ff", points: pts }]}
+        series={[{ name: "line level", color: "var(--chart-1)", points: pts }]}
       />
       <table>
         <thead><tr><th>Segment</th><th>Bits</th></tr></thead>

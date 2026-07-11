@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Engineering Workbench</title>
+  <defs>
+    <linearGradient id="g" x1="8" y1="5" x2="56" y2="59" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0a6cc9"/>
+      <stop offset="1" stop-color="#34a1ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#0d1b2a"/>
+  <rect x="7" y="7" width="50" height="50" rx="11" fill="url(#g)"/>
+  <path d="M15 20h7l4 23 6-16 6 16 4-23h7" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

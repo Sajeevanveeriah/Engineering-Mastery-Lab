@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-pick-tool-executable"
+description = "Enables the pick_tool_executable command without any pre-configured scope."
+commands.allow = ["pick_tool_executable"]
+
+[[permission]]
+identifier = "deny-pick-tool-executable"
+description = "Denies the pick_tool_executable command without any pre-configured scope."
+commands.deny = ["pick_tool_executable"]

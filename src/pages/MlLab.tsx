@@ -54,12 +54,12 @@ function RegressionTool() {
         xLabel="load current (A)"
         yLabel="temp (°C)"
         series={[
-          { name: "Train", color: "#9aa7bd", points: train.map((d) => ({ x: d.x, y: d.y })) },
-          { name: "Test", color: "#f0a64a", points: test.map((d) => ({ x: d.x, y: d.y })) },
-          { name: "Fit", color: "#4da3ff", points: [{ x: 0, y: predictLinear(model, 0) }, { x: 10, y: predictLinear(model, 10) }] }
+          { name: "Train", color: "var(--chart-2)", kind: "scatter", points: train.map((d) => ({ x: d.x, y: d.y })) },
+          { name: "Test", color: "var(--chart-4)", kind: "scatter", points: test.map((d) => ({ x: d.x, y: d.y })) },
+          { name: "Fit", color: "var(--chart-1)", points: [{ x: 0, y: predictLinear(model, 0) }, { x: 10, y: predictLinear(model, 10) }] }
         ]}
       />
-      <p className="small muted">Train/test points are drawn as jagged polylines here for simplicity — read them as scattered samples. Metrics are computed on the held-out test set ({test.length} of {data.length} samples).</p>
+      <p className="small muted">Train and test observations are shown as discrete samples. Metrics are computed on the held-out test set ({test.length} of {data.length} samples).</p>
     </div>
   );
 }
@@ -127,8 +127,8 @@ function AnomalyTool() {
         xLabel="sample"
         yLabel="amplitude"
         series={[
-          { name: "Vibration", color: "#4da3ff", points: signal.map((v, i) => ({ x: i, y: v })) },
-          { name: "Flagged", color: "#ef5b6b", points: flagged.flatMap((i) => [{ x: i, y: -5 }, { x: i, y: 5 }, { x: i, y: -5 }]) }
+          { name: "Vibration", color: "var(--chart-1)", points: signal.map((v, i) => ({ x: i, y: v })) },
+          { name: "Flagged", color: "var(--chart-5)", kind: "scatter", points: flagged.map((i) => ({ x: i, y: signal[i] })) }
         ]}
       />
       <h3>Remaining useful life (toy model)</h3>
@@ -137,9 +137,9 @@ function AnomalyTool() {
         xLabel="sample"
         yLabel="health"
         series={[
-          { name: "Health index", color: "#36c08e", points: health.map((v, i) => ({ x: i, y: v })) },
-          { name: "Failure threshold", color: "#ef5b6b", dashed: true, points: [{ x: 0, y: 20 }, { x: 120, y: 20 }] },
-          { name: "Trend", color: "#9aa7bd", dashed: true, points: [{ x: 0, y: rul.model.intercept }, { x: 120, y: rul.model.intercept + 120 * rul.model.slope }] }
+          { name: "Health index", color: "var(--chart-3)", points: health.map((v, i) => ({ x: i, y: v })) },
+          { name: "Failure threshold", color: "var(--chart-5)", dashed: true, points: [{ x: 0, y: 20 }, { x: 120, y: 20 }] },
+          { name: "Trend", color: "var(--chart-2)", dashed: true, points: [{ x: 0, y: rul.model.intercept }, { x: 120, y: rul.model.intercept + 120 * rul.model.slope }] }
         ]}
       />
       <div className="metric-grid">

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ModuleShell } from "../components/ModuleShell";
 import { Slider } from "../components/Slider";
+import { useTabPanelActive } from "../components/Tabs";
 import { moduleById } from "../data/modules";
 import {
   diffDriveStep,
@@ -49,6 +50,7 @@ function buildGrid(): boolean[][] {
 }
 
 function Simulator() {
+  const panelActive = useTabPanelActive();
   const [mode, setMode] = useState<Mode>("manual");
   const [vl, setVl] = useState(0.5);
   const [vr, setVr] = useState(0.5);
@@ -83,7 +85,7 @@ function Simulator() {
   }, [mode, plannedPath, cell]);
 
   useEffect(() => {
-    if (!running) return;
+    if (!running || !panelActive) return;
     const id = setInterval(() => {
       setPose((p) => {
         let cmdL = vl;
@@ -112,14 +114,17 @@ function Simulator() {
         const next = diffDriveStep(p, cmdL, cmdR, WHEEL_BASE, DT);
         next.x = Math.min(ARENA, Math.max(0, next.x));
         next.y = Math.min(ARENA, Math.max(0, next.y));
-        setOdom((o) => noisyOdometryStep(o, cmdL, cmdR, WHEEL_BASE, DT, noiseStd, rng.current));
+        setOdom((o) => {
+          const nextOdom = noisyOdometryStep(o, cmdL, cmdR, WHEEL_BASE, DT, noiseStd, rng.current);
+          setOdomPath((op) => [...op.slice(-1500), nextOdom]);
+          return nextOdom;
+        });
         setTruePath((tp) => [...tp.slice(-1500), next]);
-        setOdomPath((op) => [...op.slice(-1500), odom]);
         return next;
       });
     }, 50);
     return () => clearInterval(id);
-  }, [running, vl, vr, mode, waypoints, wpIndex, noiseStd, odom]);
+  }, [running, panelActive, vl, vr, mode, waypoints, wpIndex, noiseStd]);
 
   const reset = () => {
     setRunning(false);
@@ -192,19 +197,19 @@ function Simulator() {
             )}
           {obstacles.map((o, i) => {
             const p = toSvg(o.x, o.y);
-            return <circle key={i} cx={p.sx} cy={p.sy} r={o.r * S} fill="#ef5b6b" opacity={0.5} />;
+            return <circle key={i} cx={p.sx} cy={p.sy} r={o.r * S} fill="var(--chart-5)" opacity={0.72} />;
           })}
           {waypoints.map(([wx, wy], i) => {
             const p = toSvg(wx, wy);
-            return <circle key={`w${i}`} cx={p.sx} cy={p.sy} r={4} fill={i < wpIndex ? "#36c08e" : "#f0a64a"} />;
+            return <circle key={`w${i}`} cx={p.sx} cy={p.sy} r={4} fill={i < wpIndex ? "var(--chart-3)" : "var(--chart-4)"} />;
           })}
-          <polyline fill="none" stroke="#4da3ff" strokeWidth={1.5} points={truePath.map((p) => { const s = toSvg(p.x, p.y); return `${s.sx},${s.sy}`; }).join(" ")} />
-          <polyline fill="none" stroke="#9aa7bd" strokeDasharray="4 4" strokeWidth={1.5} points={odomPath.map((p) => { const s = toSvg(p.x, p.y); return `${s.sx},${s.sy}`; }).join(" ")} />
+          <polyline fill="none" stroke="var(--chart-1)" strokeWidth={2.2} points={truePath.map((p) => { const s = toSvg(p.x, p.y); return `${s.sx},${s.sy}`; }).join(" ")} />
+          <polyline fill="none" stroke="var(--chart-2)" strokeDasharray="6 4" strokeWidth={2.2} points={odomPath.map((p) => { const s = toSvg(p.x, p.y); return `${s.sx},${s.sy}`; }).join(" ")} />
           <g transform={`translate(${robotSvg.sx},${robotSvg.sy}) rotate(${(-pose.theta * 180) / Math.PI})`}>
-            <rect x={-9} y={-7} width={18} height={14} rx={3} fill="#4da3ff" />
-            <polygon points="9,0 3,-4 3,4" fill="#0e1117" />
+            <rect x={-9} y={-7} width={18} height={14} rx={3} fill="var(--chart-1)" />
+            <polygon points="9,0 3,-4 3,4" fill="var(--text)" />
           </g>
-          <circle cx={odomSvg.sx} cy={odomSvg.sy} r={5} fill="none" stroke="#9aa7bd" strokeWidth={1.5} />
+          <circle cx={odomSvg.sx} cy={odomSvg.sy} r={5} fill="none" stroke="var(--chart-2)" strokeWidth={2.2} />
         </svg>
         <p className="small muted">
           Solid blue: true path. Dashed grey: where odometry <em>thinks</em> the robot is. Orange dots: waypoints

@@ -19,23 +19,23 @@ export function isTauri(): boolean {
 export class TauriBridge implements PlatformBridge {
   readonly isDesktop = true;
 
-  private constructor(
-    private invoke: InvokeFn,
-    private openDialog: (options: { directory: boolean; title: string }) => Promise<string | string[] | null>,
-    private openerOpenPath: (path: string) => Promise<void>
-  ) {}
+  private constructor(private invoke: InvokeFn) {}
 
   static async create(): Promise<TauriBridge> {
-    const [{ invoke }, dialog, opener] = await Promise.all([
-      import("@tauri-apps/api/core"),
-      import("@tauri-apps/plugin-dialog"),
-      import("@tauri-apps/plugin-opener")
-    ]);
-    return new TauriBridge(invoke as InvokeFn, dialog.open, opener.openPath);
+    const { invoke } = await import("@tauri-apps/api/core");
+    return new TauriBridge(invoke as InvokeFn);
   }
 
-  detectTool(tool: ToolId, overridePath?: string): Promise<ToolDetection> {
-    return this.invoke<ToolDetection>("detect_tool", { tool, overridePath: overridePath ?? null });
+  detectTool(tool: ToolId): Promise<ToolDetection> {
+    return this.invoke<ToolDetection>("detect_tool", { tool });
+  }
+
+  pickToolExecutable(tool: ToolId): Promise<ToolDetection | null> {
+    return this.invoke<ToolDetection | null>("pick_tool_executable", { tool });
+  }
+
+  clearToolExecutable(tool: ToolId): Promise<void> {
+    return this.invoke<void>("clear_tool_executable", { tool });
   }
 
   async runTool(request: ToolRunRequest, options: RunOptions): Promise<ProcessResult> {
@@ -54,7 +54,6 @@ export class TauriBridge implements PlatformBridge {
         options: {
           workspaceRoot: options.workspaceRoot,
           timeoutMs: options.timeoutMs ?? null,
-          toolPathOverride: options.toolPathOverride ?? null,
           cancelId
         }
       });
@@ -88,13 +87,9 @@ export class TauriBridge implements PlatformBridge {
   }
 
   async pickDirectory(title: string): Promise<string | null> {
-    const selection = await this.openDialog({ directory: true, title });
-    return typeof selection === "string" ? selection : null;
+    return this.invoke<string | null>("pick_workspace_directory", { title });
   }
 
-  openPath(absPath: string): Promise<void> {
-    return this.openerOpenPath(absPath);
-  }
 }
 
 let cached: Promise<PlatformBridge | null> | null = null;

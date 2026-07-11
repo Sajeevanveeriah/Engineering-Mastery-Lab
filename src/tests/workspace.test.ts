@@ -8,6 +8,7 @@ import {
 } from "../lib/workspace/manifest";
 import {
   createWorkspace,
+  forgetRecentProject,
   loadRecentProjects,
   openWorkspace,
   rememberRecentProject,
@@ -111,6 +112,19 @@ describe("manifest validation", () => {
     m.requirements.push({ id: "REQ-001", title: "dup" });
     expect(() => parseManifest(serializeManifest(m))).toThrow(/duplicate requirement id/);
   });
+
+  it("rejects simulation traceability links to missing requirements", () => {
+    const m = sampleManifest();
+    m.simulations[0].requirementIds.push("REQ-MISSING");
+    try {
+      parseManifest(serializeManifest(m));
+      expect.unreachable("should have rejected a dangling requirement reference");
+    } catch (err) {
+      const error = err as ManifestError;
+      expect(error.message).toMatch(/references unknown requirement id "REQ-MISSING"/);
+      expect(error.issues.some((issue) => /requirementIds\[/.test(issue.path))).toBe(true);
+    }
+  });
 });
 
 describe("workspace operations", () => {
@@ -176,5 +190,14 @@ describe("recent projects", () => {
     const storage = fakeStorage();
     storage.data.set("engineering-workbench/recent-projects/v1", "{corrupt");
     expect(loadRecentProjects(storage)).toEqual([]);
+  });
+
+  it("forgets one recent project without disturbing the others", () => {
+    const storage = fakeStorage();
+    rememberRecentProject({ root: "/a", name: "A" }, storage);
+    rememberRecentProject({ root: "/b", name: "B" }, storage);
+    const next = forgetRecentProject("/a", storage);
+    expect(next.map((project) => project.root)).toEqual(["/b"]);
+    expect(loadRecentProjects(storage)).toEqual(next);
   });
 });

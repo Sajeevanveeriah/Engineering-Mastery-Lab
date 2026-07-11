@@ -60,7 +60,14 @@ function sampleInput(): EvidenceReportInput {
       { relPath: "circuits/rc.cir", sha256: "c".repeat(64) },
       { relPath: "circuits/div.cir", sha256: "d".repeat(64) }
     ],
-    runs: [{ simulationId: "sim-b", result: okResult("ngspice.tran") }],
+    runs: [
+      {
+        simulationId: "sim-b",
+        capturedUtc: "2026-07-11T09:55:00.000Z",
+        inputFiles: [{ relPath: "circuits/rc.cir", sha256: "c".repeat(64) }],
+        result: okResult("ngspice.tran")
+      }
+    ],
     limitations: ["Fixture-verified only on this host."]
   };
 }
@@ -109,7 +116,7 @@ describe("evidence report", () => {
   it("contains every required section", () => {
     const report = buildEvidenceReport(sampleInput());
     for (const heading of [
-      "# Engineering Evidence Report — RC Filter Study",
+      "# Engineering Evidence Report: RC Filter Study",
       "## 1. Project metadata",
       "## 2. Requirements",
       "## 3. Tools and adapter versions",
@@ -128,8 +135,11 @@ describe("evidence report", () => {
     expect(report).toContain("`" + "c".repeat(64) + "`");
     expect(report).toContain('"aFirst": 2'); // config JSON present, keys sorted
     expect(report.indexOf('"aFirst"')).toBeLessThan(report.indexOf('"zLast"'));
-    expect(report).toContain("Result: **COMPLETED** — completed");
-    expect(report).toContain("Result: **NOT RUN** in this report."); // sim-a has no run
+    expect(report).toContain("Evidence status: **PERSISTED LATEST-RUN RECEIPT**.");
+    expect(report).toContain("Receipt captured (UTC): 2026-07-11T09:55:00.000Z");
+    expect(report).toContain("Input hash check: **MATCHED CURRENT INPUTS**.");
+    expect(report).toContain("Result: **COMPLETED**: completed");
+    expect(report).toContain("Result: **NOT AVAILABLE** in this report."); // sim-a has no supplied result
     expect(report).toMatch(/3 points × 2 columns/);
     expect(report).toContain("- **error** a error");
     expect(report).toContain("| results/a.txt | raw |");
@@ -154,5 +164,47 @@ describe("evidence report", () => {
     const report = buildEvidenceReport(input);
     expect(report).toContain("**NOT RUN (tool missing)**");
     expect(report).toMatch(/could not run because an external tool is not installed/);
+  });
+
+  it("uses neutral traceability terminology and never turns a link into a verification claim", () => {
+    const report = buildEvidenceReport(sampleInput());
+    expect(report).toContain("| Id | Requirement | Source | Linked simulations |");
+    expect(report).not.toContain("Verified by");
+  });
+
+  it("surfaces receipt hash mismatches and explicit limitations without claiming none", () => {
+    const input = sampleInput();
+    input.limitations = ["Known fixture limitation."];
+    input.runs[0].inputFiles = [{ relPath: "circuits/rc.cir", sha256: "f".repeat(64) }];
+    const report = buildEvidenceReport(input);
+    const limitations = report.split("## 6. Limitations")[1].split("## 7. Reproduction")[0];
+    expect(report).toContain("Input hash check: **MISMATCH** for circuits/rc.cir.");
+    expect(limitations).toContain("Known fixture limitation.");
+    expect(limitations).toContain("do not match current files");
+    expect(limitations).not.toContain("None recorded.");
+  });
+
+  it("states when no run evidence was supplied and records that as a limitation", () => {
+    const input = sampleInput();
+    input.runs = [];
+    input.limitations = [];
+    const report = buildEvidenceReport(input);
+    const limitations = report.split("## 6. Limitations")[1].split("## 7. Reproduction")[0];
+    expect(report).toContain("Evidence status: **NO RUN RESULT SUPPLIED**.");
+    expect(limitations).toContain("No run result was supplied for simulation");
+    expect(limitations).not.toContain("None recorded.");
+  });
+
+  it("resolves duplicate runs deterministically when only receipt metadata differs", () => {
+    const input = sampleInput();
+    const result = okResult("ngspice.tran");
+    input.runs = [
+      { simulationId: "sim-b", result, capturedUtc: "2026-07-11T09:00:00.000Z", inputFiles: [] },
+      { simulationId: "sim-b", result, capturedUtc: "2026-07-11T10:00:00.000Z", inputFiles: [] }
+    ];
+    const forward = buildEvidenceReport(input);
+    const reverse = buildEvidenceReport({ ...input, runs: [...input.runs].reverse() });
+    expect(forward).toBe(reverse);
+    expect(forward).toContain("Receipt captured (UTC): 2026-07-11T10:00:00.000Z");
   });
 });

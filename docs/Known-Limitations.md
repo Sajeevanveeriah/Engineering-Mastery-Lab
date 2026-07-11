@@ -1,69 +1,90 @@
-# Known limitations — Engineering Workbench v0.1.0
+# Known limitations
 
-## Verification status
+## Release classification
 
-- **Windows x64 is the only platform verified by an actual build** (local
-  MSI/NSIS build on the dev host, 2026-07-11). macOS and Linux CI workflows
-  are present and syntactically valid but had not produced a verified runner
-  result at the time of writing — run the `Desktop packages` workflow to
-  verify them.
-- ngspice and KiCad integration is **fixture-verified** (captured/representative
-  tool output driven through `MemoryBridge`). Real-tool end-to-end runs were
-  not executed on the development host because neither tool is installed
-  there. First run against real installations should follow the release
-  checklist's functional verification.
-- The desktop UI is the same React code verified in the browser; a visual
-  pass inside the Tauri webview itself has not been recorded.
+Engineering Workbench v0.1.0 is a functional completion candidate. It is not a
+production release and is not cleared for public redistribution.
 
-## Functional boundaries
+## Verification gaps
 
-- No schematic or PCB editor: the workbench validates and simulates files you
-  author in KiCad/text editors. "Open in KiCad" hands off to the OS.
-- ngspice runs are batch-mode only; interactive/plot commands are not
-  supported, and `.control` blocks in user netlists are rejected by design.
-- AC results are recorded as magnitude and phase columns (no complex raw
-  vectors); operating-point results come from `print all` parsing.
-- KiCad ERC, DRC and BOM export need KiCad 8+ (the `pcb drc`/`sch erc`
-  subcommands are absent in KiCad 7), board render needs 9+; netlist and
-  gerber/drill export work on 7+. Below the required version a capability fails
-  with an explanatory message rather than invoking the tool.
-- Manifest `schemaVersion` 1 only; newer versions are rejected (no migration
-  yet), and there is no schematic capture of requirement pass/fail criteria —
-  the evidence report records results, not verdicts.
-- Workspace writes are atomic-with-fallback: on Windows, replacing an existing
-  file has a brief non-atomic window (ADR-0003).
-- Symlinks inside a workspace are not rejected; do not open untrusted
-  workspaces (see SECURITY.md).
-- Evidence reports are Markdown only (no HTML render in v0.1).
-- Input-file hashes in the evidence report (section 4) are computed when the
-  report is generated, not captured at simulation run time. If a netlist is
-  edited between running a simulation and generating the report, the report's
-  input hash reflects the current file, not the exact bytes simulated. Mitigate
-  by generating the report immediately after the runs it documents. (Generated
-  *output* files are hashed at run time and are not affected.)
-- "Open in KiCad" / open-in-external-app is deferred in v0.1: the `openPath`
-  bridge method exists but the OS-opener capability grant was removed for
-  least privilege, so it is not wired to any UI action yet.
-- Directory-producing exports (gerbers, drill) do not use the pre-run
-  stale-output sentinel that ERC/DRC and single-file exports use; re-running
-  overwrites same-named files, but a renamed-away output from a prior run could
-  linger in the results subfolder.
-- Cancellation kills the external process but does not roll back partial
-  output files; re-running overwrites them deterministically.
-- The recent-projects list and tool-path overrides live in browser storage
-  (per machine, per profile), not in the workspace.
-- No automated contract test spans the Rust↔TypeScript IPC seam: the camelCase
-  field names in `src-tauri/src/{tools,lib}.rs` and `src/lib/platform/
-  tauriBridge.ts` are kept in sync by hand. They agree today; a future rename
-  on one side only would compile and unit-test green but break at runtime.
-  Mitigation: the pre-spawn `prepare_run` ordering and the cancel registry are
-  now unit-tested in Rust, and `MemoryBridge` covers the TS adapter logic.
-- The Rust timeout/cancellation tests use short wall-clock budgets against real
-  subprocesses; they are robust locally but could flake on a heavily loaded CI
-  runner.
+- The completion changes were built into fresh non-empty Windows x64 MSI and
+  NSIS bundles and their SHA-256 hashes were recorded. The installers have not
+  been installed, signed or interactively smoke-tested, so packaged runtime
+  behaviour remains unverified.
+- macOS and Linux runtime and package behaviour is unverified. Source and CI
+  configuration are not substitutes for actual runner results.
+- ngspice and KiCad were not installed on the development host used for the
+  completion checks. Their parsers and adapter workflows are fixture-tested,
+  but a real-tool end-to-end run remains required.
+- Browser rendering received manual review and the final responsive audit
+  passed all 90 route and width cases with zero document overflow. There is no
+  automated axe, NVDA, VoiceOver, browser-zoom or formal WCAG conformance
+  assessment.
+- No current end-to-end test crosses the actual Tauri webview and IPC runtime.
+  Rust command tests and TypeScript `MemoryBridge` tests verify each side, but
+  not a packaged-process contract.
 
-## Out of scope for v0.1 (by design)
+## Workspace boundaries
 
-CAD geometry kernel, graphical editors, FEM/CFD/multibody solvers, cloud
-auth/sync, AI-generated designs, mobile, auto-update, bundled ngspice/KiCad,
-code signing/notarisation.
+- Root authority lasts only for the current desktop session. Recent projects
+  must be re-selected in the native folder picker after restart. A different
+  selected root is rejected rather than silently opening another location.
+- Recent identifiers and tool-path overrides are local browser-profile state,
+  not portable workspace data.
+- Manifest schema version 1 and receipt schema version 1 are supported. Newer,
+  missing or malformed versions are rejected; there is no migration framework.
+- The in-app text editor is intentionally limited to supported text inputs in
+  `circuits/` and `requirements/`, with a 1 MiB editor limit. It is not a
+  general file manager or graphical schematic or PCB editor.
+- File replacement is atomic per file, not transactional across several files.
+  If project creation stops halfway, some standard directories may already
+  exist even though unrelated existing files are not removed.
+
+## Tool execution boundaries
+
+- ngspice is batch-only. User `.control`, include, library, shell, system and
+  exec constructs are rejected. This prevents unsafe or transitive commands
+  but also excludes legitimate advanced netlists that rely on those features.
+- KiCad checks and exports require a compatible CLI. ERC, DRC and BOM use KiCad
+  8 or newer, board render uses KiCad 9 or newer, and discovery includes KiCad
+  10 paths. Actual compatibility still needs real-tool verification.
+- Tool detection is not cryptographic provenance. A malicious replacement
+  binary could use an expected file name and imitate a product version banner.
+- Cancellation kills the direct child but does not provide complete descendant
+  process-tree containment on every supported operating system.
+- A narrow validation-to-use race remains if another process can modify a
+  generated deck between final validation and the tool opening the file.
+- Cancellation does not roll back partial external-tool outputs. Directory
+  exports can also retain obsolete files whose names are no longer emitted by
+  a later run.
+- Output capture is bounded. If a reader does not drain within the post-process
+  deadline, the captured stream is marked truncated rather than blocking.
+- External tools run with the current user's privileges and retain their own
+  parser and implementation risks.
+
+## Evidence boundaries
+
+- The project persists one latest-run receipt between sessions, not a complete
+  run history. A later run replaces `evidence/latest-run.json` atomically.
+- The receipt records declared input paths that exist when hashing occurs. A
+  missing declared input cannot be hashed and remains an adapter validation
+  failure rather than being represented as captured evidence.
+- Reports compare receipt hashes with current inputs and state mismatches, but
+  they do not sign or notarise evidence.
+- Reports are Markdown only. There is no PDF or HTML rendering pipeline.
+- A successful adapter status means execution and parsing completed. It does
+  not by itself prove engineering acceptance or regulatory compliance.
+
+## Product boundaries
+
+- The browser build cannot read local workspaces or execute installed tools.
+  It shows a clear desktop-only explanation and keeps the learning application
+  available.
+- External open and reveal is not implemented. A TypeScript bridge method
+  remains for future work, but there is no current UI action or Tauri grant.
+- There is no cloud sync, collaboration, account system, mobile application,
+  auto-update, code signing, notarisation, bundled ngspice or bundled KiCad.
+- There is no FEM, CFD, multibody solver, CAD geometry kernel or production
+  safety-controller integration.
+- No `LICENSE` file exists. Public release requires an explicit licence and a
+  refreshed third-party licence review.

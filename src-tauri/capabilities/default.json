@@ -1,7 +1,21 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Main window: core IPC and directory picker only. External-app opening is deferred (see docs/Known-Limitations.md) so no opener grant is present.",
+  "description": "Main window: allow-listed application IPC only. Workspace roots must be approved through the Rust-controlled native folder picker. External-app opening is deferred (see docs/Known-Limitations.md), so no opener grant is present.",
   "windows": ["main"],
-  "permissions": ["core:default", "dialog:allow-open"]
+  "permissions": [
+    "core:default",
+    "allow-detect-tool",
+    "allow-run-tool",
+    "allow-cancel-run",
+    "allow-pick-tool-executable",
+    "allow-clear-tool-executable",
+    "allow-pick-workspace-directory",
+    "allow-read-text-file",
+    "allow-write-text-file-atomic",
+    "allow-list-dir",
+    "allow-hash-file",
+    "allow-create-dir-all",
+    "allow-file-exists"
+  ]
 }
