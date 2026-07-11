@@ -12,6 +12,8 @@ import { RoboticsLab } from "./pages/RoboticsLab";
 import { MlLab } from "./pages/MlLab";
 import { MechanicalLab } from "./pages/MechanicalLab";
 import { PracticeLab } from "./pages/PracticeLab";
+import { WorkbenchPage } from "./pages/WorkbenchPage";
+import { DiagnosticsPage } from "./pages/DiagnosticsPage";
 
 // HashRouter keeps deep links working on GitHub Pages without a 404 workaround.
 export default function App() {
@@ -31,6 +33,8 @@ export default function App() {
             <Route path="/labs/ml" element={<MlLab />} />
             <Route path="/labs/mechanical" element={<MechanicalLab />} />
             <Route path="/labs/practice" element={<PracticeLab />} />
+            <Route path="/workbench" element={<WorkbenchPage />} />
+            <Route path="/diagnostics" element={<DiagnosticsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
