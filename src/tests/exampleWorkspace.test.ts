@@ -8,7 +8,8 @@ import { parseManifest } from "../lib/workspace/manifest";
 import { validateNetlist } from "../lib/adapters/ngspice/netlist";
 import { NgspiceAdapter } from "../lib/adapters/ngspice/adapter";
 
-const ROOT = join(__dirname, "..", "..", "examples", "rc-filter-workspace");
+// vitest runs with the repository root as the working directory.
+const ROOT = join(process.cwd(), "examples", "rc-filter-workspace");
 
 describe("example workspace", () => {
   it("has a valid schemaVersion 1 manifest", () => {
