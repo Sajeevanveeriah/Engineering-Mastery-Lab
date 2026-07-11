@@ -35,11 +35,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Linux webview dependencies
+      - name: Install Linux webview and packaging dependencies
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+          # rpm provides rpmbuild, required by Tauri's RPM bundler target.
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf rpm
 
       - uses: actions/setup-node@v4
         with:
@@ -83,16 +84,19 @@ jobs:
         shell: bash
         run: |
           shopt -s nullglob globstar
-          found=0
+          missing=0
           while IFS= read -r pattern; do
             [ -z "$pattern" ] && continue
-            for f in $pattern; do
-              echo "artefact: $f"
-              found=1
-            done
+            matches=($pattern)
+            if [ ${#matches[@]} -eq 0 ]; then
+              echo "::error::No artefact matched expected pattern '$pattern' for ${{ matrix.name }}"
+              missing=1
+            else
+              for f in "${matches[@]}"; do echo "artefact: $f"; done
+            fi
           done <<< "${{ matrix.bundle-glob }}"
-          if [ "$found" -eq 0 ]; then
-            echo "::error::No desktop artefacts were produced for ${{ matrix.name }}"
+          if [ "$missing" -ne 0 ]; then
+            echo "::error::One or more expected artefacts are missing for ${{ matrix.name }}"
             exit 1
           fi
 

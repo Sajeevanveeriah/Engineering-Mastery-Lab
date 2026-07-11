@@ -127,9 +127,20 @@ export function buildEvidenceReport(input: EvidenceReportInput): string {
 
   push("## 5. Simulations and results");
   push();
-  const runsById = new Map(input.runs.map((r) => [r.simulationId, r.result]));
-  for (const sim of [...manifest.simulations].sort((a, b) => a.id.localeCompare(b.id))) {
-    push(`### 5.${1 + [...manifest.simulations].sort((a, b) => a.id.localeCompare(b.id)).findIndex((s) => s.id === sim.id)} ${sim.id} — ${mdEscape(sim.title)}`);
+  // Build the lookup deterministically: if the caller supplies more than one
+  // run for the same simulation id, pick the result with the lexicographically
+  // greatest serialization. This is a pure function of the results' content,
+  // so the chosen run does not depend on the order `input.runs` arrives in.
+  const runsById = new Map<string, SimulationRun["result"]>();
+  for (const { simulationId, result } of input.runs) {
+    const existing = runsById.get(simulationId);
+    if (!existing || JSON.stringify(result) > JSON.stringify(existing)) {
+      runsById.set(simulationId, result);
+    }
+  }
+  const orderedSims = [...manifest.simulations].sort((a, b) => a.id.localeCompare(b.id));
+  orderedSims.forEach((sim, simIndex) => {
+    push(`### 5.${simIndex + 1} ${sim.id} — ${mdEscape(sim.title)}`);
     push();
     push(`Capability: \`${sim.capabilityId}\` · Requirements: ${[...sim.requirementIds].sort().join(", ") || "—"}`);
     push();
@@ -143,7 +154,7 @@ export function buildEvidenceReport(input: EvidenceReportInput): string {
     if (!result) {
       push("Result: **NOT RUN** in this report.");
       push();
-      continue;
+      return;
     }
     // Surface a check verdict for validation runs that report error counts,
     // so a completed-with-errors ERC/DRC is not mistaken for a clean pass.
@@ -186,7 +197,7 @@ export function buildEvidenceReport(input: EvidenceReportInput): string {
       }
       push();
     }
-  }
+  });
 
   push("## 6. Limitations");
   push();

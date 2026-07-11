@@ -18,6 +18,61 @@ use tools::{
 #[derive(Default)]
 struct CancelRegistry(Mutex<HashMap<String, Arc<AtomicBool>>>);
 
+impl CancelRegistry {
+    fn register(&self, id: &str) -> Arc<AtomicBool> {
+        let flag = Arc::new(AtomicBool::new(false));
+        self.0
+            .lock()
+            .expect("cancel registry lock")
+            .insert(id.to_string(), Arc::clone(&flag));
+        flag
+    }
+
+    fn remove(&self, id: &str) {
+        self.0.lock().expect("cancel registry lock").remove(id);
+    }
+
+    /// Signal cancellation for an in-flight run. Returns false when the id is
+    /// unknown (e.g. the run already finished and was removed).
+    fn cancel(&self, id: &str) -> bool {
+        match self.0.lock().expect("cancel registry lock").get(id) {
+            Some(flag) => {
+                flag.store(true, Ordering::Relaxed);
+                true
+            }
+            None => false,
+        }
+    }
+}
+
+/// Validated pre-spawn plan: workspace root, program path and argument vector.
+#[derive(Debug)]
+struct RunPlan {
+    program: std::path::PathBuf,
+    args: Vec<String>,
+    root: std::path::PathBuf,
+}
+
+/// Assemble and validate everything needed before spawning, in a fixed order:
+/// workspace root, then argument vector (which re-validates every path), then
+/// program resolution. Path/argument errors short-circuit before the tool is
+/// ever resolved or launched. Extracted from `run_tool` so the ordering and
+/// failure semantics are unit-testable without a Tauri runtime.
+fn prepare_run(
+    workspace_root: &str,
+    request: &ToolRunRequest,
+    tool_path_override: Option<&str>,
+) -> Result<RunPlan, String> {
+    let root = validated_root(workspace_root).map_err(|e| e.to_string())?;
+    let args = request.build_args()?;
+    let program = resolve_program(request.tool_id(), tool_path_override)?;
+    Ok(RunPlan {
+        program,
+        args,
+        root,
+    })
+}
+
 #[derive(serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct RunToolOptions {
@@ -45,21 +100,20 @@ async fn run_tool(
     request: ToolRunRequest,
     options: RunToolOptions,
 ) -> Result<ProcessOutcome, String> {
-    let root = validated_root(&options.workspace_root).map_err(|e| e.to_string())?;
-    let args = request.build_args()?;
-    let program = resolve_program(request.tool_id(), options.tool_path_override.as_deref())?;
+    let plan = prepare_run(
+        &options.workspace_root,
+        &request,
+        options.tool_path_override.as_deref(),
+    )?;
 
-    let cancel_flag = options.cancel_id.as_ref().map(|id| {
-        let flag = Arc::new(AtomicBool::new(false));
-        state
-            .0
-            .lock()
-            .expect("cancel registry lock")
-            .insert(id.clone(), Arc::clone(&flag));
-        flag
-    });
+    let cancel_flag = options.cancel_id.as_ref().map(|id| state.register(id));
 
     let timeout_ms = options.timeout_ms;
+    let RunPlan {
+        program,
+        args,
+        root,
+    } = plan;
     let outcome = tauri::async_runtime::spawn_blocking(move || {
         let mut command = Command::new(program);
         command.args(args).current_dir(root);
@@ -69,25 +123,14 @@ async fn run_tool(
     .map_err(|e| format!("execution task failed: {e}"))?;
 
     if let Some(id) = options.cancel_id {
-        state.0.lock().expect("cancel registry lock").remove(&id);
+        state.remove(&id);
     }
     outcome
 }
 
 #[tauri::command]
 fn cancel_run(state: tauri::State<'_, CancelRegistry>, cancel_id: String) -> bool {
-    match state
-        .0
-        .lock()
-        .expect("cancel registry lock")
-        .get(&cancel_id)
-    {
-        Some(flag) => {
-            flag.store(true, Ordering::Relaxed);
-            true
-        }
-        None => false,
-    }
+    state.cancel(&cancel_id)
 }
 
 #[tauri::command]
@@ -173,4 +216,58 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tools::ToolRunRequest;
+
+    fn temp_root(name: &str) -> String {
+        let dir = std::env::temp_dir().join(format!("ewb-lib-{name}-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        dir.to_string_lossy().into_owned()
+    }
+
+    #[test]
+    fn prepare_run_rejects_unsafe_paths_before_resolving_the_tool() {
+        // An injection attempt in the netlist path must fail at build_args,
+        // BEFORE resolve_program is reached — so this errors even though the
+        // tool may not be installed (it never gets that far).
+        let root = temp_root("prep");
+        let request = ToolRunRequest::Ngspice {
+            netlist_rel_path: "../escape.cir".into(),
+            output_dir_rel_path: "results".into(),
+        };
+        let err = prepare_run(&root, &request, None).unwrap_err();
+        assert!(err.contains("forbidden component") || err.contains("workspace-relative"));
+    }
+
+    #[test]
+    fn prepare_run_rejects_invalid_workspace_root_first() {
+        let request = ToolRunRequest::Ngspice {
+            netlist_rel_path: "circuits/rc.cir".into(),
+            output_dir_rel_path: "results".into(),
+        };
+        let err = prepare_run("Z:/no/such/root", &request, None).unwrap_err();
+        assert!(err.contains("workspace root is invalid"));
+    }
+
+    #[test]
+    fn cancel_registry_signals_only_known_ids_and_cleans_up() {
+        let reg = CancelRegistry::default();
+        // Unknown id: cancel is a no-op returning false.
+        assert!(!reg.cancel("missing"));
+
+        let flag = reg.register("run-1");
+        assert!(!flag.load(Ordering::Relaxed));
+        // Cancelling a registered id flips its flag and reports success.
+        assert!(reg.cancel("run-1"));
+        assert!(flag.load(Ordering::Relaxed));
+
+        // After removal (run finished), a late cancel returns false and does
+        // not panic — the exact "cancel after complete" path.
+        reg.remove("run-1");
+        assert!(!reg.cancel("run-1"));
+    }
 }

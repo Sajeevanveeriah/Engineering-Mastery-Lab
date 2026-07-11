@@ -32,19 +32,30 @@ Last updated: 2026-07-11 (M11 in progress)
   cleared by upgrading vite→8, vitest→4, plugin-react→6 (all gates re-run green:
   lint, 126 tests, build).
 
-## In progress — M11
-
-Four fresh verifier agents launched (security, test adequacy + packaging,
-documentation accuracy, architecture + simulation correctness). Findings will be
-resolved (critical/high) or recorded in Known-Limitations.md, then the final
-release-readiness report is written.
+### M11 — Verifier agents + fixes + final gates
+- Four fresh verifier agents ran (security, test/packaging, documentation,
+  architecture + simulation correctness). All HIGH findings fixed and re-tested:
+  - Security: symlink/junction workspace escape (post-join canonical containment
+    check); NTFS ADS + Windows reserved-name rejection; SPICE continuation-line
+    `.control`/shell bypass; removed unused wildcard opener grant.
+  - Architecture: stale-artefact sentinels (ngspice + KiCad); `kicad.drc` gated
+    to KiCad 8+; report labels `COMPLETED` with findings verdict; workbench
+    workspace-switch race + bridge-init rejection handling; RLC ζ comment.
+- Post-fix gates all green: `npm run lint`, `npm test` **130 passed**,
+  `npm run build`; `cargo fmt --check`, `cargo clippy -D warnings`,
+  `cargo test` **19 passed**; desktop rebuild produced fresh MSI + NSIS
+  (13:32/13:33) with SHA-256 checksums.
+- Docs review: no critical/high inaccuracies. `docs/Release-Readiness-Report.md`
+  written; KiCad DRC 8+ version notes propagated to Installation/Troubleshooting/
+  Known-Limitations.
 
 ## Blockers
 
 None. macOS/Linux packaging is unverified on runners (workflows present and
 syntactically valid) — recorded in Known-Limitations.md.
 
-## Next action
+## Status
 
-Consume verifier findings → fix critical/high → final gates → release-readiness
-report → final commit.
+P0 complete; all local quality gates green; Windows desktop package built.
+Remaining before public release (see Release-Readiness-Report.md): verify
+macOS/Linux on CI runners, choose a licence, first real-tool run.

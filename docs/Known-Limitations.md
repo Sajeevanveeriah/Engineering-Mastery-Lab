@@ -52,6 +52,15 @@
   output files; re-running overwrites them deterministically.
 - The recent-projects list and tool-path overrides live in browser storage
   (per machine, per profile), not in the workspace.
+- No automated contract test spans the Rust↔TypeScript IPC seam: the camelCase
+  field names in `src-tauri/src/{tools,lib}.rs` and `src/lib/platform/
+  tauriBridge.ts` are kept in sync by hand. They agree today; a future rename
+  on one side only would compile and unit-test green but break at runtime.
+  Mitigation: the pre-spawn `prepare_run` ordering and the cancel registry are
+  now unit-tested in Rust, and `MemoryBridge` covers the TS adapter logic.
+- The Rust timeout/cancellation tests use short wall-clock budgets against real
+  subprocesses; they are robust locally but could flake on a heavily loaded CI
+  runner.
 
 ## Out of scope for v0.1 (by design)
 

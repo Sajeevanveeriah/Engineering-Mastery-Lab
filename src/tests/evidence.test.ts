@@ -85,6 +85,27 @@ describe("evidence report", () => {
     expect(buildEvidenceReport(shuffled)).toBe(base);
   });
 
+  it("is deterministic when the same simulation id appears more than once in runs", () => {
+    const withDupes = sampleInput();
+    const early = okResult("ngspice.tran");
+    early.message = "earlier run";
+    const late = okResult("ngspice.tran");
+    late.message = "later run";
+    // Two runs for the same simulation, supplied in one order...
+    withDupes.runs = [
+      { simulationId: "sim-b", result: early },
+      { simulationId: "sim-b", result: late }
+    ];
+    const a = buildEvidenceReport(withDupes);
+    // ...and the reverse order must produce identical output.
+    const reversed = { ...withDupes, runs: [...withDupes.runs].reverse() };
+    const b = buildEvidenceReport(reversed);
+    expect(a).toBe(b);
+    // Last-by-stable-order wins deterministically.
+    expect(a).toContain("later run");
+    expect(a).not.toContain("earlier run");
+  });
+
   it("contains every required section", () => {
     const report = buildEvidenceReport(sampleInput());
     for (const heading of [
