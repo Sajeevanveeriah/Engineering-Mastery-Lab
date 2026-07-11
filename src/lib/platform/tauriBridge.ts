@@ -1,0 +1,108 @@
+// PlatformBridge implementation backed by Tauri IPC. Imported dynamically so
+// the web (GitHub Pages) bundle never loads Tauri modules eagerly.
+
+import {
+  PlatformBridge,
+  ProcessResult,
+  RunOptions,
+  ToolDetection,
+  ToolId,
+  ToolRunRequest
+} from "./bridge";
+
+type InvokeFn = <T>(cmd: string, args?: Record<string, unknown>) => Promise<T>;
+
+export function isTauri(): boolean {
+  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+}
+
+export class TauriBridge implements PlatformBridge {
+  readonly isDesktop = true;
+
+  private constructor(
+    private invoke: InvokeFn,
+    private openDialog: (options: { directory: boolean; title: string }) => Promise<string | string[] | null>,
+    private openerOpenPath: (path: string) => Promise<void>
+  ) {}
+
+  static async create(): Promise<TauriBridge> {
+    const [{ invoke }, dialog, opener] = await Promise.all([
+      import("@tauri-apps/api/core"),
+      import("@tauri-apps/plugin-dialog"),
+      import("@tauri-apps/plugin-opener")
+    ]);
+    return new TauriBridge(invoke as InvokeFn, dialog.open, opener.openPath);
+  }
+
+  detectTool(tool: ToolId, overridePath?: string): Promise<ToolDetection> {
+    return this.invoke<ToolDetection>("detect_tool", { tool, overridePath: overridePath ?? null });
+  }
+
+  async runTool(request: ToolRunRequest, options: RunOptions): Promise<ProcessResult> {
+    const cancelId = options.signal ? `run-${Math.random().toString(36).slice(2)}` : null;
+    let onAbort: (() => void) | undefined;
+    if (options.signal && cancelId) {
+      onAbort = () => void this.invoke("cancel_run", { cancelId });
+      if (options.signal.aborted) {
+        return { exitCode: null, stdout: "", stderr: "", timedOut: false, cancelled: true, truncated: false, durationMs: 0 };
+      }
+      options.signal.addEventListener("abort", onAbort, { once: true });
+    }
+    try {
+      return await this.invoke<ProcessResult>("run_tool", {
+        request,
+        options: {
+          workspaceRoot: options.workspaceRoot,
+          timeoutMs: options.timeoutMs ?? null,
+          toolPathOverride: options.toolPathOverride ?? null,
+          cancelId
+        }
+      });
+    } finally {
+      if (options.signal && onAbort) options.signal.removeEventListener("abort", onAbort);
+    }
+  }
+
+  readTextFile(root: string, relPath: string, maxBytes?: number): Promise<string> {
+    return this.invoke<string>("read_text_file", { root, relPath, maxBytes: maxBytes ?? null });
+  }
+
+  writeTextFileAtomic(root: string, relPath: string, contents: string): Promise<void> {
+    return this.invoke<void>("write_text_file_atomic", { root, relPath, contents });
+  }
+
+  listDir(root: string, relPath: string): Promise<string[]> {
+    return this.invoke<string[]>("list_dir", { root, relPath });
+  }
+
+  hashFile(root: string, relPath: string): Promise<string> {
+    return this.invoke<string>("hash_file", { root, relPath });
+  }
+
+  createDirAll(root: string, relPath: string): Promise<void> {
+    return this.invoke<void>("create_dir_all", { root, relPath });
+  }
+
+  fileExists(root: string, relPath: string): Promise<boolean> {
+    return this.invoke<boolean>("file_exists", { root, relPath });
+  }
+
+  async pickDirectory(title: string): Promise<string | null> {
+    const selection = await this.openDialog({ directory: true, title });
+    return typeof selection === "string" ? selection : null;
+  }
+
+  openPath(absPath: string): Promise<void> {
+    return this.openerOpenPath(absPath);
+  }
+}
+
+let cached: Promise<PlatformBridge | null> | null = null;
+
+/** Resolve the platform bridge once: TauriBridge on desktop, null on the web. */
+export function getPlatformBridge(): Promise<PlatformBridge | null> {
+  if (!cached) {
+    cached = isTauri() ? TauriBridge.create().then((b): PlatformBridge | null => b) : Promise.resolve(null);
+  }
+  return cached;
+}
