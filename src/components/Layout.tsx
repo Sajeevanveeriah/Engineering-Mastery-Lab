@@ -12,7 +12,9 @@ const links = [
   { to: "/labs/robotics", label: "Robotics" },
   { to: "/labs/ml", label: "AI/ML" },
   { to: "/labs/mechanical", label: "Mechanical" },
-  { to: "/labs/practice", label: "Practice" }
+  { to: "/labs/practice", label: "Practice" },
+  { to: "/workbench", label: "Workbench" },
+  { to: "/diagnostics", label: "Diagnostics" }
 ];
 
 export function Layout() {

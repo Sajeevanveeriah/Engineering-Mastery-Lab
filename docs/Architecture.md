@@ -66,3 +66,47 @@ export standalone JSON artefacts.
   reproducible and testable.
 - **Versioned progress schema:** enables future migration to Supabase (see
   `Future_Supabase_Integration.md`) without breaking existing exports.
+
+---
+
+# Engineering Workbench (v0.1) architecture
+
+The workbench extends the lab site into a Tauri 2 desktop application without
+forking the UI. Full decisions are recorded in `docs/adr/ADR-0001..0005`.
+
+## Layers
+
+```
+React UI (pages/)            WorkbenchPage, DiagnosticsPage + all existing labs
+   │
+Adapter registry (lib/adapters/)   contract v1: describe/detect/validate/execute
+   │            ├── builtin.ts     wraps the pure TS engines in-process
+   │            ├── ngspice/       netlist gen + wrdata/op parsers (pure TS)
+   │            └── kicad/         version gating + ERC/DRC report parsers
+   │
+PlatformBridge (lib/platform/)     one typed seam: TauriBridge | MemoryBridge | null
+   │
+Tauri IPC commands (src-tauri/src/)
+   ├── paths.rs         lexical rel-path validation + canonicalised roots
+   ├── process.rs       no-shell spawning, timeout, output caps, cancellation
+   ├── tools.rs         tool detection + allow-listed request → argv mapping
+   └── workspace_fs.rs  workspace-scoped read/write-atomic/list/hash
+```
+
+Supporting modules: `lib/workspace/` (manifest schema v1 + project ops),
+`lib/report/evidence.ts` (deterministic Markdown reports), `lib/settings.ts`
+(tool path overrides).
+
+## Invariants
+
+1. Pure logic (engines, parsers, netlist/report generation, manifest
+   validation) imports neither React nor Tauri.
+2. Every desktop capability crosses `PlatformBridge`; the web build gets
+   `null` and renders informative desktop-only states.
+3. The frontend can never pass raw argument vectors or absolute paths to the
+   Rust side; requests are typed, subcommands allow-listed, and every path is
+   re-validated in Rust (defence in depth over the TS checks).
+4. External-tool behaviour is reproducible in tests through `MemoryBridge`
+   fixtures — no adapter requires the real tool to be verifiable.
+5. Web and desktop share one build; the Tauri CLI sets `TAURI_ENV_PLATFORM`,
+   which flips the Vite `base` from the Pages path to `./`.

@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "name": "RC Filter Study",
+  "description": "Example workspace: RC low-pass filter, resistive divider and series RLC, verified with ngspice analyses.",
+  "createdUtc": "2026-07-11T00:00:00.000Z",
+  "modifiedUtc": "2026-07-11T00:00:00.000Z",
+  "requirements": [
+    {
+      "id": "REQ-001",
+      "title": "Low-pass cutoff frequency 1.6 kHz +/- 10%",
+      "sourceRelPath": "requirements/spec.md"
+    },
+    {
+      "id": "REQ-002",
+      "title": "Divider output 3.33 V +/- 1% at 5 V supply",
+      "sourceRelPath": "requirements/spec.md"
+    },
+    {
+      "id": "REQ-003",
+      "title": "RLC step ringing settles within 20 ms",
+      "sourceRelPath": "requirements/spec.md"
+    }
+  ],
+  "simulations": [
+    {
+      "id": "sim-ac-lowpass",
+      "title": "RC low-pass AC sweep",
+      "capabilityId": "ngspice.ac",
+      "params": {
+        "analysis": {
+          "fStart": 10,
+          "fStop": 100000,
+          "kind": "ac",
+          "pointsPerDecade": 20
+        },
+        "netlistRelPath": "circuits/rc-lowpass.cir",
+        "vectors": ["v(out)"]
+      },
+      "requirementIds": ["REQ-001"]
+    },
+    {
+      "id": "sim-op-divider",
+      "title": "Voltage divider operating point",
+      "capabilityId": "ngspice.op",
+      "params": {
+        "analysis": {
+          "kind": "op"
+        },
+        "netlistRelPath": "circuits/voltage-divider.cir",
+        "vectors": []
+      },
+      "requirementIds": ["REQ-002"]
+    },
+    {
+      "id": "sim-tran-rlc",
+      "title": "Series RLC step transient",
+      "capabilityId": "ngspice.tran",
+      "params": {
+        "analysis": {
+          "kind": "tran",
+          "tStep": 0.00001,
+          "tStop": 0.02
+        },
+        "netlistRelPath": "circuits/rlc-series.cir",
+        "vectors": ["v(out)"]
+      },
+      "requirementIds": ["REQ-003"]
+    }
+  ]
+}

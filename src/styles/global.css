@@ -290,3 +290,31 @@ svg.plot { width: 100%; height: auto; display: block; background: var(--bg-inset
   white-space: nowrap;
   border: 0;
 }
+
+/* --- Workbench / Diagnostics --- */
+.diagnostics-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.8rem 0;
+  font-size: 0.9rem;
+}
+.diagnostics-table th,
+.diagnostics-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid var(--bg-inset);
+}
+.diagnostics-table th[scope="col"] { color: var(--text-dim); font-weight: 600; }
+.capability-list { list-style: none; padding: 0; margin: 0; }
+.capability-list li { padding: 0.1rem 0; overflow-wrap: anywhere; }
+.diagnostics-table td { overflow-wrap: anywhere; }
+input[type="text"] {
+  background: var(--bg-inset);
+  color: inherit;
+  border: 1px solid var(--bg-inset);
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  min-width: 16rem;
+  max-width: 100%;
+}
