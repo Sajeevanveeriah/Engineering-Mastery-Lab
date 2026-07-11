@@ -17,11 +17,11 @@ reviewed the result; all HIGH findings were fixed and re-tested.
 | Gate | Command | Result |
 |---|---|---|
 | TS type-check | `npm run lint` | pass |
-| TS tests | `npm test` | **130 passed** (14 files) |
+| TS tests | `npm test` | **131 passed** (14 files) |
 | Web build | `npm run build` | pass |
 | Rust format | `cargo fmt --check` | pass |
 | Rust clippy | `cargo clippy --all-targets -- -D warnings` | pass |
-| Rust tests | `cargo test` | **19 passed** |
+| Rust tests | `cargo test` | **22 passed** |
 | Desktop package | `npm run build:desktop` | pass (Windows MSI + NSIS) |
 | Dependency audit | `npm audit` | 0 vulnerabilities (after vite 8 / vitest 4 upgrade) |
 | Secret scan | repo-wide pattern scan | no secrets, tokens or personal paths |
@@ -29,7 +29,9 @@ reviewed the result; all HIGH findings were fixed and re-tested.
 ## Verifier findings and resolution
 
 Four independent reviewers (that did not write the code) covered security,
-test/packaging, documentation, and architecture/simulation correctness.
+test/packaging, documentation, and architecture/simulation correctness. Every
+HIGH finding was fixed and re-tested; actionable mediums were fixed, the rest
+recorded in Known-Limitations.md.
 
 **Fixed (HIGH):**
 - Symlink/junction escape of the workspace root — added post-join canonical
@@ -39,6 +41,9 @@ test/packaging, documentation, and architecture/simulation correctness.
   and KiCad adapters so stale files can never be read as fresh results.
 - `kicad.drc` was gated at KiCad 7, where `pcb drc` does not exist — corrected
   to KiCad 8+.
+- Tauri command boundary (`src-tauri/src/lib.rs`) had no tests — extracted the
+  pre-spawn `prepare_run` ordering and the `CancelRegistry` into testable units
+  and covered path-short-circuit ordering and cancel-after-complete.
 
 **Fixed (MEDIUM):**
 - NTFS alternate data streams and Windows reserved device names now rejected in
@@ -52,11 +57,19 @@ test/packaging, documentation, and architecture/simulation correctness.
 - Workbench blocks workspace switching mid-run and aborts in-flight runs on
   open; bridge-init and diagnostics-refresh promise rejections are handled.
 - Corrected the RLC example damping-ratio comment (ζ = 0.5).
+- Evidence report picks the duplicate-`simulationId` winner by content, not
+  array order (fully order-independent); covered by a new determinism test.
+- CI: `desktop.yml` artefact check now fails on *partial* artefact loss (every
+  expected glob must match); the Rust job runs on all three OSes per-push;
+  `rpmbuild` installed for the Linux RPM target.
 
 **Documented rather than fixed (recorded in Known-Limitations.md):**
 - Evidence-report input hashes are computed at report time, not run time.
 - Directory exports (gerbers/drill) don't use the stale-output sentinel.
 - "Open in KiCad" deferred (opener capability removed for least privilege).
+- No automated Rust↔TS IPC contract test (field names kept in sync by hand;
+  Rust `prepare_run`/registry now tested, TS covered via `MemoryBridge`).
+- Rust timeout/cancellation tests use short wall-clock budgets (CI flake risk).
 
 ## Platform verification
 
