@@ -3,7 +3,7 @@ name = "engineering-workbench"
 version = "0.1.0"
 description = "Engineering Workbench: engineering learning labs plus local circuit/PCB toolchain integration"
 authors = ["Sajeevan Veeriah"]
-license = "UNLICENSED"
+license = "MIT"
 edition = "2021"
 rust-version = "1.77.2"
 
