@@ -23,10 +23,12 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
       - run: npm ci
       - run: npm test
       - run: npm run build
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: dist
 
