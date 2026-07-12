@@ -165,9 +165,9 @@ web application. `HashRouter` keeps deep links compatible with static hosting.
 
 ## Licence and engineering use
 
-There is no `LICENSE` file. Source availability does not itself grant
-redistribution rights, so an explicit licence decision is required before a
-public release.
+This project is licensed under the [MIT License](LICENSE). You may use, copy,
+modify and distribute the software subject to the licence terms and preservation
+of the copyright and licence notice.
 
 The learning simulations are simplified educational models using synthetic or
 user-supplied data. They do not demonstrate compliance with an engineering
