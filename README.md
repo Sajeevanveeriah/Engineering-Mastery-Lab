@@ -1,16 +1,56 @@
 # Engineering Workbench
 
-Engineering Workbench v0.1.0 is a functional completion candidate that combines
-the Engineering Mastery Lab learning application with a local desktop project
-workflow. The shared React and TypeScript interface runs in the browser and in
-a Tauri 2 desktop shell. Desktop-only features use a narrow Rust command
-boundary for workspace files, ngspice, KiCad CLI and evidence capture.
+Engineering Workbench v0.2.0 combines a browser-first engineering toolbox,
+bounded parametric CAD, the Engineering Mastery Lab learning application and a
+local desktop project workflow. The shared React and TypeScript interface runs
+in the browser and in a Tauri 2 desktop shell. Desktop-only features use a
+narrow Rust command boundary for workspace files, ngspice, KiCad CLI and
+evidence capture.
 
 This branch is not a production release. The current implementation and its
-remaining release gates are recorded in
+remaining release gates for the v0.1.0 completion baseline are recorded in
 [docs/Release-Readiness-Report.md](docs/Release-Readiness-Report.md).
 
 ## What is included
+
+### Engineering Toolbox
+
+- Twelve input-validated engineering calculators for beam bending, shaft
+  torsion, motor and drive sizing, pneumatic cylinder force, three-phase power,
+  copper conductor voltage drop, 4-20 mA scaling, pipe pressure drop, thermal
+  expansion, wall heat conduction, machining speed and feed, and two-link
+  inverse kinematics.
+- Search and discipline filters, visible governing assumptions, validation
+  warnings and downloadable JSON calculation records.
+- A unit converter covering length, area, volume, mass, force, pressure,
+  torque, power, energy, temperature, speed and volumetric flow.
+- A searchable reference table of indicative mechanical and thermal properties
+  for common metals, polymers and composites.
+- A unified tool directory linking calculators, CAD, learning labs, the project
+  workbench and desktop diagnostics.
+
+The calculators are transparent preliminary-design aids. They do not select a
+code, standard, safety factor, installation method or certified material grade
+on the user's behalf.
+
+### Parametric CAD Studio
+
+- Dimension-driven mounting plate, circular flange, spacer or bushing, and
+  angle bracket templates.
+- Interactive 3D inspection with orbit controls, standard views, grid and
+  wireframe modes, plus a dimensioned 2D drawing view.
+- Geometry validation and calculated area, volume, mass and bounding envelope.
+- Material and density selection using the Toolbox reference catalogue.
+- Browser-profile draft storage and validated JSON design import.
+- Binary STL, OpenSCAD, SVG drawing and Engineering Workbench design JSON
+  exports. STL files are generated in model units intended to be imported as
+  millimetres because STL does not encode units.
+
+CAD Studio is a bounded template modeller, not a general boundary
+representation kernel. It does not provide STEP export, assemblies, mates,
+constraints, free-form sketches, production drawings or manufacturing
+verification. Inspect exported geometry in the production CAD or CAM system
+used for release.
 
 ### Learning application
 
@@ -142,11 +182,20 @@ tree remains green. Consult the release-readiness report before publishing.
 
 | Capability | Web build | Tauri desktop |
 |---|---|---|
+| Engineering calculators and calculation-record export | Available | Available |
+| Unit conversion and materials reference | Available | Available |
+| Parametric CAD modelling and 3D or drawing inspection | Available | Available |
+| STL, OpenSCAD, SVG and design JSON export | Browser download | Webview download |
+| CAD draft storage and design JSON import | Browser-profile storage | Webview-profile storage |
 | Learning labs and progress | Available | Available |
 | Static SPICE validation | Available | Available |
 | Local workspace files | Explanatory fallback | Native picker authority required |
 | External ngspice or KiCad execution | Not available | Available when installed and detected |
 | Workspace run receipts and reports | Not available | Available |
+
+Toolbox and CAD operations run locally in the shared frontend in both modes.
+CAD files are exported through the host download flow and are not written into
+an authorised project workspace automatically.
 
 The GitHub Pages workflow in `.github/workflows/deploy.yml` builds the shared
 web application. `HashRouter` keeps deep links compatible with static hosting.
@@ -158,6 +207,7 @@ web application. `HashRouter` keeps deep links compatible with static hosting.
 - [Development setup](docs/Development-Setup.md)
 - [Adapter authoring guide](docs/Adapter-Authoring-Guide.md)
 - [Known limitations](docs/Known-Limitations.md)
+- [Third-party licences](docs/Third-Party-Licences.md)
 - [Release checklist](docs/Release-Checklist.md)
 - [Release-readiness report](docs/Release-Readiness-Report.md)
 - [Completion receipt](docs/20260711-Engineering-Workbench-Completion-Receipt-Rev00.md)

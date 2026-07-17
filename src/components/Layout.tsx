@@ -15,7 +15,7 @@ interface NavItem {
 
 const overviewLinks: NavItem[] = [
   { to: "/", label: "Dashboard", icon: "dashboard", end: true },
-  { to: "/labs", label: "All laboratories", icon: "labs" },
+  { to: "/labs", label: "All laboratories", icon: "labs", end: true },
   { to: "/skills", label: "Skills matrix", icon: "skills" },
   { to: "/pathways", label: "Learning pathways", icon: "pathways" }
 ];
@@ -38,6 +38,8 @@ const labLinks: NavItem[] = modules.map((module) => ({
 }));
 
 const toolLinks: NavItem[] = [
+  { to: "/toolbox", label: "Engineering toolbox", icon: "skills" },
+  { to: "/cad", label: "CAD Studio", icon: "cad" },
   { to: "/workbench", label: "Project workbench", icon: "workbench" },
   { to: "/diagnostics", label: "Tool diagnostics", icon: "diagnostics" }
 ];
@@ -52,6 +54,8 @@ const routeNames: Array<[string, string]> = [
   ["/labs/pid", "PID Control Lab"],
   ["/labs/ml", "AI and ML Lab"],
   ["/diagnostics", "Tool Diagnostics"],
+  ["/toolbox", "Engineering Toolbox"],
+  ["/cad", "CAD Studio"],
   ["/workbench", "Project Workbench"],
   ["/pathways", "Learning Pathways"],
   ["/skills", "Skills Matrix"],
@@ -202,7 +206,7 @@ export function Layout() {
             <span className="brand__mark" aria-hidden="true">EW</span>
             <span>
               <strong>Engineering Workbench</strong>
-              <small>Mastery Lab</small>
+              <small>Complete engineering suite</small>
             </span>
           </Link>
           <button className="icon-button sidebar__close" type="button" aria-label="Close navigation" onClick={() => { closeMenu(); requestAnimationFrame(() => menuButtonRef.current?.focus()); }}>
@@ -211,7 +215,7 @@ export function Layout() {
         </div>
 
         <nav className="sidebar__nav" aria-label="Application navigation">
-          <NavigationSection label="Overview" links={overviewLinks} onNavigate={navigateFromWorkbench} />
+          <NavigationSection label="Home and learning" links={overviewLinks} onNavigate={navigateFromWorkbench} />
           <NavigationSection label="Laboratories" links={labLinks} onNavigate={navigateFromWorkbench} />
           <NavigationSection label="Engineering tools" links={toolLinks} onNavigate={navigateFromWorkbench} />
         </nav>
@@ -271,7 +275,7 @@ export function Layout() {
           <Outlet />
         </main>
         <footer className="footer">
-          <span>Engineering Workbench v0.1</span>
+          <span>Engineering Workbench v0.2</span>
           <span>Educational models and engineering workflow support only. Validate every real-world decision independently.</span>
         </footer>
       </div>

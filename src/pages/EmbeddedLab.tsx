@@ -42,7 +42,7 @@ function FsmTool() {
       </p>
       {rejected.length > 0 && (
         <p className="small" style={{ color: "var(--warn)" }}>
-          Rejected events (no transition defined): {rejected.join(", ")} — in firmware these would be silently ignored
+          Rejected events (no transition defined): {rejected.join(", ")} - in firmware these would be silently ignored
           or logged.
         </p>
       )}

@@ -208,7 +208,7 @@ export class NgspiceAdapter implements EngineAdapter {
           { raw, diagnostics, generatedFiles, durationMs: proc.durationMs, toolVersion: detection.version }
         );
       }
-      const table = parseWrData(dataText, `${request.capabilityId} — ${params.netlistRelPath}`);
+      const table = parseWrData(dataText, `${request.capabilityId} - ${params.netlistRelPath}`);
       const csv = tableToCsv(table);
       await bridge.writeTextFileAtomic(root, csvRelPath, csv);
       generatedFiles.push(

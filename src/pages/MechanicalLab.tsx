@@ -27,7 +27,7 @@ function GearTool() {
         <div className="metric"><div className="label">Power in</div><div className="val">{round(powerFromTorque(torque, speed), 1)} W</div></div>
         <div className="metric"><div className="label">Power out</div><div className="val">{round(powerFromTorque(g.outputTorque, g.outputSpeed), 1)} W</div></div>
       </div>
-      <p className="small muted">Ideal (lossless) mesh: power in equals power out. Real gearboxes lose 1–10% per stage to friction.</p>
+      <p className="small muted">Ideal (lossless) mesh: power in equals power out. Real gearboxes lose 1-10% per stage to friction.</p>
     </div>
   );
 }

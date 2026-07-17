@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { HashRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
@@ -18,6 +19,13 @@ import { WorkbenchPage } from "./pages/WorkbenchPage";
 import { DiagnosticsPage } from "./pages/DiagnosticsPage";
 import { Labs } from "./pages/Labs";
 import { NotFoundPage } from "./pages/NotFoundPage";
+
+const ToolboxPage = lazy(() => import("./pages/ToolboxPage").then((module) => ({ default: module.ToolboxPage })));
+const CadStudioPage = lazy(() => import("./pages/CadStudioPage").then((module) => ({ default: module.CadStudioPage })));
+
+function LazyPage({ children }: { children: JSX.Element }) {
+  return <Suspense fallback={<div className="page route-loader" role="status"><span className="spinner" /> Loading engineering workspace...</div>}>{children}</Suspense>;
+}
 
 // HashRouter keeps deep links working on GitHub Pages without a 404 workaround.
 export default function App() {
@@ -42,6 +50,8 @@ export default function App() {
                 <Route path="/labs/practice" element={<PracticeLab />} />
                 <Route path="/workbench" element={<WorkbenchPage />} />
                 <Route path="/diagnostics" element={<DiagnosticsPage />} />
+                <Route path="/toolbox" element={<LazyPage><ToolboxPage /></LazyPage>} />
+                <Route path="/cad" element={<LazyPage><CadStudioPage /></LazyPage>} />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>
             </Routes>

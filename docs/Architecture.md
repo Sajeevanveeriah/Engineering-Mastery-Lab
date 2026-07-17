@@ -2,11 +2,11 @@
 
 ## Status and scope
 
-Engineering Workbench v0.1.0 is one React and TypeScript application with two
+Engineering Workbench v0.2.0 is one React and TypeScript application with two
 runtime modes:
 
-- The web build provides the complete learning application, progress storage
-  and static SPICE validation.
+- The web build provides the Engineering Toolbox, bounded parametric CAD,
+  learning application, browser-profile state and static SPICE validation.
 - The Tauri desktop build adds authorised local workspaces, external
   engineering-tool adapters, persisted run receipts and evidence reports.
 
@@ -18,12 +18,17 @@ workspace directory.
 
 ```text
 User interface
-  Dashboard | Skills | Pathways | Labs | Workbench | Diagnostics
+  Dashboard | Toolbox | CAD | Skills | Labs | Workbench | Diagnostics
         |
-        +-- Learning state and pure simulations
+        +-- Local engineering engines
+        |     calculations | units | CAD geometry | materials | simulations
+        |                       |
+        |             draft state and file downloads
+        |
+        +-- Learning state
         |     localStorage | src/lib/simulations | src/lib/metrics
         |
-        +-- Adapter registry
+        +-- Desktop adapter registry
               built-in TypeScript adapters | ngspice | KiCad CLI
                          |
                     PlatformBridge
@@ -41,15 +46,51 @@ exercise workspace and adapter behaviour without granting host access.
 
 | Area | Responsibility |
 |---|---|
-| `src/data/` | Declarative skills, pathway and module content |
+| `src/data/` | Declarative skills, pathway, module and material reference content |
+| `src/lib/engineering/` | Pure validated calculators and affine unit conversion |
+| `src/lib/cad/` | Parametric CAD model schema, validation, metrics, geometry and deterministic text exports |
 | `src/lib/simulations/` | Pure engineering simulation functions |
 | `src/lib/adapters/` | Versioned adapter contract, registry and tool-specific request or result handling |
 | `src/lib/workspace/` | Manifest schema, workspace operations and input discovery or hashing |
 | `src/lib/report/` | Strict run receipt codec and deterministic Markdown evidence reporting |
 | `src/lib/platform/` | The only frontend seam for local filesystem and process capabilities |
-| `src/components/` | Shared shell, tabs, plots, module workflow and workspace editors |
-| `src/pages/` | Dashboard, matrices, pathways, labs, diagnostics and project workflow |
-| `src/tests/` | Simulation, storage, workspace, receipt, reporting and workflow tests |
+| `src/components/` | Shared shell, calculators, CAD viewport and drawing, tabs, plots, module workflow and workspace editors |
+| `src/pages/` | Dashboard, Toolbox, CAD Studio, matrices, pathways, labs, diagnostics and project workflow |
+| `src/tests/` | Calculator, CAD, simulation, storage, workspace, receipt, reporting and workflow tests |
+
+### Engineering Toolbox
+
+Calculator definitions hold their inputs, units, assumptions and calculation
+function together. Each function validates finite and physically bounded input
+before returning named quantities and conditional warnings. The generic
+calculator component renders this schema and can export the entered values,
+results and assumptions as a JSON calculation record.
+
+Unit conversion uses a common base unit for each quantity family. Scale and
+offset support both multiplicative units and temperature conversion. Material
+properties are an indicative in-app reference and are deliberately separate
+from certified design allowables.
+
+All Toolbox calculations run in the renderer without filesystem, process or
+network authority.
+
+### CAD Studio
+
+CAD Studio uses a versioned `CadDesign` schema for four bounded part templates:
+mounting plate, circular flange, spacer or bushing, and angle bracket. The
+model layer validates dimensions and feature relationships before metrics or
+exports are generated.
+
+The geometry layer builds the selected template with Three.js. The viewport
+adds orbit control, standard camera views, a grid, edges and wireframe mode.
+The drawing component provides an SVG dimension view. The same validated model
+also drives area, volume, mass and bounding-envelope calculations.
+
+The design can be saved to browser-profile storage or imported and exported as
+versioned JSON. Export adapters produce binary STL, deterministic OpenSCAD and
+SVG drawing files. These are client-side downloads in both web and desktop
+modes; they do not bypass desktop workspace authority and are not automatically
+captured as project evidence.
 
 ### UI state
 
@@ -156,7 +197,11 @@ source does not import Tauri modules eagerly in web mode.
 
 ## Architectural boundaries
 
-- The desktop app is a controlled orchestrator, not a CAD, SPICE or PCB engine.
+- CAD Studio is a bounded parametric template modeller, not a boundary
+  representation CAD kernel. It has no STEP exchange, assemblies, mates,
+  constraints or free-form feature modelling.
+- The desktop app is a controlled orchestrator for ngspice and KiCad, not a
+  replacement SPICE or PCB engine.
 - No cloud identity, sync, database or telemetry is required.
 - External open and reveal is deferred. No current Tauri capability grants it.
 - Cross-platform source and CI configuration exist, but current completion

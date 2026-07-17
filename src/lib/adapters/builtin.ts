@@ -1,5 +1,5 @@
 // Built-in adapters: expose the existing pure TypeScript simulation engines
-// through the same adapter contract as external tools. They run in-process —
+// through the same adapter contract as external tools. They run in-process -
 // never through process execution or serialisation.
 
 import { simulatePid, stepMetrics, defaultPidParams, PidParams } from "../simulations/control";

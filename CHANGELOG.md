@@ -5,10 +5,26 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
-Current development branch: `saj/complete-engineering-workbench`.
+Target version: 0.2.0.
+
+The verification record below is the v0.1.0 completion baseline. The v0.2.0
+release checks must be refreshed after the Toolbox and CAD changes are merged.
 
 ### Added
 
+- An Engineering Toolbox with twelve input-validated preliminary-design
+  calculators, searchable discipline filters, visible assumptions and JSON
+  calculation-record export.
+- A multi-category unit converter and a searchable reference table containing
+  indicative mechanical and thermal properties for common engineering
+  materials.
+- A bounded parametric CAD Studio for mounting plates, circular flanges,
+  spacers or bushings, and angle brackets, with interactive 3D inspection,
+  standard views, a dimensioned drawing view and geometry validation.
+- CAD area, volume, mass and bounding-envelope calculations with selectable
+  reference materials and density.
+- Binary STL, OpenSCAD, SVG drawing and versioned design JSON export, plus
+  browser-profile draft storage and validated design JSON import.
 - A complete Labs index, not-found route and application-level error boundary.
 - A redesigned dashboard, responsive application shell, mobile navigation and
   consistent page headers, icons, empty states, status messages and controls.
@@ -32,6 +48,10 @@ Current development branch: `saj/complete-engineering-workbench`.
 
 ### Changed
 
+- Reframed the dashboard and navigation as an engineering command centre with
+  direct access to the Toolbox, CAD Studio and Project Workbench.
+- Extended the architecture, platform-parity and known-limitations
+  documentation for the Toolbox and bounded CAD layer.
 - Reworked visual styling into a responsive semantic light and dark theme with
   accessible contrast, reduced-motion handling and forced-colour support.
 - Upgraded plots with descriptions, data tables, non-finite value handling and

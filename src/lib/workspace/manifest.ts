@@ -1,4 +1,4 @@
-// Workspace manifest: schemaVersion 1. Pure validation and serialisation —
+// Workspace manifest: schemaVersion 1. Pure validation and serialisation -
 // no filesystem access here (see workspace.ts for IO via the bridge).
 
 export const MANIFEST_SCHEMA_VERSION = 1;
