@@ -798,3 +798,237 @@ svg.plot { display: block; width: 100%; height: auto; border: 1px solid var(--bo
   .status-badge > span { forced-color-adjust: none; }
   .sidebar-link--active { outline: 2px solid CanvasText; }
 }
+
+/* Engineering suite launch and toolbox */
+.route-loader { display: flex; min-height: 50vh; align-items: center; justify-content: center; gap: 0.7rem; color: var(--text-dim); }
+.suite-launch-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.9rem; margin-bottom: 1.2rem; }
+.suite-launch-card { position: relative; display: grid; min-height: 235px; align-content: start; padding: 1.15rem; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-lg); background: linear-gradient(150deg, var(--bg-card), var(--surface-tint)); box-shadow: var(--shadow-sm); color: var(--text); text-decoration: none; transition: border-color 140ms ease, transform 140ms ease, box-shadow 140ms ease; }
+.suite-launch-card::after { position: absolute; top: -52px; right: -42px; width: 150px; height: 150px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 9%, transparent); content: ""; }
+.suite-launch-card:hover { border-color: var(--accent); color: var(--text); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.suite-launch-card--cad { border-color: color-mix(in srgb, var(--accent) 42%, var(--border)); }
+.suite-launch-card__icon { display: grid; width: 46px; height: 46px; margin-bottom: 1rem; place-items: center; border-radius: 10px; background: var(--accent-soft); color: var(--accent); }
+.suite-launch-card .status-badge { position: absolute; top: 1.05rem; right: 1.05rem; z-index: 1; background: var(--bg-card); }
+.suite-launch-card h2 { margin-bottom: 0.45rem; font-size: 1.08rem; }
+.suite-launch-card p { margin-bottom: 1rem; color: var(--text-dim); font-size: 0.82rem; }
+.suite-launch-card > strong { display: inline-flex; align-items: center; gap: 0.35rem; margin-top: auto; color: var(--accent); font-size: 0.78rem; }
+
+.toolbox-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.7rem; margin-bottom: 1rem; }
+.toolbox-summary > div { display: flex; align-items: baseline; gap: 0.45rem; padding: 0.8rem 0.9rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-card); }
+.toolbox-summary strong { color: var(--accent); font-size: 1.35rem; }
+.toolbox-summary span { color: var(--text-dim); font-size: 0.75rem; }
+.toolbox-page > .tab-group > .tabs { position: sticky; top: 76px; z-index: 8; margin-bottom: 1rem; }
+.toolbox-calculator-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); align-items: start; gap: 0.9rem; }
+.calculator-catalogue { position: sticky; top: 136px; display: grid; gap: 0.6rem; max-height: calc(100vh - 156px); padding: 0.75rem; overflow: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-card); }
+.calculator-catalogue__list { display: grid; gap: 0.3rem; }
+.calculator-catalogue__list button { display: block; width: 100%; padding: 0.65rem; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--text); cursor: pointer; text-align: left; }
+.calculator-catalogue__list button:hover { background: var(--bg-inset); }
+.calculator-catalogue__list button.active { border-color: var(--accent); background: var(--accent-soft); }
+.calculator-catalogue__list span,
+.calculator-catalogue__list small { display: block; }
+.calculator-catalogue__list span { font-size: 0.8rem; font-weight: 680; }
+.calculator-catalogue__list small { margin-top: 0.18rem; color: var(--text-dim); font-size: 0.66rem; }
+.calculator-workspace { min-width: 0; padding: 1.05rem; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-card); box-shadow: var(--shadow-sm); }
+.calculator-workspace__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; padding-bottom: 0.9rem; border-bottom: 1px solid var(--border); }
+.calculator-workspace__header h2 { margin-bottom: 0.3rem; }
+.calculator-workspace__header p:last-child { max-width: 760px; margin-bottom: 0; color: var(--text-dim); }
+.calculator-layout { display: grid; grid-template-columns: minmax(310px, 0.8fr) minmax(360px, 1.2fr); align-items: start; gap: 1rem; }
+.calculator-inputs,
+.calculator-results { min-width: 0; padding: 0.9rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); }
+.calculator-inputs .section-heading p,
+.calculator-results .section-heading p { margin: 0; }
+.quantity-input { display: grid; grid-template-columns: minmax(0, 1fr) auto; overflow: hidden; border: 1px solid var(--border-strong); border-radius: 7px; background: var(--bg-card); }
+.quantity-input:focus-within { outline: 3px solid color-mix(in srgb, var(--focus) 25%, transparent); border-color: var(--focus); }
+.quantity-input input { min-width: 0; border: 0; border-radius: 0; outline: 0 !important; }
+.quantity-input > span { display: grid; min-width: 52px; padding: 0 0.55rem; place-items: center; border-left: 1px solid var(--border); background: var(--bg-inset); color: var(--text-dim); font-family: "Cascadia Code", monospace; font-size: 0.68rem; white-space: nowrap; }
+.calculator-equation { color: var(--text-dim); font-size: 0.72rem; }
+.result-metric-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; margin: 0; }
+.result-metric-grid > div { min-width: 0; padding: 0.75rem; border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 7px; background: var(--bg-card); }
+.result-metric-grid dt { color: var(--text-dim); font-size: 0.67rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.result-metric-grid dd { margin: 0.25rem 0 0; overflow-wrap: anywhere; font-family: "Cascadia Code", monospace; font-size: 1.08rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+.result-metric-grid dd span { color: var(--text-dim); font-size: 0.67rem; font-weight: 500; }
+.assumption-panel { margin-top: 0.75rem; padding: 0.75rem; border-left: 3px solid var(--border-strong); background: var(--bg-inset); }
+.assumption-panel > strong { font-size: 0.75rem; }
+.assumption-panel ul { display: flex; flex-wrap: wrap; gap: 0.35rem 1.1rem; margin: 0.45rem 0 0; padding-left: 1rem; color: var(--text-dim); font-size: 0.7rem; }
+
+.converter-card,
+.materials-reference,
+.workflow-directory { padding: 1.1rem; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-card); box-shadow: var(--shadow-sm); }
+.converter-grid { display: grid; grid-template-columns: minmax(170px, 0.7fr) minmax(220px, 1fr) minmax(160px, 0.8fr) 42px minmax(220px, 1fr) minmax(240px, 1.2fr); align-items: end; gap: 0.7rem; }
+.converter-grid__swap { margin-bottom: 1px; }
+.converter-output { display: grid; min-height: 72px; align-content: center; padding: 0.65rem 0.8rem; border: 1px solid var(--accent); border-radius: 8px; background: var(--accent-soft); }
+.converter-output span { color: var(--text-dim); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.converter-output strong { overflow-wrap: anywhere; color: var(--text); font-family: "Cascadia Code", monospace; font-size: 1.05rem; }
+.converter-output small { color: var(--accent); font-size: 0.68rem; }
+.materials-toolbar { display: grid; grid-template-columns: minmax(240px, 1fr) 220px; gap: 0.65rem; margin-bottom: 0.8rem; }
+.materials-table { min-width: 1040px; }
+.materials-table th,
+.materials-table td { padding: 0.62rem 0.7rem; font-size: 0.72rem; vertical-align: top; }
+.materials-table th { text-align: left; }
+.materials-table thead th { position: sticky; top: 0; z-index: 1; background: var(--bg-inset); }
+.materials-table thead small { color: var(--text-dim); font-weight: 500; }
+.materials-table tbody th strong,
+.materials-table tbody th small { display: block; }
+.materials-table tbody th small { color: var(--text-dim); font-weight: 500; }
+.tool-directory-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
+.tool-directory-card { position: relative; display: flex; min-height: 210px; flex-direction: column; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); color: var(--text); text-decoration: none; }
+.tool-directory-card:hover { border-color: var(--accent); background: var(--accent-soft); color: var(--text); }
+.tool-directory-card__icon { display: grid; width: 42px; height: 42px; margin-bottom: 0.9rem; place-items: center; border-radius: 9px; background: var(--accent-soft); color: var(--accent); }
+.tool-directory-card > .status-badge { position: absolute; top: 1rem; right: 1rem; background: var(--bg-card); }
+.tool-directory-card h3 { margin-bottom: 0.35rem; }
+.tool-directory-card p { color: var(--text-dim); font-size: 0.78rem; }
+.tool-directory-card__action { display: inline-flex; align-items: center; gap: 0.35rem; margin-top: auto; color: var(--accent); font-size: 0.74rem; font-weight: 700; }
+
+/* Parametric CAD Studio */
+.cad-commandbar { position: sticky; top: 75px; z-index: 10; display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem; margin-bottom: 0.8rem; padding: 0.55rem 0.65rem; border: 1px solid var(--border); border-radius: var(--radius); background: color-mix(in srgb, var(--bg-card) 92%, transparent); box-shadow: var(--shadow-sm); backdrop-filter: blur(12px); }
+.cad-commandbar__group { display: inline-flex; overflow: hidden; border: 1px solid var(--border-strong); border-radius: 7px; }
+.cad-commandbar__group button { min-height: 34px; padding: 0.35rem 0.6rem; border: 0; border-right: 1px solid var(--border); background: var(--bg-card); color: var(--text-dim); cursor: pointer; font-size: 0.72rem; text-transform: capitalize; }
+.cad-commandbar__group button:last-child { border-right: 0; }
+.cad-commandbar__group button:hover,
+.cad-commandbar__group button.active { background: var(--accent-soft); color: var(--accent); }
+.cad-toggle { display: inline-flex; align-items: center; gap: 0.35rem; margin-left: 0.2rem; color: var(--text-dim); font-size: 0.72rem; }
+.cad-workspace { display: grid; grid-template-columns: 220px minmax(420px, 1fr) 320px; min-height: 650px; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-card); box-shadow: var(--shadow-md); }
+.cad-model-tree,
+.cad-properties { min-width: 0; padding: 0.75rem; overflow: auto; background: var(--bg-card); }
+.cad-model-tree { border-right: 1px solid var(--border); }
+.cad-properties { border-left: 1px solid var(--border); }
+.cad-pane-heading { margin: -0.75rem -0.75rem 0.75rem; padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--border); background: var(--bg-inset); }
+.cad-pane-heading span,
+.cad-pane-heading strong { display: block; }
+.cad-pane-heading span { color: var(--text-dim); font-size: 0.62rem; font-weight: 750; letter-spacing: 0.1em; text-transform: uppercase; }
+.cad-pane-heading strong { font-size: 0.82rem; }
+.cad-template-list { display: grid; gap: 0.35rem; }
+.cad-template-list button { display: flex; width: 100%; min-height: 62px; align-items: flex-start; gap: 0.5rem; padding: 0.55rem; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--text); cursor: pointer; text-align: left; }
+.cad-template-list button > svg { flex: 0 0 auto; margin-top: 0.1rem; color: var(--text-dim); }
+.cad-template-list button:hover { background: var(--bg-inset); }
+.cad-template-list button.active { border-color: var(--accent); background: var(--accent-soft); }
+.cad-template-list button.active > svg { color: var(--accent); }
+.cad-template-list span,
+.cad-template-list strong,
+.cad-template-list small { display: block; }
+.cad-template-list strong { font-size: 0.75rem; }
+.cad-template-list small { margin-top: 0.12rem; color: var(--text-dim); font-size: 0.63rem; }
+.cad-feature-tree { margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid var(--border); }
+.cad-feature-tree p { margin-bottom: 0.4rem; color: var(--text-dim); font-size: 0.65rem; font-weight: 750; letter-spacing: 0.08em; text-transform: uppercase; }
+.cad-feature-tree ol { display: grid; gap: 0.35rem; margin: 0; padding: 0; list-style: none; }
+.cad-feature-tree li { display: flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.4rem; border-radius: 5px; background: var(--bg); font-size: 0.68rem; }
+.cad-feature-tree li svg { color: var(--success); }
+.cad-canvas-panel { position: relative; display: grid; min-width: 0; grid-template-rows: auto minmax(0, 1fr); background: var(--bg-inset); }
+.cad-canvas-panel__title { display: flex; min-height: 49px; align-items: center; justify-content: space-between; gap: 0.7rem; padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--border); background: var(--bg-card); }
+.cad-canvas-panel__title strong,
+.cad-canvas-panel__title div > span { display: block; }
+.cad-canvas-panel__title strong { font-size: 0.8rem; }
+.cad-canvas-panel__title div > span { color: var(--text-dim); font-size: 0.64rem; }
+.cad-viewport { position: relative; min-height: 600px; overflow: hidden; }
+.cad-viewport canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.cad-viewport__hint { position: absolute; right: 0.7rem; bottom: 0.7rem; z-index: 1; padding: 0.3rem 0.45rem; border: 1px solid var(--border); border-radius: 5px; background: color-mix(in srgb, var(--bg-card) 88%, transparent); color: var(--text-dim); font-size: 0.62rem; pointer-events: none; }
+.cad-invalid-preview { display: grid; min-height: 600px; place-content: center; justify-items: center; padding: 2rem; color: var(--danger); text-align: center; }
+.cad-invalid-preview h2 { margin-top: 0.8rem; }
+.cad-invalid-preview p { max-width: 520px; color: var(--text-dim); }
+.cad-drawing-panel { display: grid; min-height: 600px; padding: 1rem; place-items: center; overflow: auto; }
+.cad-drawing { width: 100%; max-width: 900px; height: auto; filter: drop-shadow(0 10px 24px rgb(15 31 50 / 12%)); }
+.cad-drawing__background { fill: var(--bg-card); stroke: var(--border); }
+.cad-drawing__solid { fill: color-mix(in srgb, var(--accent) 60%, var(--bg-card)); stroke: var(--text); stroke-width: 2; }
+.cad-drawing__cut { fill: var(--bg-card); stroke: var(--text); stroke-width: 2; }
+.cad-drawing__construction { fill: none; stroke: var(--text-soft); stroke-width: 1.5; stroke-dasharray: 7 6; }
+.cad-drawing__centreline { stroke: var(--border); stroke-width: 1; stroke-dasharray: 12 6 2 6; }
+.cad-drawing__hidden { stroke: var(--text-soft); stroke-width: 1.5; stroke-dasharray: 7 6; }
+.cad-drawing__callout,
+.cad-drawing__view-label { fill: var(--text-dim); font-family: "Cascadia Code", monospace; font-size: 12px; }
+.cad-drawing__view-label { font-weight: 750; text-transform: uppercase; }
+.cad-dimension line { stroke: var(--text-dim); stroke-width: 1.3; }
+.cad-dimension text { fill: var(--text); font-family: "Cascadia Code", monospace; font-size: 12px; }
+.cad-dimension marker path { fill: var(--text-dim); }
+.cad-properties > .form-field { margin-bottom: 0.8rem; }
+.cad-property-section { margin-top: 0.9rem; padding-top: 0.8rem; border-top: 1px solid var(--border); }
+.cad-property-section h3 { color: var(--text-dim); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.cad-property-section .form-grid { gap: 0.55rem; }
+.cad-property-section .form-field > span:first-child { font-size: 0.68rem; }
+.cad-property-section input,
+.cad-property-section select { min-height: 36px; font-size: 0.75rem; }
+.cad-property-section input[type="color"] { min-height: 40px; padding: 0.2rem; cursor: pointer; }
+.cad-validation-list { margin-top: 0.8rem; padding: 0.8rem; border: 1px solid var(--danger); border-radius: var(--radius); background: var(--danger-soft); color: var(--danger); }
+.cad-validation-list ul { display: grid; gap: 0.3rem; margin: 0.45rem 0 0; padding: 0; list-style: none; }
+.cad-validation-list li { display: flex; align-items: flex-start; gap: 0.4rem; font-size: 0.75rem; }
+.cad-validation-list li svg { flex: 0 0 auto; }
+.cad-lower-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(380px, 0.9fr); gap: 0.8rem; margin-top: 0.8rem; }
+.cad-export-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+.cad-export-grid .btn { justify-content: flex-start; }
+
+.plot-data summary { min-height: 24px; padding-block: 0.2rem; }
+
+@media (max-width: 1280px) {
+  .suite-launch-grid,
+  .tool-directory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .converter-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .converter-grid__swap { grid-column: 2; grid-row: 2; justify-self: center; }
+  .converter-output { grid-column: span 2; }
+  .cad-workspace { grid-template-columns: 190px minmax(400px, 1fr) 285px; }
+}
+
+@media (max-width: 1080px) {
+  .calculator-layout { grid-template-columns: minmax(0, 1fr); }
+  .cad-workspace { grid-template-columns: 180px minmax(0, 1fr); }
+  .cad-properties { grid-column: 1 / -1; border-top: 1px solid var(--border); border-left: 0; }
+  .cad-properties .cad-property-section .form-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (max-width: 980px) {
+  .toolbox-page > .tab-group > .tabs,
+  .cad-commandbar { top: 66px; }
+  .toolbox-calculator-layout { grid-template-columns: minmax(0, 1fr); }
+  .calculator-catalogue { position: static; max-height: none; }
+  .calculator-catalogue__list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cad-workspace { grid-template-columns: minmax(0, 1fr); }
+  .cad-model-tree { border-right: 0; border-bottom: 1px solid var(--border); }
+  .cad-template-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cad-feature-tree { display: none; }
+  .cad-properties { grid-column: auto; }
+  .cad-properties .cad-property-section .form-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .suite-launch-grid,
+  .toolbox-summary,
+  .tool-directory-grid,
+  .cad-lower-grid { grid-template-columns: minmax(0, 1fr); }
+  .suite-launch-card { min-height: 210px; }
+  .calculator-workspace__header { align-items: stretch; flex-direction: column; }
+  .materials-toolbar,
+  .converter-grid { grid-template-columns: minmax(0, 1fr); }
+  .converter-grid__swap,
+  .converter-output { grid-column: auto; grid-row: auto; }
+  .converter-grid__swap { justify-self: start; }
+  .cad-commandbar { position: static; }
+  .cad-commandbar__group { max-width: 100%; overflow-x: auto; }
+  .cad-commandbar__group button { min-height: 44px; }
+  .cad-viewport,
+  .cad-drawing-panel,
+  .cad-invalid-preview { min-height: 470px; }
+  .cad-properties .cad-property-section .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 520px) {
+  .calculator-catalogue__list,
+  .calculator-layout .form-grid--2,
+  .result-metric-grid,
+  .cad-template-list,
+  .cad-properties .cad-property-section .form-grid,
+  .cad-export-grid { grid-template-columns: minmax(0, 1fr); }
+  .calculator-workspace,
+  .converter-card,
+  .materials-reference,
+  .workflow-directory { padding: 0.8rem; }
+  .cad-workspace { min-height: 0; }
+  .cad-viewport,
+  .cad-drawing-panel,
+  .cad-invalid-preview { min-height: 380px; }
+  .cad-canvas-panel__title { align-items: flex-start; flex-direction: column; }
+  .cad-viewport__hint { display: none; }
+}
+
+@media (pointer: coarse) {
+  .calculator-catalogue__list button,
+  .cad-template-list button,
+  .tool-directory-card,
+  .suite-launch-card { min-height: 44px; }
+}

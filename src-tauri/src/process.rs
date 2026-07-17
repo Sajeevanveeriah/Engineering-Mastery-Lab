@@ -1,5 +1,5 @@
 //! External process execution with timeouts, output caps and cancellation.
-//! Processes are always spawned with argument vectors — never a shell string.
+//! Processes are always spawned with argument vectors - never a shell string.
 
 use std::io::Read;
 use std::process::{Child, Command, Stdio};

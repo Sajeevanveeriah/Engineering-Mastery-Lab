@@ -36,7 +36,7 @@ import {
   saveWorkspace
 } from "../lib/workspace/workspace";
 
-const APP_VERSION = "0.1.0";
+const APP_VERSION = "0.2.0";
 const CHART_COLOURS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)"];
 
 interface StatusMessage {

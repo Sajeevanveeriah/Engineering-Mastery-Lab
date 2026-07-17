@@ -1,4 +1,4 @@
-// Educational ML implementations from scratch. Synthetic data only —
+// Educational ML implementations from scratch. Synthetic data only -
 // these demos are for learning and are NOT production safety systems.
 
 export interface LinRegModel {

@@ -1,5 +1,5 @@
 // PLC/SCADA process simulations: tank fill/drain and conveyor interlocks.
-// Educational models only — not for use on real machinery.
+// Educational models only - not for use on real machinery.
 
 export interface TankState {
   level: number; // 0..100 %
@@ -77,13 +77,13 @@ export function conveyorScan(state: ConveyorState, inp: ConveyorInputs): Conveyo
     faultLatched = true;
     alarms.push("CONVEYOR JAM DETECTED");
   }
-  if (!inp.guardClosed) alarms.push("GUARD OPEN — START INHIBITED");
+  if (!inp.guardClosed) alarms.push("GUARD OPEN - START INHIBITED");
 
   if (faultLatched && inp.resetPb && !inp.eStop && !inp.jamSensor) {
     faultLatched = false;
   }
   if (faultLatched && !inp.eStop && !inp.jamSensor) {
-    alarms.push("FAULT LATCHED — RESET REQUIRED");
+    alarms.push("FAULT LATCHED - RESET REQUIRED");
   }
 
   // Seal-in start/stop circuit with interlocks in the rung.

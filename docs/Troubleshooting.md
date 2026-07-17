@@ -56,9 +56,9 @@ Absolute paths and drive letters are rejected by design.
 
 ## Building
 
-**Windows: `link.exe` not found** — install VS 2022 Build Tools with the C++
+**Windows: `link.exe` not found**: install VS 2022 Build Tools with the C++
 workload.
-**Linux: webkit2gtk errors** — install `libwebkit2gtk-4.1-dev` and related
+**Linux: webkit2gtk errors**: install `libwebkit2gtk-4.1-dev` and related
 packages (Development-Setup.md).
-**SmartScreen/Gatekeeper warnings** — expected for unsigned v0.1 artefacts;
+**SmartScreen/Gatekeeper warnings**: expected for unsigned v0.2 artefacts;
 verify SHA-256 checksums instead.
