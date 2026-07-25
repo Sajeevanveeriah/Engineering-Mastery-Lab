@@ -105,7 +105,7 @@ function TableBuilder({
                   <td key={c.key}>
                     {c.kind === "select" ? (
                       <select aria-label={`${c.label} row ${i + 1}`} value={r[c.key] ?? ""} onChange={(e) => setCell(i, c.key, e.target.value)}>
-                        <option value="">—</option>
+                        <option value="">-</option>
                         {c.options?.map((o) => (
                           <option key={o} value={o}>{o}</option>
                         ))}
@@ -140,10 +140,10 @@ function FmeaExtra(rows: Row[]) {
     .map((r) => ({ item: r.item || "(unnamed)", rpn: Number(r.severity || 0) * Number(r.occurrence || 0) * Number(r.detection || 0) }))
     .filter((r) => r.rpn > 0)
     .sort((a, b) => b.rpn - a.rpn);
-  if (ranked.length === 0) return <p className="small muted">Score S, O and D (1–10) to compute RPN rankings.</p>;
+  if (ranked.length === 0) return <p className="small muted">Score S, O and D (1-10) to compute RPN rankings.</p>;
   return (
     <p className="small">
-      <strong>RPN ranking:</strong> {ranked.map((r) => `${r.item} (${r.rpn})`).join(" · ")} — act on the highest first.
+      <strong>RPN ranking:</strong> {ranked.map((r) => `${r.item} (${r.rpn})`).join(" · ")} - act on the highest first.
     </p>
   );
 }
@@ -187,7 +187,7 @@ function Simulator() {
           content: (
             <TableBuilder
               title="FMEA builder"
-              description="Failure Modes and Effects Analysis. RPN = Severity × Occurrence × Detection (each 1–10; for Detection, 10 = hardest to detect)."
+              description="Failure Modes and Effects Analysis. RPN = Severity × Occurrence × Detection (each 1-10; for Detection, 10 = hardest to detect)."
               storageKey="engineering-mastery-lab/artefacts/fmea"
               columns={[
                 { key: "item", label: "Item / function" },
@@ -228,7 +228,7 @@ function Simulator() {
           content: (
             <TableBuilder
               title="FAT / SAT checklist"
-              description="Scripted acceptance test: step, expected result, actual result, notes. Pre-seeded for the PLC Lab conveyor — edit for your own system."
+              description="Scripted acceptance test: step, expected result, actual result, notes. Pre-seeded for the PLC Lab conveyor - edit for your own system."
               storageKey="engineering-mastery-lab/artefacts/fat"
               columns={[
                 { key: "step", label: "Test step" },
@@ -246,7 +246,7 @@ function Simulator() {
           content: (
             <TableBuilder
               title="Engineering decision log"
-              description="What was decided, when, by whom, and — most importantly — why. The rationale is the part future-you will need."
+              description="What was decided, when, by whom, and - most importantly - why. The rationale is the part future-you will need."
               storageKey="engineering-mastery-lab/artefacts/decisions"
               columns={[
                 { key: "date", label: "Date", width: "7rem" },

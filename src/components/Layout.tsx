@@ -153,7 +153,7 @@ export function Layout() {
 
         <main id="main-content" ref={mainRef} tabIndex={-1}><Outlet /></main>
         <footer className="product-footer">
-          <span>Engineering Mastery Lab v0.1</span>
+          <span>Engineering Mastery Lab v0.2</span>
           <span>Educational models and learner-generated evidence only. Validate real-world engineering decisions independently.</span>
         </footer>
       </div>

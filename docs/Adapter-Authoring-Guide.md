@@ -1,7 +1,7 @@
 # Adapter authoring guide
 
-An adapter exposes an engine — in-process TypeScript or an external command-
-line tool — through contract v1 (`src/lib/adapters/contract.ts`). The UI,
+An adapter exposes an engine, either in-process TypeScript or an external
+command-line tool, through contract v1 (`src/lib/adapters/contract.ts`). The UI,
 diagnostics screen and evidence report consume adapters only through the
 registry, so a correctly written adapter appears everywhere automatically.
 
@@ -32,12 +32,12 @@ Rules you must follow:
 3. **Validate before executing.** `execute` must re-run validation and return
    `invalid-input` (not throw) on bad requests.
 4. **Map every failure to a status**: `tool-missing`, `timeout`, `cancelled`,
-   `failed`, `invalid-input` — each with a human-readable `message` that says
+   `failed`, `invalid-input`; each has a human-readable `message` that says
    what happened *and what to do about it*.
 5. **Inventory generated files** with workspace-relative paths and SHA-256
    hashes so evidence reports can reference them.
 6. **Handle malformed tool output** by returning `failed` with the raw output
-   preserved in `raw` — never crash the app on a parser error.
+   preserved in `raw`; never crash the app on a parser error.
 
 ## External tools need a Rust allow-list entry
 
@@ -53,7 +53,7 @@ The frontend cannot pass raw argument arrays. To integrate a new executable:
    subcommand rejection.
 
 Timeouts, output caps, cancellation and no-shell spawning are provided by
-`run_with_limits` — do not reimplement them.
+`run_with_limits`; do not reimplement them.
 
 ## Testing without the real tool
 
@@ -75,5 +75,5 @@ cancellation, non-zero exit, malformed output, unsafe path rejection.
 
 ## Registration
 
-Add the adapter in `src/lib/adapters/instance.ts`. Nothing else is needed —
+Add the adapter in `src/lib/adapters/instance.ts`. Nothing else is needed;
 Diagnostics, the Workbench and evidence reports discover it via the registry.

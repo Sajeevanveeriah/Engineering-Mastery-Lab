@@ -17,7 +17,7 @@ Windows: `winget install Rustlang.Rustup` and
 Linux (Debian/Ubuntu):
 `sudo apt install libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf build-essential`.
 
-ngspice and KiCad are **not** required for development — every adapter is
+ngspice and KiCad are **not** required for development; every adapter is
 tested through fixtures and the in-memory bridge.
 
 ## Commands
@@ -41,11 +41,13 @@ cargo test              # path/injection/timeout/cancellation/fs tests
 
 ```
 src/lib/simulations/   Pure TS engines (no React, no Tauri)
+src/lib/engineering/   Pure calculators and unit conversion
+src/lib/cad/           CAD schema, validation, metrics, geometry, exports
 src/lib/adapters/      Adapter contract, registry, builtin/ngspice/kicad
 src/lib/platform/      PlatformBridge: Tauri impl + in-memory test impl
 src/lib/workspace/     Manifest schema + project operations
 src/lib/report/        Deterministic evidence report
-src/pages/             UI (labs + WorkbenchPage + DiagnosticsPage)
+src/pages/             UI (Toolbox + CAD + labs + Workbench + Diagnostics)
 src/tests/             Vitest suites and tool-output fixtures
 src-tauri/src/         Rust: paths, process limits, tool allow-list, fs, IPC
 examples/              Committed example workspace (also test input)

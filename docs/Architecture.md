@@ -176,10 +176,12 @@ See
 
 ## Lazy capability loading
 
-CAD Studio, Project Workbench, and Diagnostics use React lazy routes. The
-initial Home route does not import their chunks. No Three.js dependency exists
-in the repository. CAD Studio uses local SVG geometry and is isolated in its
-own lazy chunk so a future CAD engine can be integrated without affecting Home.
+The Engineering Toolbox, CAD Studio, Project Workbench, and Diagnostics use
+React lazy routes. The initial Home route does not import their chunks. CAD
+Studio uses Three.js inside its isolated route chunk for bounded parametric 3D
+inspection. Its pure model layer owns validation, mass properties, and STL,
+OpenSCAD, SVG, and JSON export preparation without moving Three.js into the
+initial application bundle.
 
 ## Desktop command boundary
 
@@ -251,9 +253,12 @@ Project Workbench capability.
 
 ## Boundaries and limitations
 
-- The desktop app is a controlled orchestrator, not a CAD, SPICE, or PCB
-  engine.
-- CAD Studio provides a 2D SVG concept, not manufacturing-certified CAD.
+- The desktop app is a controlled orchestrator around bounded local
+  capabilities, not a general SPICE or PCB engine.
+- CAD Studio provides template-based parametric parts, 3D inspection, drawing
+  output, and bounded exports. It is not a general B-rep kernel,
+  manufacturing-certified CAD, or a substitute for production CAD or CAM
+  verification.
 - Material properties are indicative learning references, not design
   allowables.
 - No cloud identity, database, sync, billing, or telemetry is connected.

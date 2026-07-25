@@ -64,7 +64,7 @@ function Simulator() {
             </div>
             <div className="metric">
               <div className="label">Rise time</div>
-              <div className="val">{m.riseTime !== null ? `${round(m.riseTime)} s` : "—"}</div>
+              <div className="val">{m.riseTime !== null ? `${round(m.riseTime)} s` : "-"}</div>
             </div>
             <div className="metric">
               <div className="label">Settling (2%)</div>
@@ -76,7 +76,7 @@ function Simulator() {
             </div>
           </div>
           <p className="small muted">
-            Actuator saturates at ±10 with basic anti-windup. Watch the effort plot when tuning aggressively — a
+            Actuator saturates at ±10 with basic anti-windup. Watch the effort plot when tuning aggressively - a
             flat-lined effort means the controller is asking for more than the actuator can give.
           </p>
         </div>

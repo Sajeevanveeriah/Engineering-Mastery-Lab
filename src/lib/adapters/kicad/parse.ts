@@ -37,7 +37,7 @@ function toDiagnostic(v: ReportViolation, source: string, sheet?: string): Diagn
   const pos = item?.pos ? ` @ (${item.pos.x} mm, ${item.pos.y} mm)` : "";
   return {
     severity,
-    message: `${v.description ?? v.type ?? "violation"}${item?.description ? ` — ${item.description}` : ""}`,
+    message: `${v.description ?? v.type ?? "violation"}${item?.description ? ` - ${item.description}` : ""}`,
     source,
     location: `${sheet ?? ""}${pos}`.trim() || undefined
   };

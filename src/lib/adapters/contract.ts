@@ -1,5 +1,5 @@
-// Adapter contract v1. Every engine — built-in TypeScript simulation or
-// external command-line tool — implements this interface and registers in the
+// Adapter contract v1. Every engine - built-in TypeScript simulation or
+// external command-line tool - implements this interface and registers in the
 // capability registry. Pure data in, pure data out; no React, no Tauri.
 
 import { PlatformBridge } from "../platform/bridge";

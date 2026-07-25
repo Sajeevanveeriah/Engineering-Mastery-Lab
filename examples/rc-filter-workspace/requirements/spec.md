@@ -1,4 +1,4 @@
-# RC Filter Study — Requirements
+# RC Filter Study - Requirements
 
 | Id | Requirement | Verification |
 |---|---|---|

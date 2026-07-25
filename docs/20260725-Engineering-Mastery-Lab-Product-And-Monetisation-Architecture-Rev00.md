@@ -270,7 +270,9 @@ advice. Obtain qualified legal advice for licensing and trademark decisions.
 - The local profile is not portable without progress export.
 - Manual evidence URLs are references, not fetched or verified.
 - Achievement labels are local evidence thresholds, not credentials.
-- CAD Studio exports a bounded 2D SVG concept, not manufacturing-certified CAD.
+- CAD Studio provides bounded parametric templates, 3D inspection, mass
+  properties, drawing output, and STL, OpenSCAD, SVG, and JSON exports. It is
+  not a general CAD kernel or manufacturing-certified CAD.
 - Material data is broad and indicative.
 - Project budgets are estimates in AUD and exclude labour, shipping, tools,
   compliance, and regional price variation.

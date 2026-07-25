@@ -129,7 +129,7 @@ function SensorTool() {
         <div className="metric"><div className="label">Quantised</div><div className="val">{round(adc.quantised, 4)} V</div></div>
       </div>
       <p className="small muted">
-        ADC reference is 3.3 V. Outputs above Vref clip — exactly the mistake the divider exists to prevent. Combine
+        ADC reference is 3.3 V. Outputs above Vref clip - exactly the mistake the divider exists to prevent. Combine
         with the RC filter tab for anti-noise filtering before the ADC.
       </p>
     </div>

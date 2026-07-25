@@ -3,6 +3,7 @@ import type { SVGProps } from "react";
 export type IconName =
   | "alert"
   | "arrow-right"
+  | "cad"
   | "check"
   | "chevron"
   | "close"
@@ -56,6 +57,7 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
   const paths: Record<IconName, JSX.Element> = {
     alert: <><path d="M12 3 2.8 19h18.4L12 3Z" /><path d="M12 9v4" /><path d="M12 17h.01" /></>,
     "arrow-right": <><path d="M5 12h14" /><path d="m14 7 5 5-5 5" /></>,
+    cad: <><path d="m4 7 8-4 8 4-8 4-8-4Z" /><path d="M4 7v10l8 4 8-4V7" /><path d="M12 11v10" /><path d="M8 15h2M14 15h2" /></>,
     check: <path d="m5 12 4 4L19 6" />,
     chevron: <path d="m8 10 4 4 4-4" />,
     close: <><path d="m6 6 12 12" /><path d="m18 6-12 12" /></>,

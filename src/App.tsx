@@ -20,7 +20,6 @@ import { PracticeLab } from "./pages/PracticeLab";
 import { Projects } from "./pages/Projects";
 import { ProjectDetail } from "./pages/ProjectDetail";
 import { ToolsHub } from "./pages/ToolsHub";
-import { CalculatorHub } from "./pages/CalculatorHub";
 import { UnitConverter } from "./pages/UnitConverter";
 import { MaterialsReference } from "./pages/MaterialsReference";
 import { Portfolio } from "./pages/Portfolio";
@@ -29,7 +28,8 @@ import { Settings } from "./pages/Settings";
 import { About } from "./pages/About";
 import { NotFoundPage } from "./pages/NotFoundPage";
 
-const CadStudio = lazy(() => import("./pages/CadStudio").then((module) => ({ default: module.CadStudio })));
+const ToolboxPage = lazy(() => import("./pages/ToolboxPage").then((module) => ({ default: module.ToolboxPage })));
+const CadStudioPage = lazy(() => import("./pages/CadStudioPage").then((module) => ({ default: module.CadStudioPage })));
 const WorkbenchPage = lazy(() => import("./pages/WorkbenchPage").then((module) => ({ default: module.WorkbenchPage })));
 const DiagnosticsPage = lazy(() => import("./pages/DiagnosticsPage").then((module) => ({ default: module.DiagnosticsPage })));
 
@@ -68,10 +68,10 @@ export default function App() {
                   <Route path="/projects" element={<Projects />} />
                   <Route path="/projects/:projectId" element={<ProjectDetail />} />
                   <Route path="/tools" element={<ToolsHub />} />
-                  <Route path="/tools/calculators" element={<CalculatorHub />} />
+                  <Route path="/tools/calculators" element={<ToolboxPage />} />
                   <Route path="/tools/converter" element={<UnitConverter />} />
                   <Route path="/tools/materials" element={<MaterialsReference />} />
-                  <Route path="/tools/cad" element={<CadStudio />} />
+                  <Route path="/tools/cad" element={<CadStudioPage />} />
                   <Route path="/tools/workbench" element={<WorkbenchPage />} />
                   <Route path="/tools/diagnostics" element={<DiagnosticsPage />} />
                   <Route path="/portfolio" element={<Portfolio />} />

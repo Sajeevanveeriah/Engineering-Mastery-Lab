@@ -18,7 +18,7 @@ would rot quickly and make the pure logic untestable.
 - Tests use `MemoryBridge`, an in-memory implementation with scriptable tool behaviour, which
   is also how ngspice/KiCad adapters are verified on machines without the real tools.
 - Pure logic (simulation maths, netlist generation, parsers, manifest validation, report
-  generation) imports neither React nor the bridge — it takes plain data in and out.
+  generation) imports neither React nor the bridge; it takes plain data in and out.
 - Vite `base` stays `/engineering-mastery-lab/` for web; the Tauri build sets `TAURI_BUILD=1`
   which switches it to `./`. `HashRouter` keeps routing identical in both.
 

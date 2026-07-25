@@ -84,9 +84,9 @@ webview. There is no account, live cloud sync, billing, or telemetry endpoint.
 
 ## Tools and desktop capability
 
-The web and desktop builds include the learning laboratories, calculators,
-unit converter, materials reference, a dependency-free 2D CAD concept studio,
- portfolio, and static SPICE validation.
+The web and desktop builds include the learning laboratories, a validated
+engineering-calculator catalogue, unit conversion, materials reference,
+parametric CAD Studio, portfolio, and static SPICE validation.
 
 The Tauri desktop build additionally provides Project Workbench:
 
@@ -100,9 +100,12 @@ The Tauri desktop build additionally provides Project Workbench:
 ngspice and KiCad are not bundled. Their missing states remain explicit and do
 not disable the learning product.
 
-CAD Studio is lazy-loaded and exports a parameter-driven SVG concept. It is
-not manufacturing-certified CAD. Project Workbench and Diagnostics are also
-lazy-loaded. No Three.js dependency exists in this checkout.
+CAD Studio is lazy-loaded and uses Three.js only inside its route chunk. It
+supports bounded plate, flange, spacer, and angle templates with 3D and drawing
+previews, validation, mass properties, local draft storage, and STL, OpenSCAD,
+SVG, and JSON exports. It is not a general CAD kernel or
+manufacturing-certified CAD. Project Workbench and Diagnostics are also
+lazy-loaded.
 
 ## Desktop security boundary
 
@@ -149,8 +152,8 @@ npm install
 npm run dev
 ```
 
-Dependencies should be installed only as an explicit setup action. The
-redesign itself does not add or upgrade dependencies.
+Dependencies should be installed only as an explicit setup action. Version
+0.2 adds Three.js and its TypeScript declarations for the lazy CAD route.
 
 ## Quality commands
 

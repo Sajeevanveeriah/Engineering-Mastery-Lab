@@ -1,6 +1,6 @@
 [package]
 name = "engineering-workbench"
-version = "0.1.0"
+version = "0.2.0"
 description = "Engineering Mastery Lab: structured engineering learning plus a secure local project workbench"
 authors = ["Sajeevan Veeriah"]
 license = "MIT"

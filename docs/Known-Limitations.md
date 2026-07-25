@@ -2,11 +2,14 @@
 
 ## Release classification
 
-Engineering Workbench v0.1.0 is a functional completion candidate. It is not a
+Engineering Workbench v0.2.0 is a functional completion candidate. It is not a
 production release and is not cleared for public redistribution.
 
 ## Verification gaps
 
+- Installer, responsive-route and dependency-audit evidence currently records
+  the v0.1.0 completion baseline. The v0.2.0 Toolbox and CAD changes require a
+  refreshed release verification run.
 - The completion changes were built into fresh non-empty Windows x64 MSI and
   NSIS bundles and their SHA-256 hashes were recorded. The installers have not
   been installed, signed or interactively smoke-tested, so packaged runtime
@@ -75,6 +78,54 @@ production release and is not cleared for public redistribution.
 - A successful adapter status means execution and parsing completed. It does
   not by itself prove engineering acceptance or regulatory compliance.
 
+## Calculation and materials boundaries
+
+- Toolbox calculators are equation-based screening and preliminary-design
+  aids. They expose their main assumptions, but do not select the governing
+  standard, load combination, duty cycle, safety factor, tolerance or
+  acceptance criterion for a project.
+- Results have input validation and deterministic equations, but no general
+  uncertainty propagation, significant-figure policy or independent design
+  verification workflow.
+- The unit converter supports its listed quantity families only. It does not
+  perform dimensional analysis across arbitrary compound expressions.
+- Material values are indicative reference values. They are not supplier
+  certificates, design allowables or substitutes for grade, temper, heat,
+  orientation, temperature and process-specific data.
+- The voltage-drop tool is a resistive estimate, not cable ampacity,
+  protection coordination, installation-method or AS/NZS 3008 selection
+  advice. Similar domain-specific warnings shown by other calculators remain
+  part of the required engineering review.
+
+## CAD boundaries
+
+- CAD Studio is a bounded template-based modelling layer, not a general
+  boundary representation, or B-rep, geometry kernel.
+- Supported templates are mounting plates, circular flanges, spacers or
+  bushings, and angle brackets. There are no free-form sketches, general
+  booleans, arbitrary fillets or chamfers, threads, sheet-metal features,
+  surfaces or direct modelling.
+- There are no assemblies, mates, geometric or dimensional constraints,
+  configurations, feature suppression, collaborative revision control or
+  product lifecycle management integration.
+- STEP, IGES and native commercial CAD formats are not supported. Exports are
+  binary STL, OpenSCAD source, SVG drawing and Engineering Workbench design
+  JSON.
+- STL does not encode units. The exporter models dimensions in millimetres and
+  the receiving application must be set to millimetres explicitly.
+- SVG output is a template drawing aid, not a standards-compliant production
+  drawing. It has no general drawing sheets, title blocks, GD&T, surface finish,
+  weld symbols, fit selection, revision approval or tolerance stack analysis.
+- Geometry checks cover the supported parameter relationships only. They do
+  not verify stress, fatigue, buckling, fits, clearances, fastener selection,
+  tool access, minimum wall rules, printability, machinability or regulatory
+  compliance.
+- CAD drafts live in the browser or webview profile. Downloaded exports are not
+  automatically placed in an authorised workbench workspace, linked to
+  requirements or captured in an evidence receipt.
+- Exported geometry must be inspected in the production CAD or CAM system used
+  for release.
+
 ## Product boundaries
 
 - The browser build cannot read local workspaces or execute installed tools.
@@ -84,7 +135,7 @@ production release and is not cleared for public redistribution.
   remains for future work, but there is no current UI action or Tauri grant.
 - There is no cloud sync, collaboration, account system, mobile application,
   auto-update, code signing, notarisation, bundled ngspice or bundled KiCad.
-- There is no FEM, CFD, multibody solver, CAD geometry kernel or production
-  safety-controller integration.
-- No `LICENSE` file exists. Public release requires an explicit licence and a
-  refreshed third-party licence review.
+- There is no FEM, CFD, multibody solver, general CAD geometry kernel or
+  production safety-controller integration.
+- The repository includes an MIT licence, but public release still requires a
+  refreshed third-party licence review and completion of the release gates.

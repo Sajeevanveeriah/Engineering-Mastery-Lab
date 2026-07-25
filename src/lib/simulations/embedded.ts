@@ -92,7 +92,7 @@ export function debounce(signal: { t: number; raw: number }[], holdTime: number)
   return out;
 }
 
-/** Count rising edges in a 0/1 signal — used to show why debouncing matters. */
+/** Count rising edges in a 0/1 signal - used to show why debouncing matters. */
 export function countRisingEdges(values: number[]): number {
   let count = 0;
   for (let i = 1; i < values.length; i++) {

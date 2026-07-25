@@ -1245,7 +1245,7 @@ mod tests {
             output_dir_rel_path: "results".into(),
         };
         // "; rm -rf /" contains '/' segments that make it a multi-segment path
-        // with empty component (" /" trailing) — rejected lexically.
+        // with empty component (" /" trailing) - rejected lexically.
         assert!(quoted.build_args().is_err());
     }
 

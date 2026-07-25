@@ -144,11 +144,11 @@ function AnomalyTool() {
       />
       <div className="metric-grid">
         <div className="metric"><div className="label">Degradation rate</div><div className="val">{round(rul.model.slope, 3)}/sample</div></div>
-        <div className="metric"><div className="label">Estimated RUL</div><div className="val">{rul.rulSamples !== null ? `${round(rul.rulSamples, 0)} samples` : "—"}</div></div>
+        <div className="metric"><div className="label">Estimated RUL</div><div className="val">{rul.rulSamples !== null ? `${round(rul.rulSamples, 0)} samples` : "-"}</div></div>
       </div>
       <p className="small" style={{ color: "var(--warn)" }}>
         Educational demo only: a linear trend on synthetic data. Real predictive maintenance requires validated sensors,
-        domain failure models and engineering review — never deploy a toy model as a safety system.
+        domain failure models and engineering review - never deploy a toy model as a safety system.
       </p>
     </div>
   );

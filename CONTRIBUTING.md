@@ -6,7 +6,7 @@
   of React and Tauri imports.
 - Every desktop capability goes through `PlatformBridge`; external-tool
   behaviour must be testable with `MemoryBridge` fixtures.
-- New external tools require a Rust allow-list entry and injection tests —
+- New external tools require a Rust allow-list entry and injection tests -
   see [docs/Adapter-Authoring-Guide.md](docs/Adapter-Authoring-Guide.md).
 - Do not remove or weaken path validation, timeouts or output caps.
 

@@ -6,16 +6,16 @@ Date: 2026-07-11 · Status: Accepted
 
 Engineering Workbench v0.1 needs a cross-platform desktop shell that can spawn local processes
 (ngspice, kicad-cli), read and write project directories, and package for Windows, macOS and
-Linux — while preserving the existing React + TypeScript + Vite frontend and its GitHub Pages
+Linux while preserving the existing React + TypeScript + Vite frontend and its GitHub Pages
 web deployment.
 
 Options considered:
 
-1. **Tauri 2** — Rust core, system webview, first-class Vite integration, small installers
+1. **Tauri 2**: Rust core, system webview, first-class Vite integration, small installers
    (~10 MB), typed IPC commands, capability-based permission model, official three-OS CI action.
-2. **Electron** — Node core, bundled Chromium (~100 MB+ artefacts), process spawning trivially
+2. **Electron**: Node core, bundled Chromium (~100 MB+ artefacts), process spawning trivially
    easy but a much larger attack surface and heavier maintenance for a solo project.
-3. **PWA + local agent** — keeps everything web, but external-tool execution would require a
+3. **PWA + local agent**: keeps everything web, but external-tool execution would require a
    separately installed helper daemon; two artefacts to version and secure.
 
 ## Decision

@@ -77,19 +77,44 @@ export function Dashboard() {
   return (
     <section className="page dashboard-page">
       <PageHeader
-        eyebrow="Learning command centre"
-        title="Engineering mastery dashboard"
-        description="Choose the next practical task, keep the weekly plan honest and turn completed work into evidence you can reuse."
+        eyebrow="Complete engineering suite"
+        title="Engineering command centre"
+        description="Design parts, run calculations and simulations, build automation skills, then capture project evidence in one connected workbench."
         actions={
-          <Link className="btn primary" to="/labs">
-            Browse laboratories <Icon name="arrow-right" size={17} />
-          </Link>
+          <div className="button-row">
+            <Link className="btn" to="/toolbox">Open toolbox</Link>
+            <Link className="btn primary" to="/cad"><Icon name="cad" size={17} /> Start CAD design</Link>
+          </div>
         }
       />
 
+      <section className="suite-launch-grid" aria-label="Primary engineering workspaces">
+        <Link to="/cad" className="suite-launch-card suite-launch-card--cad">
+          <span className="suite-launch-card__icon"><Icon name="cad" size={24} /></span>
+          <span className="status-badge">Design</span>
+          <h2>Parametric CAD Studio</h2>
+          <p>Create dimension-driven parts, inspect 3D geometry and export STL, OpenSCAD, SVG and JSON.</p>
+          <strong>Open CAD Studio <Icon name="arrow-right" size={16} /></strong>
+        </Link>
+        <Link to="/toolbox" className="suite-launch-card">
+          <span className="suite-launch-card__icon"><Icon name="skills" size={24} /></span>
+          <span className="status-badge">Analyse</span>
+          <h2>Engineering Toolbox</h2>
+          <p>Use validated calculators, unit conversions, material properties and connected simulation tools.</p>
+          <strong>Browse toolbox <Icon name="arrow-right" size={16} /></strong>
+        </Link>
+        <Link to="/workbench" className="suite-launch-card">
+          <span className="suite-launch-card__icon"><Icon name="workbench" size={24} /></span>
+          <span className="status-badge">Verify</span>
+          <h2>Project Workbench</h2>
+          <p>Connect requirements, controlled inputs, tool runs, findings and deterministic evidence reports.</p>
+          <strong>Open workbench <Icon name="arrow-right" size={16} /></strong>
+        </Link>
+      </section>
+
       <section className="dashboard-hero" aria-labelledby="next-action-heading">
         <div className="dashboard-hero__copy">
-          <p className="eyebrow">Recommended next action</p>
+          <p className="eyebrow">Recommended learning action</p>
           <h2 id="next-action-heading">{recommended.module.title}</h2>
           <p>{recommended.status.done > 0 ? "Continue the module and close its next incomplete milestone." : "Start with the simulator, then verify the first challenge against its stated pass criteria."}</p>
           <div className="button-row">

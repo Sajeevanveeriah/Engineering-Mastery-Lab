@@ -23,7 +23,7 @@ export const toolsCatalogue: SearchableCatalogueItem[] = [
     description: "PID response, step metrics, disturbance, and saturation models.",
     type: "Calculator",
     discipline: "Controls",
-    route: "/learn/labs/pid?stage=simulate",
+    route: "/tools/calculators",
     keywords: ["pid", "settling", "overshoot", "control"],
     capability: "Web and Desktop"
   },
@@ -33,7 +33,7 @@ export const toolsCatalogue: SearchableCatalogueItem[] = [
     description: "Divider, RC, RLC, filtering, and ADC models.",
     type: "Calculator",
     discipline: "Electrical",
-    route: "/learn/labs/electrical?stage=simulate",
+    route: "/tools/calculators",
     keywords: ["voltage", "filter", "adc", "circuit"],
     capability: "Web and Desktop"
   },
@@ -43,7 +43,7 @@ export const toolsCatalogue: SearchableCatalogueItem[] = [
     description: "Gearing, power, damping, resonance, and vibration models.",
     type: "Calculator",
     discipline: "Mechanical",
-    route: "/learn/labs/mechanical?stage=simulate",
+    route: "/tools/calculators",
     keywords: ["gear", "torque", "power", "vibration"],
     capability: "Web and Desktop"
   },

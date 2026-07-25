@@ -380,7 +380,7 @@ mod tests {
     #[test]
     fn prepare_run_rejects_unsafe_paths_before_resolving_the_tool() {
         // An injection attempt in the netlist path must fail at build_args,
-        // BEFORE resolve_program is reached — so this errors even though the
+        // BEFORE resolve_program is reached - so this errors even though the
         // tool may not be installed (it never gets that far).
         let root = temp_root("prep");
         let request = ToolRunRequest::Ngspice {
@@ -472,7 +472,7 @@ mod tests {
         assert!(flag.load(Ordering::Relaxed));
 
         // After removal (run finished), a late cancel returns false and does
-        // not panic — the exact "cancel after complete" path.
+        // not panic - the exact "cancel after complete" path.
         reg.remove("run-1");
         assert!(!reg.cancel("run-1"));
     }

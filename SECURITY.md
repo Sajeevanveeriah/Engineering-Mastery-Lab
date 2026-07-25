@@ -2,7 +2,7 @@
 
 ## Release status
 
-Version 0.1.0 is a functional completion candidate, not a published production
+Version 0.2.0 is a functional completion candidate, not a published production
 release. Security findings should be reported through a private GitHub security
 advisory for this repository. Include the affected platform, reproduction
 steps, expected behaviour and observed behaviour. Do not disclose an unpatched

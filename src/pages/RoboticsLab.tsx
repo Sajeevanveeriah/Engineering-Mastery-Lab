@@ -182,7 +182,7 @@ function Simulator() {
           )}
         </div>
         {mode === "astar" && plannedPath === null && (
-          <p className="small" style={{ color: "var(--danger)" }}>A* found no path from the current cell — reset the robot first.</p>
+          <p className="small" style={{ color: "var(--danger)" }}>A* found no path from the current cell - reset the robot first.</p>
         )}
       </div>
       <div className="card">

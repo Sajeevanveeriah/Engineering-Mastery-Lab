@@ -42,14 +42,14 @@ function TankTool() {
   }, [panelActive]);
 
   const alarms: string[] = [];
-  if (tank.highHighTrip) alarms.push("LEVEL HIGH-HIGH TRIP — FILL VALVE FORCED CLOSED (LATCHED)");
+  if (tank.highHighTrip) alarms.push("LEVEL HIGH-HIGH TRIP - FILL VALVE FORCED CLOSED (LATCHED)");
   if (tank.highAlarm) alarms.push("LEVEL HIGH ALARM");
   if (tank.lowAlarm) alarms.push("LEVEL LOW ALARM");
 
   return (
     <div className="lab-layout">
       <div className="card">
-        <h3 style={{ marginTop: 0 }}>HMI — Tank T-101</h3>
+        <h3 style={{ marginTop: 0 }}>HMI - Tank T-101</h3>
         <div className="metric-grid">
           <div className="metric"><div className="label">Level</div><div className="val">{round(tank.level, 1)}%</div></div>
           <div className="metric"><div className="label">Fill valve</div><div className="val">{tank.fillValveOpen ? "OPEN" : "CLOSED"}</div></div>
@@ -140,7 +140,7 @@ function ConveyorTool() {
   return (
     <div className="lab-layout">
       <div className="card">
-        <h3 style={{ marginTop: 0 }}>HMI — Conveyor C-201</h3>
+        <h3 style={{ marginTop: 0 }}>HMI - Conveyor C-201</h3>
         <div className="metric-grid">
           <div className="metric">
             <div className="label">Motor</div>
@@ -190,11 +190,11 @@ function ConveyorTool() {
 ( L )/( U ) = latch / unlatch coil`}</pre>
         <h3>Challenge mode hints</h3>
         <ul className="small">
-          <li>Trigger the jam while running, then try Start before clearing it — the interlock must win.</li>
+          <li>Trigger the jam while running, then try Start before clearing it - the interlock must win.</li>
           <li>Open the guard while running and observe the difference between a stop condition and a latched fault.</li>
           <li>Press E-stop, release it, and confirm a deliberate Reset is still required.</li>
         </ul>
-        <p className="small muted">Simplified educational model — real safety circuits use hardwired, certified components, not PLC logic alone.</p>
+        <p className="small muted">Simplified educational model - real safety circuits use hardwired, certified components, not PLC logic alone.</p>
       </div>
     </div>
   );
