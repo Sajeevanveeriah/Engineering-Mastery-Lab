@@ -1,4 +1,4 @@
-// Workspace manifest: schemaVersion 1. Pure validation and serialisation —
+// Workspace manifest: schemaVersion 1. Pure validation and serialisation -
 // no filesystem access here (see workspace.ts for IO via the bridge).
 
 export const MANIFEST_SCHEMA_VERSION = 1;
@@ -101,7 +101,7 @@ export function parseManifest(json: string): WorkspaceManifest {
   }
   if (v > MANIFEST_SCHEMA_VERSION) {
     throw new ManifestError(
-      `This project was created by a newer version of Engineering Workbench (schemaVersion ${v}; ` +
+      `This project was created by a newer version of Project Workbench (schemaVersion ${v}; ` +
         `this build supports up to ${MANIFEST_SCHEMA_VERSION}). Update the application to open it. ` +
         "The file has not been modified."
     );

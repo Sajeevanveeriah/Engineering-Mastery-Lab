@@ -59,7 +59,7 @@ describe("manifest round-trip", () => {
 describe("manifest validation", () => {
   it("rejects newer schema versions with an upgrade message and no modification", () => {
     const json = JSON.stringify({ schemaVersion: 2, name: "x" });
-    expect(() => parseManifest(json)).toThrow(/newer version of Engineering Workbench/);
+    expect(() => parseManifest(json)).toThrow(/newer version of Project Workbench/);
   });
 
   it("rejects older/unknown schema versions", () => {

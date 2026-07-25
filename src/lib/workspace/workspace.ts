@@ -73,7 +73,7 @@ export function validateWorkspaceManifest(manifest: WorkspaceManifest): Workspac
     if (!resolved) {
       issues.push({
         path: `simulations[${index}].capabilityId`,
-        message: `is not provided by this version of Engineering Workbench (${JSON.stringify(simulation.capabilityId)})`
+        message: `is not provided by this version of Project Workbench (${JSON.stringify(simulation.capabilityId)})`
       });
       return;
     }

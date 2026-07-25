@@ -51,7 +51,7 @@ export function Pathways() {
                 </div>
                 {tracked.length > 0 && <span className="pathway-card__percent">{pathwayProgress}%</span>}
               </div>
-              <p className="pathway-card__audience">{pathway.audience}</p>
+              <p className="pathway-card__audience">{pathway.purpose}</p>
               {tracked.length > 0 && (
                 <div className="progress-bar" role="progressbar" aria-label={`${pathway.name} tracked progress`} aria-valuenow={pathwayProgress} aria-valuemin={0} aria-valuemax={100}>
                   <div style={{ width: `${pathwayProgress}%` }} />

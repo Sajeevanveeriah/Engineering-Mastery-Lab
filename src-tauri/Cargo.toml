@@ -1,7 +1,7 @@
 [package]
 name = "engineering-workbench"
 version = "0.1.0"
-description = "Engineering Workbench: engineering learning labs plus local circuit/PCB toolchain integration"
+description = "Engineering Mastery Lab: structured engineering learning plus a secure local project workbench"
 authors = ["Sajeevan Veeriah"]
 license = "MIT"
 edition = "2021"
