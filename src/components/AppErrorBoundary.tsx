@@ -12,7 +12,7 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, State> 
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error("Engineering Workbench render failure", error, info.componentStack);
+    console.error("Engineering Mastery Lab render failure", error, info.componentStack);
   }
 
   render() {

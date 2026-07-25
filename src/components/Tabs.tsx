@@ -21,6 +21,11 @@ export function useTabPanelActive(): boolean {
   return useContext(TabPanelActivity);
 }
 
+export function TabPanelActivityProvider({ active, children }: { active: boolean; children: ReactNode }) {
+  const parentActive = useTabPanelActive();
+  return <TabPanelActivity.Provider value={parentActive && active}>{children}</TabPanelActivity.Provider>;
+}
+
 export function Tabs({ tabs, initial, ariaLabel = "Sections" }: TabsProps) {
   const [active, setActive] = useState(initial ?? tabs[0]?.id);
   const current = tabs.find((t) => t.id === active) ?? tabs[0];

@@ -1,127 +1,187 @@
-# Engineering Workbench architecture
+# Engineering Mastery Lab architecture
 
 ## Status and scope
 
-Engineering Workbench v0.2.0 is one React and TypeScript application with two
-runtime modes:
+Engineering Mastery Lab is one React and TypeScript product with two runtime
+modes:
 
-- The web build provides the Engineering Toolbox, bounded parametric CAD,
-  learning application, browser-profile state and static SPICE validation.
-- The Tauri desktop build adds authorised local workspaces, external
-  engineering-tool adapters, persisted run receipts and evidence reports.
+- The static web build provides learning, projects, local tools, portfolio
+  evidence, and browser-local persistence.
+- The Tauri desktop build adds Project Workbench, authorised local workspaces,
+  external engineering-tool adapters, run receipts, and evidence reports.
 
-There is no application backend. Learning progress and recent-project
-identifiers use browser storage. Project data stays inside a user-selected
-workspace directory.
+There is no application backend, account, remote sync, payment, or telemetry
+connection. Future hosted capabilities are represented by lean TypeScript
+provider boundaries and declarative entitlement metadata.
 
-## System view
+## Product and route hierarchy
 
 ```text
-User interface
-  Dashboard | Toolbox | CAD | Skills | Labs | Workbench | Diagnostics
-        |
-        +-- Local engineering engines
-        |     calculations | units | CAD geometry | materials | simulations
-        |                       |
-        |             draft state and file downloads
-        |
-        +-- Learning state
-        |     localStorage | src/lib/simulations | src/lib/metrics
-        |
-        +-- Desktop adapter registry
-              built-in TypeScript adapters | ngspice | KiCad CLI
-                         |
-                    PlatformBridge
-              MemoryBridge | TauriBridge | web null state
-                         |
-                Typed Tauri IPC commands
-        native picker authority | workspace file IO | tool process runner
+Engineering Mastery Lab
+  Home
+  Learn
+    Pathways
+    Laboratories
+    Skills
+    Bookmarks
+  Projects
+    Catalogue
+    Detail, milestones, notes, evidence
+  Tools
+    Calculators
+    Unit converter
+    Materials reference
+    CAD Studio
+    Project Workbench
+    Diagnostics
+  Portfolio
+    Evidence
+    Skills
+    Achievements
+    Export
 ```
 
-The browser build receives a `null` platform bridge and renders explicit
-desktop-only fallbacks. Unit and integration tests use `MemoryBridge` to
-exercise workspace and adapter behaviour without granting host access.
+Search, Pricing, Settings, About, and local profile controls sit outside the
+five-item primary navigation.
+
+`HashRouter` remains the routing mechanism for static GitHub Pages. Canonical
+routes use `/learn`, `/projects`, `/tools`, and `/portfolio`. Legacy aliases
+redirect old lab, skills, pathways, toolbox, CAD, Workbench, and diagnostics
+links to the new hierarchy.
 
 ## Frontend layers
 
 | Area | Responsibility |
 |---|---|
-| `src/data/` | Declarative skills, pathway, module and material reference content |
-| `src/lib/engineering/` | Pure validated calculators and affine unit conversion |
-| `src/lib/cad/` | Parametric CAD model schema, validation, metrics, geometry and deterministic text exports |
-| `src/lib/simulations/` | Pure engineering simulation functions |
-| `src/lib/adapters/` | Versioned adapter contract, registry and tool-specific request or result handling |
-| `src/lib/workspace/` | Manifest schema, workspace operations and input discovery or hashing |
-| `src/lib/report/` | Strict run receipt codec and deterministic Markdown evidence reporting |
-| `src/lib/platform/` | The only frontend seam for local filesystem and process capabilities |
-| `src/components/` | Shared shell, calculators, CAD viewport and drawing, tabs, plots, module workflow and workspace editors |
-| `src/pages/` | Dashboard, Toolbox, CAD Studio, matrices, pathways, labs, diagnostics and project workflow |
-| `src/tests/` | Calculator, CAD, simulation, storage, workspace, receipt, reporting and workflow tests |
+| `src/data/` | Declarative modules, skills, pathways, projects, search items, plans, and entitlements |
+| `src/lib/storage.ts` | Progress schema version 2, version 1 migration, import validation, and persistence |
+| `src/lib/providers.ts` | Learner, progress, entitlement, billing-availability, and product-event seams |
+| `src/lib/recommendation.ts` | Pure deterministic onboarding recommendation |
+| `src/lib/simulations/` | Existing pure engineering simulation functions |
+| `src/lib/adapters/` | Existing versioned adapter contract and tool-specific logic |
+| `src/lib/workspace/` | Existing manifest schema, workspace operations, and input hashing |
+| `src/lib/report/` | Existing run receipt and Markdown evidence reporting |
+| `src/lib/platform/` | The only frontend seam for local filesystem and process capability |
+| `src/components/` | Product shell, command palette, onboarding, lab journey, plots, and workspace editors |
+| `src/pages/` | Home, Learn, projects, tools, portfolio, commercial information, settings, labs, and desktop workflows |
+| `src/styles/` | Legacy feature styles plus product tokens and coherent product layout or component styles |
+| `src/tests/` | Simulation, migration, catalogue, provider, storage, adapter, workspace, receipt, report, and workflow tests |
 
-### Engineering Toolbox
+## Application shell and discovery
 
-Calculator definitions hold their inputs, units, assumptions and calculation
-function together. Each function validates finite and physically bounded input
-before returning named quantities and conditional warnings. The generic
-calculator component renders this schema and can export the entered values,
-results and assumptions as a JSON calculation record.
+`Layout` renders exactly five primary destinations in the desktop rail and
+mobile bottom navigation. It retains the existing unsaved Project Workbench
+navigation guard.
 
-Unit conversion uses a common base unit for each quantity family. Scale and
-offset support both multiplicative units and temperature conversion. Material
-properties are an indicative in-app reference and are deliberately separate
-from certified design allowables.
+`CommandPalette` opens with Ctrl+K or Meta+K. It searches one declarative
+catalogue covering laboratories, pathways, projects, skills, calculators,
+references, and tools. Results include type, discipline, description, and
+destination. The modal supplies an accessible name, focus containment,
+keyboard navigation, Escape handling, and visible selected state.
 
-All Toolbox calculations run in the renderer without filesystem, process or
-network authority.
+## Local learner profile
 
-### CAD Studio
+Onboarding appears when `onboardingComplete` is false. The learner can:
 
-CAD Studio uses a versioned `CadDesign` schema for four bounded part templates:
-mounting plate, circular flange, spacer or bushing, and angle bracket. The
-model layer validates dimensions and feature relationships before metrics or
-exports are generated.
+- select one primary goal;
+- select engineering disciplines;
+- select foundation, intermediate, or advanced experience;
+- select preferred weekly effort;
+- optionally provide a display name;
+- skip without losing application access.
 
-The geometry layer builds the selected template with Three.js. The viewport
-adds orbit control, standard camera views, a grid, edges and wireframe mode.
-The drawing component provides an SVG dimension view. The same validated model
-also drives area, volume, mass and bounding-envelope calculations.
+`recommendPathway` applies deterministic goal, discipline, and experience
+rules. The profile is schema version 1 inside progress schema version 2. It can
+be edited in Settings. It is not an account or sign-in flow.
 
-The design can be saved to browser-profile storage or imported and exported as
-versioned JSON. Export adapters produce binary STL, deterministic OpenSCAD and
-SVG drawing files. These are client-side downloads in both web and desktop
-modes; they do not bypass desktop workspace authority and are not automatically
-captured as project evidence.
+## Progress schema version 2
 
-### UI state
+`ProgressState` version 2 preserves all version 1 fields and adds:
 
-`ProgressContext` owns learning progress, ratings, challenges, reflections,
-artefacts, sprint items and theme. It persists a versioned value through
-`src/lib/storage.ts`. Import is validated before use, and the dashboard offers
-an in-session undo after replacement.
+- local profile and onboarding completion;
+- pathway enrolments, last step, and completed step identifiers;
+- laboratory stage position and visited stage identifiers;
+- bookmarks and recent items;
+- project state, milestones, evidence, and notes;
+- manual evidence and evidence-based achievement identifiers;
+- theme and accessibility preferences;
+- bounded `legacy` storage for unknown version 1 root fields.
 
-`WorkbenchContext` owns the current desktop session, including the bridge,
-open workspace, results, latest receipts, dirty state, active run and recent
-identifiers. The Workbench page blocks run and report operations while the
-manifest is dirty so captured evidence stays aligned with `workbench.json`.
+Load order is the version 2 key, then the version 1 key, then a clean local
+state. Version 1 is never deleted during migration.
 
-### Module workflow
+Import accepts versions 1 and 2. Validation bounds JSON character count,
+collection count, key length, string length, array length, legacy depth,
+timestamps, internal routes, and optional HTTP or HTTPS URLs. Unsafe keys such
+as `__proto__`, `prototype`, and `constructor` are rejected at every validated
+record boundary. Unknown version 2 root fields are rejected.
 
-`ModuleShell` implements the common eight-stage cycle:
+Settings owns export, import, reset, confirmation, and in-session undo.
+
+## Learning and project completion
+
+Pathway completion is based on unique ordered step identifiers, not a route
+average. Repeated destinations therefore do not create duplicate progress.
+
+`ModuleShell` groups the original eight stages into four phases:
 
 ```text
-Learn -> Simulate -> Challenge -> Diagnose -> Build -> Evidence -> Reflect -> Next
+Understand: Learn
+Practise: Simulate, Challenge
+Apply: Diagnose, Build
+Prove: Evidence, Reflect, Next
 ```
 
-The tab component follows roving-tabindex keyboard behaviour, keeps panel
-state mounted and connects tab and panel roles with stable identifiers. Live
-PLC and robotics timers pause when their simulator panel is hidden.
+Every stage has a URL query identifier, visible status, previous or next
+controls, and a mobile select control. A new lab starts at Learn. A returning
+lab resumes the stored stage. All stage panels remain mounted.
 
-### Plots
+`TabPanelActivityProvider` preserves the existing nested activity context.
+Timed PLC and robotics effects therefore stop while their simulator is hidden.
+Challenge criteria and evidence requirements remain visible before records are
+created.
 
-`LinePlot` is a dependency-free SVG component. It handles line, scatter and
-dashed series, rejects non-finite points from geometry, exposes a text
-description and provides a tabular data equivalent. Series remain
-distinguishable without relying only on colour.
+Projects are declarative. State stores milestone identifiers, evidence
+identifiers, notes, and active, paused, or completed status. Completion is
+disabled until every project milestone and required evidence item is checked.
+
+## Portfolio
+
+Portfolio entries are derived from existing challenge results, artefact flags,
+reflections, skill evidence, completed projects, and manual evidence. Derived
+achievement labels require recorded evidence thresholds.
+
+Print, JSON, and Markdown exports state that records are learner-generated and
+are not accreditation, a qualification, a professional licence, or standards
+certification.
+
+## Commercial provider boundaries
+
+The current provider composition is:
+
+```text
+localLearnerProvider
+localProgressProvider
+openSourceEntitlementProvider
+localBillingProvider (available = false)
+noOpProductEventProvider
+```
+
+Open-source preview mode returns every declared current entitlement. Pricing
+metadata may describe future plan differences but cannot lock a local feature.
+No provider performs a network request.
+
+See
+[Product and Monetisation Architecture](20260725-Engineering-Mastery-Lab-Product-And-Monetisation-Architecture-Rev00.md).
+
+## Lazy capability loading
+
+The Engineering Toolbox, CAD Studio, Project Workbench, and Diagnostics use
+React lazy routes. The initial Home route does not import their chunks. CAD
+Studio uses Three.js inside its isolated route chunk for bounded parametric 3D
+inspection. Its pure model layer owns validation, mass properties, and STL,
+OpenSCAD, SVG, and JSON export preparation without moving Three.js into the
+initial application bundle.
 
 ## Desktop command boundary
 
@@ -134,77 +194,76 @@ The Rust application registers only these command groups:
 | Engineering tools | `detect_tool`, `run_tool`, `cancel_run` |
 
 The renderer cannot establish root authority by supplying an absolute string.
-The native picker canonicalises and registers the selected directory in
-`WorkspaceAuthority`. Every file command and tool run requires that exact
-canonical root to remain authorised for the session.
+The native picker canonicalises and registers the selected directory. Every
+file command and tool run requires the exact canonical root to remain
+authorised for the session.
 
-Recent projects deliberately do not bypass this rule. Their stored roots are
-display identifiers. Opening one invokes the native picker again and compares
-the selected root with the saved identifier before calling workspace APIs.
+Recent Project Workbench entries do not bypass this rule. Reopening one invokes
+the native picker and compares the selected root with the stored display
+identifier before any workspace API is called.
 
 ## Workspace and evidence flow
 
 ```text
 Select authorised root
-        |
-create or validate workbench.json
-        |
-author requirements, files and configurations
-        |
-save manifest
-        |
-hash declared inputs -> execute adapter -> capture exact result
-        |
-atomic save to evidence/latest-run.json
-        |
-compare receipt hashes with current inputs
-        |
-atomic save to reports/evidence.md
+  -> create or validate workbench.json
+  -> author requirements, files, and configurations
+  -> save manifest
+  -> hash inputs
+  -> execute typed adapter
+  -> capture result
+  -> atomically save evidence/latest-run.json
+  -> compare receipt hashes
+  -> atomically save reports/evidence.md
 ```
 
-The workspace manifest and latest-run receipt are separate versioned schemas.
-The manifest describes intended project configuration. The receipt records one
-actual latest result and the hashes captured before that run. Reports use both
-and state when evidence is missing, failed, stale or incomplete.
+The workspace manifest describes intended configuration. The run receipt
+records one actual result and input hashes. Reports distinguish linked
+requirements from verified outcomes and identify missing, failed, stale, or
+incomplete evidence.
 
-## External tool execution
+## External tool execution and file replacement
 
-Rust constructs command arguments from a typed `ToolRunRequest`. It also
-re-validates all paths and tool-specific boundaries:
+Rust constructs arguments from typed requests and re-validates paths and
+tool-specific boundaries:
 
-- ngspice receives a generated deck from `simulations/` and writes under
-  `results/`. Rust checks the generated control grammar immediately before
-  launch and supplies `-n -b`.
-- KiCad commands accept only the declared schematic or PCB input extension and
-  write only beneath `results/`.
-- Tool overrides must have a supported executable name and return a successful
-  product-specific version response.
-- Execution uses no shell, a bounded timeout, cancellation and capped output.
+- ngspice receives a generated deck beneath `simulations/`, writes beneath
+  `results/`, passes a native grammar check, and runs with `-n -b`;
+- KiCad operations accept only declared schematic or PCB extensions and write
+  only beneath `results/`;
+- executable overrides require supported names and product-specific version
+  output;
+- execution uses no shell and enforces timeout, cancellation, and output caps.
 
-## File replacement
+Atomic file replacement uses a unique sibling temporary file, flush and
+synchronisation, then same-directory replacement. It has no delete-first
+fallback.
 
-`workspace_fs.rs` validates the path, creates a unique sibling temporary file
-with exclusive creation, writes, flushes and synchronises it, then replaces the
-destination. A process-local lock serialises replacements. POSIX uses a
-same-filesystem rename. Windows uses `MoveFileExW` with replace-existing and
-write-through flags. There is no fallback that first deletes the destination.
+## Compatibility decisions
 
-## Routing and deployment
+The Tauri display product name and window title are Engineering Mastery Lab.
+The bundle identifier remains
+`com.sajeevanveeriah.engineeringworkbench` to preserve application identity and
+upgrade compatibility. Changing the identifier would create a separate desktop
+application identity and is not required for user-facing rebranding.
 
-`HashRouter` is retained for static GitHub Pages routes. Vite uses the project
-base for the web build and relative assets for the Tauri frontend. The shared
-source does not import Tauri modules eagerly in web mode.
+The Rust crate and executable name remain `engineering-workbench` because they
+are compatibility-sensitive implementation identifiers for the advanced
+Project Workbench capability.
 
-## Architectural boundaries
+## Boundaries and limitations
 
-- CAD Studio is a bounded parametric template modeller, not a boundary
-  representation CAD kernel. It has no STEP exchange, assemblies, mates,
-  constraints or free-form feature modelling.
-- The desktop app is a controlled orchestrator for ngspice and KiCad, not a
-  replacement SPICE or PCB engine.
-- No cloud identity, sync, database or telemetry is required.
-- External open and reveal is deferred. No current Tauri capability grants it.
-- Cross-platform source and CI configuration exist, but current completion
-  evidence does not prove macOS or Linux runtime or packaging.
-- See [Known-Limitations.md](Known-Limitations.md) for verification gaps and
-  [ADR-0004](adr/ADR-0004-External-Process-Security.md) for security trade-offs.
+- The desktop app is a controlled orchestrator around bounded local
+  capabilities, not a general SPICE or PCB engine.
+- CAD Studio provides template-based parametric parts, 3D inspection, drawing
+  output, and bounded exports. It is not a general B-rep kernel,
+  manufacturing-certified CAD, or a substitute for production CAD or CAM
+  verification.
+- Material properties are indicative learning references, not design
+  allowables.
+- No cloud identity, database, sync, billing, or telemetry is connected.
+- Cross-platform source exists, but only actually run platform checks should be
+  claimed.
+- See [Known Limitations](Known-Limitations.md) for additional verification
+  gaps and [ADR-0004](adr/ADR-0004-External-Process-Security.md) for security
+  trade-offs.

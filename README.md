@@ -1,145 +1,147 @@
-# Engineering Workbench
+# Engineering Mastery Lab
 
-Engineering Workbench v0.2.0 combines a browser-first engineering toolbox,
-bounded parametric CAD, the Engineering Mastery Lab learning application and a
-local desktop project workflow. The shared React and TypeScript interface runs
-in the browser and in a Tauri 2 desktop shell. Desktop-only features use a
-narrow Rust command boundary for workspace files, ngspice, KiCad CLI and
-evidence capture.
+Engineering Mastery Lab is a structured engineering learning product for
+building, simulating, applying, and proving practical capability. It combines
+guided laboratories, coherent pathways, substantial project briefs, local
+engineering tools, and learner-generated portfolio evidence.
 
-This branch is not a production release. The current implementation and its
-remaining release gates for the v0.1.0 completion baseline are recorded in
-[docs/Release-Readiness-Report.md](docs/Release-Readiness-Report.md).
+The shared React and TypeScript application runs as a static GitHub Pages web
+application and in a Tauri 2 desktop shell. Project Workbench is an advanced
+desktop tool inside the product. It is not the product's master identity.
 
-## What is included
+Build, simulate and prove real engineering capability.
 
-### Engineering Toolbox
+## Product structure
 
-- Twelve input-validated engineering calculators for beam bending, shaft
-  torsion, motor and drive sizing, pneumatic cylinder force, three-phase power,
-  copper conductor voltage drop, 4-20 mA scaling, pipe pressure drop, thermal
-  expansion, wall heat conduction, machining speed and feed, and two-link
-  inverse kinematics.
-- Search and discipline filters, visible governing assumptions, validation
-  warnings and downloadable JSON calculation records.
-- A unit converter covering length, area, volume, mass, force, pressure,
-  torque, power, energy, temperature, speed and volumetric flow.
-- A searchable reference table of indicative mechanical and thermal properties
-  for common metals, polymers and composites.
-- A unified tool directory linking calculators, CAD, learning labs, the project
-  workbench and desktop diagnostics.
+The global application has five primary destinations:
 
-The calculators are transparent preliminary-design aids. They do not select a
-code, standard, safety factor, installation method or certified material grade
-on the user's behalf.
+- Home: one clear continue action, current pathway, active project, recent
+  tools, and an evidence snapshot.
+- Learn: pathways, laboratories, skills, filters, discovery, and bookmarks.
+- Projects: 12 data-driven engineering briefs with milestones, validation,
+  notes, evidence, estimates, and local state.
+- Tools: calculators, unit conversion, materials reference, CAD Studio,
+  Project Workbench, and diagnostics.
+- Portfolio: challenge, artefact, reflection, skill, project, and manual
+  evidence with print, JSON, and Markdown exports.
 
-### Parametric CAD Studio
+Pricing, Settings, About, search, and the local profile are secondary actions
+in the top bar.
 
-- Dimension-driven mounting plate, circular flange, spacer or bushing, and
-  angle bracket templates.
-- Interactive 3D inspection with orbit controls, standard views, grid and
-  wireframe modes, plus a dimensioned 2D drawing view.
-- Geometry validation and calculated area, volume, mass and bounding envelope.
-- Material and density selection using the Toolbox reference catalogue.
-- Browser-profile draft storage and validated JSON design import.
-- Binary STL, OpenSCAD, SVG drawing and Engineering Workbench design JSON
-  exports. STL files are generated in model units intended to be imported as
-  millimetres because STL does not encode units.
+## Guided learning
 
-CAD Studio is a bounded template modeller, not a general boundary
-representation kernel. It does not provide STEP export, assemblies, mates,
-constraints, free-form sketches, production drawings or manufacturing
-verification. Inspect exported geometry in the production CAD or CAM system
-used for release.
+Ten resumable pathways cover:
 
-### Learning application
+- Controls and Automation
+- Embedded and Electronics
+- Robotics and Autonomy
+- AI and ML for Engineers
+- Industrial Systems and SCADA
+- Mechanical Design and Dynamics
+- Engineering Analysis and Calculations
+- Mechatronics Integration
+- Verification and Professional Practice
+- Software Engineering for Engineers
 
-- A redesigned responsive dashboard with progress, current sprint, priority
-  skills, module status and portfolio evidence.
-- A searchable skills matrix covering 15 domains and 3 levels per domain.
-- Seven guided learning pathways.
-- Eight engineering labs, each using the complete Learn, Simulate, Challenge,
-  Diagnose, Build, Evidence, Reflect and Next cycle:
-  - PID control
-  - Electrical and electronics
-  - Embedded systems
-  - PLC and SCADA
-  - Robotics
-  - AI and ML
-  - Mechanical dynamics
-  - Professional engineering practice
-- Responsive navigation, light and dark themes, keyboard-operated tabs,
-  accessible chart descriptions and progress export, import and undo.
-- Browser-local storage only. No account, backend or telemetry is required.
-
-### Desktop project workbench
-
-- Create and open portable workspace directories with a validated,
-  versioned `workbench.json` manifest.
-- Author project metadata, requirements, requirement links and typed simulation
-  or validation configurations in the app.
-- Create and edit bounded text inputs under `circuits/` and `requirements/`.
-- Run registered built-in analyses, ngspice simulations and KiCad CLI checks.
-- Inspect status, duration, quantities, plots, findings and generated files.
-- Capture the exact adapter result and pre-run input SHA-256 hashes in
-  `evidence/latest-run.json`.
-- Generate a deterministic Markdown evidence report at
-  `reports/evidence.md`. Reports distinguish linked requirements from verified
-  outcomes and call out missing, failed or stale evidence.
-- Diagnose external-tool availability and use safe static SPICE validation in
-  the browser without executing a process.
-
-ngspice and KiCad are not bundled. The workbench reports missing-tool states
-without disabling the learning application.
-
-## Desktop workspace authority
-
-The desktop renderer cannot grant itself access to an arbitrary path. A
-workspace root must first be selected through the Rust-controlled native folder
-picker. The canonical root is authorised for the current desktop session, and
-all workspace file commands and tool runs require an exact match to that
-authority.
-
-Recent-project entries are convenience identifiers stored in browser storage.
-After a restart, opening a recent project requires re-selecting its folder in
-the native picker. The selected canonical root must match the saved recent
-location before any project file is read.
-
-## Workspace layout
+Every laboratory retains the original eight stages:
 
 ```text
-<project>/
-  workbench.json
-  requirements/
-  circuits/
-  pcb/
-  simulations/
-  results/
-  evidence/
-    latest-run.json
-  reports/
+Learn -> Simulate -> Challenge -> Diagnose -> Build -> Evidence -> Reflect -> Next
 ```
 
-An example is available at
-[`examples/rc-filter-workspace`](examples/rc-filter-workspace).
+The interface groups them into Understand, Practise, Apply, and Prove. Each
+stage remains addressable, timed simulators remain mounted, and the existing
+panel-activity context pauses PLC and robotics timers while their simulator is
+hidden.
 
-## Security boundary
+## Local profile and progress
 
-- External programs are launched with argument vectors, never shell strings.
-- Rust allow-lists tool identities, operations, input types and output zones.
-- ngspice receives only generated batch decks that pass a Rust-side grammar
-  check immediately before spawn.
-- Paths are workspace-relative, lexically checked and canonicalised with
-  symlink and junction containment checks.
-- File replacement uses a flushed unique sibling temporary file and atomic
-  same-directory replacement. There is no delete-the-old-file fallback.
-- Process timeouts, cancellation and 2 MiB output caps are enforced.
-- The desktop capability manifest does not grant external open or reveal
-  access.
+First-run onboarding creates an optional versioned local learner profile from a
+goal, disciplines, experience level, weekly effort, and optional display name.
+Deterministic rules recommend a pathway. Onboarding can be skipped and edited
+later.
+
+Progress schema version 2 stores:
+
+- every version 1 skill rating, challenge result, reflection, artefact, sprint
+  item, and theme;
+- profile and onboarding state;
+- pathway enrolments and completed step identifiers;
+- laboratory stage positions;
+- bookmarks and recent items;
+- project milestones, evidence, notes, and state;
+- manual evidence and evidence-based achievements;
+- theme and accessibility preferences;
+- bounded unknown version 1 fields under `legacy`.
+
+Version 1 imports are migrated deterministically. Import validation remains
+bounded by file size, collection size, key safety, string length, URL, route,
+timestamp, and nesting checks. Prototype-pollution keys are rejected. Settings
+provides in-session undo after import or reset.
+
+All profile and progress data stays in the current browser profile or desktop
+webview. There is no account, live cloud sync, billing, or telemetry endpoint.
+
+## Tools and desktop capability
+
+The web and desktop builds include the learning laboratories, a validated
+engineering-calculator catalogue, unit conversion, materials reference,
+parametric CAD Studio, portfolio, and static SPICE validation.
+
+The Tauri desktop build additionally provides Project Workbench:
+
+- authorised local workspace selection;
+- bounded text-file operations;
+- built-in analyses;
+- typed ngspice and KiCad CLI adapters;
+- persisted run receipts and evidence reports;
+- desktop capability diagnostics.
+
+ngspice and KiCad are not bundled. Their missing states remain explicit and do
+not disable the learning product.
+
+CAD Studio is lazy-loaded and uses Three.js only inside its route chunk. It
+supports bounded plate, flange, spacer, and angle templates with 3D and drawing
+previews, validation, mass properties, local draft storage, and STL, OpenSCAD,
+SVG, and JSON exports. It is not a general CAD kernel or
+manufacturing-certified CAD. Project Workbench and Diagnostics are also
+lazy-loaded.
+
+## Desktop security boundary
+
+The redesign does not change the Rust authority or Tauri capability boundary:
+
+- the renderer cannot authorise an arbitrary filesystem path;
+- a native picker establishes a canonical workspace root for the session;
+- every filesystem and tool request must remain inside that canonical root;
+- paths are checked for lexical and canonical containment, including symlinks
+  and Windows junctions;
+- external tools receive allow-listed argument vectors without a shell;
+- timeouts, cancellation, output caps, safe relative paths, and atomic file
+  replacement remain enforced;
+- the capability manifest grants no external open or reveal permission.
 
 See [SECURITY.md](SECURITY.md) and
-[ADR-0004](docs/adr/ADR-0004-External-Process-Security.md) for the threat model
-and residual risks.
+[ADR-0004](docs/adr/ADR-0004-External-Process-Security.md).
+
+## Commercial extension boundary
+
+Pure TypeScript interfaces define local learner, progress, entitlement, billing
+availability, and product-event providers. The current application uses:
+
+- a local learner provider;
+- a local progress provider;
+- an open-source-preview entitlement provider that keeps every current feature
+  available;
+- billing availability set to false;
+- a no-op product event provider.
+
+The Pricing page describes possible Free, Pro, and Teams or Educators hosted
+offers without a checkout, form submission, external request, or payment
+collection.
+
+See
+[Product and Monetisation Architecture](docs/20260725-Engineering-Mastery-Lab-Product-And-Monetisation-Architecture-Rev00.md).
 
 ## Setup
 
@@ -150,22 +152,21 @@ npm install
 npm run dev
 ```
 
+Dependencies should be installed only as an explicit setup action. Version
+0.2 adds Three.js and its TypeScript declarations for the lazy CAD route.
+
 ## Quality commands
 
 ```bash
 npm run lint
 npm test
 npm run build
+git diff --check
 ```
 
-Desktop development also needs the stable Rust toolchain and the platform
-webview dependencies described in
-[docs/Development-Setup.md](docs/Development-Setup.md).
-
-```bash
-npm run tauri dev
-npm run build:desktop
-```
+Desktop development also needs the stable Rust toolchain and platform webview
+dependencies described in
+[Development Setup](docs/Development-Setup.md).
 
 Run Rust checks from `src-tauri/`:
 
@@ -175,51 +176,43 @@ cargo clippy --all-targets --all-features -- -D warnings
 cargo test
 ```
 
-The latest recorded checks are evidence, not a promise that a changed working
-tree remains green. Consult the release-readiness report before publishing.
+Historical completion and release-readiness reports describe dated snapshots.
+They do not verify the current changed working tree. Run the commands above
+against the exact state being reviewed.
 
-## Web and desktop behaviour
+## Static and desktop routing
 
-| Capability | Web build | Tauri desktop |
-|---|---|---|
-| Engineering calculators and calculation-record export | Available | Available |
-| Unit conversion and materials reference | Available | Available |
-| Parametric CAD modelling and 3D or drawing inspection | Available | Available |
-| STL, OpenSCAD, SVG and design JSON export | Browser download | Webview download |
-| CAD draft storage and design JSON import | Browser-profile storage | Webview-profile storage |
-| Learning labs and progress | Available | Available |
-| Static SPICE validation | Available | Available |
-| Local workspace files | Explanatory fallback | Native picker authority required |
-| External ngspice or KiCad execution | Not available | Available when installed and detected |
-| Workspace run receipts and reports | Not available | Available |
+`HashRouter` keeps route state inside the URL fragment for static GitHub Pages
+hosting. The Vite web base remains `/Engineering-Mastery-Lab/`, while the Tauri
+frontend uses relative assets.
 
-Toolbox and CAD operations run locally in the shared frontend in both modes.
-CAD files are exported through the host download flow and are not written into
-an authorised project workspace automatically.
+Legacy aliases remain available for `/labs`, every `/labs/:id`, `/skills`,
+`/pathways`, `/toolbox`, `/cad`, `/workbench`, and `/diagnostics`.
 
-The GitHub Pages workflow in `.github/workflows/deploy.yml` builds the shared
-web application. `HashRouter` keeps deep links compatible with static hosting.
+The verified repository configuration identifies the static deployment route
+as:
+
+`https://sajeevanveeriah.github.io/Engineering-Mastery-Lab/`
 
 ## Documentation
 
 - [Architecture](docs/Architecture.md)
+- [Product and Monetisation Architecture](docs/20260725-Engineering-Mastery-Lab-Product-And-Monetisation-Architecture-Rev00.md)
 - [Installation](docs/Installation.md)
-- [Development setup](docs/Development-Setup.md)
-- [Adapter authoring guide](docs/Adapter-Authoring-Guide.md)
-- [Known limitations](docs/Known-Limitations.md)
-- [Third-party licences](docs/Third-Party-Licences.md)
-- [Release checklist](docs/Release-Checklist.md)
-- [Release-readiness report](docs/Release-Readiness-Report.md)
-- [Completion receipt](docs/20260711-Engineering-Workbench-Completion-Receipt-Rev00.md)
-- [Architecture decision records](docs/adr)
+- [Development Setup](docs/Development-Setup.md)
+- [Known Limitations](docs/Known-Limitations.md)
+- [Adapter Authoring Guide](docs/Adapter-Authoring-Guide.md)
+- [Security](SECURITY.md)
+- [Architecture Decision Records](docs/adr)
 
 ## Licence and engineering use
 
-This project is licensed under the [MIT License](LICENSE). You may use, copy,
-modify and distribute the software subject to the licence terms and preservation
-of the copyright and licence notice.
+This project is licensed under the [MIT License](LICENSE). Subject to its
+terms, the code can be used, copied, modified, distributed, and sold by others.
+This statement is not legal advice.
 
-The learning simulations are simplified educational models using synthetic or
-user-supplied data. They do not demonstrate compliance with an engineering
-standard and do not replace professional engineering judgement, verified
-calculations, vendor instructions or safety procedures.
+The learning simulations use simplified educational models with synthetic or
+user-supplied data. Calculations, reference values, completion records, and
+exports do not demonstrate standards compliance, accreditation, professional
+licensure, or certified engineering validity. Validate every real-world
+engineering decision independently.

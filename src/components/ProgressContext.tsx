@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { loadProgress, saveProgress, type ProgressState } from "../lib/storage";
 
 interface ProgressApi {
@@ -23,12 +23,16 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     );
   }, [progress]);
 
-  const api: ProgressApi = {
+  const update = useCallback((fn: (p: ProgressState) => ProgressState) => {
+    setProgress((current) => fn(structuredClone(current)));
+  }, []);
+  const replace = useCallback((next: ProgressState) => setProgress(next), []);
+  const api = useMemo<ProgressApi>(() => ({
     progress,
-    update: (fn) => setProgress((p) => fn(structuredClone(p))),
-    replace: (p) => setProgress(p),
+    update,
+    replace,
     persistenceAvailable
-  };
+  }), [persistenceAvailable, progress, replace, update]);
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;
 }
 

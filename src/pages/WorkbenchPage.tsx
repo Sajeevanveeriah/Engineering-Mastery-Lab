@@ -292,7 +292,7 @@ export function WorkbenchPage() {
 
   const pickAndOpen = async () => {
     if (!bridge) return;
-    const root = await bridge.pickDirectory("Open Engineering Workbench project");
+    const root = await bridge.pickDirectory("Open Engineering Mastery Lab project");
     if (root) await openAt(root);
   };
 

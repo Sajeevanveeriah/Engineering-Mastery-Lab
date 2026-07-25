@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "Engineering Workbench",
+  "productName": "Engineering Mastery Lab",
   "version": "0.2.0",
   "identifier": "com.sajeevanveeriah.engineeringworkbench",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Engineering Workbench",
+        "title": "Engineering Mastery Lab",
         "width": 1280,
         "height": 840,
         "minWidth": 480,

@@ -108,7 +108,7 @@ function validateReceiptRecord(value: unknown): Record<string, unknown> {
   if (value.schemaVersion === LATEST_RUN_RECEIPT_SCHEMA_VERSION) return value;
   if (typeof value.schemaVersion === "number" && value.schemaVersion > LATEST_RUN_RECEIPT_SCHEMA_VERSION) {
     fail(
-      `was created by a newer Engineering Workbench receipt schema (version ${value.schemaVersion}; ` +
+      `was created by a newer Project Workbench receipt schema (version ${value.schemaVersion}; ` +
         `this build supports ${LATEST_RUN_RECEIPT_SCHEMA_VERSION})`
     );
   }

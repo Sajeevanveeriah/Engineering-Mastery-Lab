@@ -60,7 +60,7 @@ export class KicadAdapter implements EngineAdapter {
 
   async detect(bridge: PlatformBridge | null): Promise<DetectionResult> {
     if (!bridge) {
-      return { ready: false, error: "External tools require the desktop app.", remediation: "Run the Engineering Workbench desktop build." };
+      return { ready: false, error: "External tools require the desktop app.", remediation: "Run the Engineering Mastery Lab desktop build and open Project Workbench." };
     }
     const det = await bridge.detectTool("kicad-cli");
     if (!det.found) {

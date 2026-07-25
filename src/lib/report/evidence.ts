@@ -113,7 +113,7 @@ function writeHeader(context: ReportContext): void {
   line(context);
   line(
     context,
-    `Generated: ${mdEscape(input.generatedUtc)} · Engineering Workbench ${mdEscape(input.appVersion)} · ` +
+    `Generated: ${mdEscape(input.generatedUtc)} - Engineering Mastery Lab Project Workbench ${mdEscape(input.appVersion)} - ` +
       `Manifest schema v${input.manifest.schemaVersion}`
   );
   line(context);
@@ -368,7 +368,7 @@ function writeReproduction(context: ReportContext): void {
   line(context, "## 7. Reproduction");
   line(context);
   line(context, "1. Install the tool versions listed in section 3.");
-  line(context, "2. Open this workspace in Engineering Workbench (File → Open project).");
+  line(context, "2. Open this workspace in Project Workbench (File > Open project).");
   line(context, "3. Verify current input file hashes against section 4 and any receipt hash status in section 5.");
   line(context, "4. Run each simulation listed in section 5 with the configuration shown.");
   line(

@@ -9,15 +9,15 @@ import { UnitConverter } from "../components/UnitConverter";
 import { calculatorDefinitions, type EngineeringCategory } from "../lib/engineering/calculators";
 
 const workflowLinks: Array<{ title: string; description: string; route: string; icon: IconName; tag: string }> = [
-  { title: "Parametric CAD Studio", description: "Design plates, flanges, spacers and brackets with 3D inspection and manufacturing exports.", route: "/cad", icon: "cad", tag: "Design" },
-  { title: "Project Workbench", description: "Link requirements, controlled inputs, analyses, run receipts and evidence reports.", route: "/workbench", icon: "workbench", tag: "Deliver" },
-  { title: "PID Control Lab", description: "Tune closed-loop response and explore stability, noise and saturation.", route: "/labs/pid", icon: "control", tag: "Control" },
-  { title: "Electrical Lab", description: "Circuit, filter, ADC and transient analysis with traceable challenges.", route: "/labs/electrical", icon: "electrical", tag: "Electrical" },
-  { title: "PLC and SCADA Lab", description: "Interlocks, alarms, process simulation and FAT-ready controls practice.", route: "/labs/plc", icon: "plc", tag: "Automation" },
-  { title: "Robotics Lab", description: "Mobile robot kinematics, odometry, planning and waypoint control.", route: "/labs/robotics", icon: "robotics", tag: "Robotics" },
-  { title: "AI and ML Lab", description: "Regression, classification, anomaly detection and predictive maintenance.", route: "/labs/ml", icon: "ml", tag: "Data" },
-  { title: "Systems and Practice Lab", description: "Requirements, FMEA, risk, FAT, SAT and decision records.", route: "/labs/practice", icon: "practice", tag: "Assurance" },
-  { title: "Tool Diagnostics", description: "Check desktop capability and external ngspice and KiCad tools.", route: "/diagnostics", icon: "diagnostics", tag: "System" }
+  { title: "Parametric CAD Studio", description: "Design plates, flanges, spacers and brackets with 3D inspection and manufacturing exports.", route: "/tools/cad", icon: "cad", tag: "Design" },
+  { title: "Project Workbench", description: "Link requirements, controlled inputs, analyses, run receipts and evidence reports.", route: "/tools/workbench", icon: "workbench", tag: "Deliver" },
+  { title: "PID Control Lab", description: "Tune closed-loop response and explore stability, noise and saturation.", route: "/learn/labs/pid", icon: "control", tag: "Control" },
+  { title: "Electrical Lab", description: "Circuit, filter, ADC and transient analysis with traceable challenges.", route: "/learn/labs/electrical", icon: "electrical", tag: "Electrical" },
+  { title: "PLC and SCADA Lab", description: "Interlocks, alarms, process simulation and FAT-ready controls practice.", route: "/learn/labs/plc", icon: "plc", tag: "Automation" },
+  { title: "Robotics Lab", description: "Mobile robot kinematics, odometry, planning and waypoint control.", route: "/learn/labs/robotics", icon: "robotics", tag: "Robotics" },
+  { title: "AI and ML Lab", description: "Regression, classification, anomaly detection and predictive maintenance.", route: "/learn/labs/ml", icon: "ml", tag: "Data" },
+  { title: "Systems and Practice Lab", description: "Requirements, FMEA, risk, FAT, SAT and decision records.", route: "/learn/labs/practice", icon: "practice", tag: "Assurance" },
+  { title: "Tool Diagnostics", description: "Check desktop capability and external ngspice and KiCad tools.", route: "/tools/diagnostics", icon: "diagnostics", tag: "System" }
 ];
 
 function CalculatorCatalogue() {
@@ -99,7 +99,7 @@ export function ToolboxPage() {
         eyebrow="Engineering analysis suite"
         title="Engineering Toolbox"
         description="Fast, unit-aware design calculations and reference data connected to the app's deeper laboratories, CAD workspace and evidence workflow."
-        actions={<Link className="btn primary" to="/cad"><Icon name="cad" size={18} /> Open CAD Studio</Link>}
+        actions={<Link className="btn primary" to="/tools/cad"><Icon name="cad" size={18} /> Open CAD Studio</Link>}
       />
 
       <div className="toolbox-summary" role="list" aria-label="Toolbox coverage">
