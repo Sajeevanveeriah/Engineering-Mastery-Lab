@@ -1,22 +1,26 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 
+const isDevelopment = (import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV === true;
+
 interface State {
-  error: Error | null;
+  failed: boolean;
 }
 
 export class AppErrorBoundary extends Component<{ children: ReactNode }, State> {
-  state: State = { error: null };
+  state: State = { failed: false };
 
-  static getDerivedStateFromError(error: Error): State {
-    return { error };
+  static getDerivedStateFromError(_error: Error): State {
+    return { failed: true };
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error("Engineering Mastery Lab render failure", error, info.componentStack);
+    if (isDevelopment) {
+      console.error("Engineering Mastery Lab render failure", error, info.componentStack);
+    }
   }
 
   render() {
-    if (!this.state.error) return this.props.children;
+    if (!this.state.failed) return this.props.children;
 
     return (
       <main className="fatal-error" id="main-content">
@@ -24,14 +28,10 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, State> 
           <p className="eyebrow">Application error</p>
           <h1>This screen could not be rendered</h1>
           <p className="muted">
-            Your locally stored progress has not been deliberately changed. Reload the app first; if the problem
-            persists, export the browser console error with the route you opened.
+            Your locally stored progress has not been deliberately changed. Reload the application to recover this
+            screen. Technical details are recorded only in the development console.
           </p>
-          <details>
-            <summary>Technical detail</summary>
-            <pre>{this.state.error.message}</pre>
-          </details>
-          <button className="primary" type="button" onClick={() => window.location.reload()}>
+          <button className="btn primary" type="button" onClick={() => window.location.reload()}>
             Reload application
           </button>
         </div>

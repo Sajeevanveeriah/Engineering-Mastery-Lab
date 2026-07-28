@@ -19,31 +19,32 @@ the master identity.
 
 ```text
 Engineering Mastery Lab
-  Home
+  Today
     Continue learning
     Current pathway
     Active project
-    Recent tools
+    Recent work
     Evidence snapshot
   Learn
     Pathways
     Laboratories
+    Flagship engineering workflows
     Skills
     Bookmarks
-  Projects
+  Build
     Catalogue
     Detail
     Milestones
     Notes
     Evidence
-  Tools
-    Calculate
+  Analyse
+    Calculate and model
     Convert and reference
-    Design
-    Simulate
+    Build a shared engineering project record
+    Design parts
     Verify and document
-    Diagnose desktop capability
-  Portfolio
+    Inspect desktop capability
+  Prove
     Evidence
     Skills
     Achievements
@@ -60,11 +61,11 @@ Pricing, Settings, About, search, and local profile controls are secondary.
 2. Select goal, disciplines, experience, and weekly effort.
 3. Optionally add a display name.
 4. Receive a deterministic pathway and first-action recommendation.
-5. Open Home or skip onboarding without blocked access.
+5. Open Today or skip onboarding without blocked access.
 
 ### Returning learner
 
-1. Open Home.
+1. Open Today.
 2. Resume the exact most recent meaningful route.
 3. View current pathway and active project.
 4. Use evidence counts to choose the next gap.
@@ -84,9 +85,9 @@ Pricing, Settings, About, search, and local profile controls are secondary.
 2. Practise through simulation and challenge criteria.
 3. Apply through diagnosis and build work.
 4. Prove through evidence, reflection, and next action.
-5. Move into a related project or Portfolio.
+5. Move into a related Build project or Prove.
 
-### Project journey
+### Build journey
 
 1. Filter 12 substantial project briefs.
 2. Inspect outcomes, prerequisites, estimate, software, optional hardware,
@@ -96,7 +97,7 @@ Pricing, Settings, About, search, and local profile controls are secondary.
 5. Add notes.
 6. Complete only when every required milestone and evidence item is checked.
 
-### Portfolio journey
+### Prove journey
 
 1. Aggregate passed challenges, checked artefacts, reflections, evidenced
    skills, completed projects, and manual evidence.
@@ -110,10 +111,17 @@ The current data boundary is browser `localStorage` or the Tauri webview's local
 storage. There is no account, hosted database, cloud sync, billing, analytics,
 or telemetry request.
 
-Progress schema version 2 contains the local profile, progress, bookmarks,
-recent items, project records, evidence, and preferences. Version 1 backups
-migrate deterministically. Import uses bounded validation and unsafe-key
-rejection. Import and reset retain an in-session undo value.
+Progress schema version 3 contains the local profile, progress, bookmarks,
+recent items, project records, evidence, preferences, and bounded engineering
+workspace bundle records. Version 1 and version 2 backups migrate
+deterministically. Import uses bounded validation and unsafe-key rejection.
+Import and reset retain an in-session undo value.
+
+The engineering project workspace uses project schema version 2, project
+bundle version 2, Project Pack version 1 and engineering report version 1. The
+bundle has deterministic version 1 migration. Project Packs are bounded,
+data-only JSON with licence, provenance, compatibility and manifest metadata.
+Hashes detect changed content but do not authenticate it.
 
 Project Workbench data remains in a user-selected local workspace and crosses
 the existing typed Tauri boundary only after native picker authorisation.
@@ -133,6 +141,13 @@ The lean provider model separates product behaviour from future infrastructure:
 The providers do not prescribe a backend vendor. They are small interfaces that
 can be replaced independently.
 
+Phase 5 adds provider-neutral local foundations for version vectors,
+tombstones, operation idempotency, explicit conflict resolution, export and
+recovery, curated content manifests, synthetic cohort fixtures and
+privacy-thresholded aggregates. These foundations remain data-only and local.
+They are not a hosted implementation and do not change the provider states
+above.
+
 ## Current local-only behaviour
 
 - No sign-in or fake account.
@@ -143,6 +158,8 @@ can be replaced independently.
 - No network telemetry.
 - Local profile, progress, notes, bookmarks, and evidence.
 - Existing desktop filesystem and process authority unchanged.
+- Local engineering project bundles, Project Packs and deterministic reports.
+- Local reference synchronisation behaviour and synthetic cohort fixtures only.
 
 ## Future hosted architecture
 
@@ -162,6 +179,19 @@ inside the desktop boundary.
 
 No future step should place payment or identity logic inside simulation maths,
 project data, or evidence validation.
+
+Before any hosted provider is enabled, the product must define and verify:
+
+- authentication, session revocation and least-privilege authorisation;
+- tenant separation, organisation membership, record ownership and support
+  access;
+- data classification, consent, purpose limitation and telemetry controls;
+- retention, deletion, tombstone and user-export semantics;
+- deterministic conflict handling and auditable resolution;
+- audit access and retention;
+- incident detection, containment, notification and recovery;
+- encrypted backup, tested restore and disaster-recovery objectives; and
+- privacy and threat review for the exact provider, data flow and deployment.
 
 ## Plan and entitlement model
 
@@ -267,6 +297,10 @@ advice. Obtain qualified legal advice for licensing and trademark decisions.
 ## Known limitations
 
 - Billing, accounts, sync, and hosted events are intentionally disconnected.
+- Collaboration, hosted cohorts and hosted educator analytics are intentionally
+  disconnected.
+- Local Phase 5 sync, cohort and educator modules are behavioural foundations
+  over bounded in-memory records and synthetic fixtures, not hosted services.
 - The local profile is not portable without progress export.
 - Manual evidence URLs are references, not fetched or verified.
 - Achievement labels are local evidence thresholds, not credentials.

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { Icon } from "./Icon";
 import {
   EngineeringInputError,
@@ -52,6 +52,7 @@ function downloadRecord(definition: CalculatorDefinition, inputs: Record<string,
 }
 
 export function EngineeringCalculator({ definition }: EngineeringCalculatorProps) {
+  const componentId = useId();
   const [inputs, setInputs] = useState<Record<string, number>>(() => defaultInputs(definition));
 
   useEffect(() => {
@@ -70,6 +71,26 @@ export function EngineeringCalculator({ definition }: EngineeringCalculatorProps
       };
     }
   }, [definition, inputs]);
+  const calculationErrorId = `${componentId}-calculation-error`;
+  const inputHeadingId = `${componentId}-input-heading`;
+  const resultHeadingId = `${componentId}-result-heading`;
+  const invalidFieldIds = useMemo(() => {
+    if (!calculation.error) return new Set<string>();
+    const errorText = calculation.error.toLocaleLowerCase("en-AU");
+    const invalid = new Set(
+      definition.fields
+        .filter((field) => {
+          const value = inputs[field.id];
+          return !Number.isFinite(value)
+            || (field.min !== undefined && value < field.min)
+            || (field.max !== undefined && value > field.max)
+            || errorText.includes(field.label.toLocaleLowerCase("en-AU"));
+        })
+        .map((field) => field.id)
+    );
+    if (invalid.size === 0) definition.fields.forEach((field) => invalid.add(field.id));
+    return invalid;
+  }, [calculation.error, definition.fields, inputs]);
 
   return (
     <section className="calculator-workspace" aria-labelledby="active-calculator-title">
@@ -90,47 +111,60 @@ export function EngineeringCalculator({ definition }: EngineeringCalculatorProps
       </header>
 
       <div className="calculator-layout">
-        <form className="calculator-inputs" onSubmit={(event) => event.preventDefault()}>
+        <form className="calculator-inputs" aria-labelledby={inputHeadingId} onSubmit={(event) => event.preventDefault()}>
           <div className="section-heading">
             <div>
-              <h3>Inputs</h3>
+              <h3 id={inputHeadingId}>Inputs</h3>
               <p className="small muted">All calculations use SI internally. Enter the units shown.</p>
             </div>
             <button className="btn btn--quiet" type="button" onClick={() => setInputs(defaultInputs(definition))}>Reset</button>
           </div>
           <div className="form-grid form-grid--2">
-            {definition.fields.map((field) => (
-              <label className="form-field" key={field.id}>
-                <span>{field.label}</span>
-                <span className="quantity-input">
-                  <input
-                    type="number"
-                    value={Number.isNaN(inputs[field.id]) ? "" : inputs[field.id]}
-                    min={field.min}
-                    max={field.max}
-                    step={field.step ?? "any"}
-                    onChange={(event) => setInputs((current) => ({
-                      ...current,
-                      [field.id]: event.currentTarget.value === "" ? Number.NaN : event.currentTarget.valueAsNumber
-                    }))}
-                  />
-                  {field.unit && <span>{field.unit}</span>}
-                </span>
-                {field.help && <small>{field.help}</small>}
-              </label>
-            ))}
+            {definition.fields.map((field) => {
+              const fieldId = `${componentId}-${field.id}`;
+              const helpId = field.help ? `${fieldId}-help` : undefined;
+              const unitId = field.unit ? `${fieldId}-unit` : undefined;
+              const invalid = invalidFieldIds.has(field.id);
+              const describedBy = [unitId, helpId, invalid ? calculationErrorId : undefined].filter(Boolean).join(" ") || undefined;
+              return (
+                <div className="form-field" key={field.id}>
+                  <label htmlFor={fieldId}>{field.label}</label>
+                  <span className="quantity-input">
+                    <input
+                      id={fieldId}
+                      name={field.id}
+                      type="number"
+                      value={Number.isNaN(inputs[field.id]) ? "" : inputs[field.id]}
+                      min={field.min}
+                      max={field.max}
+                      step={field.step ?? "any"}
+                      required
+                      aria-invalid={invalid || undefined}
+                      aria-errormessage={invalid ? calculationErrorId : undefined}
+                      aria-describedby={describedBy}
+                      onChange={(event) => {
+                        const nextValue = event.currentTarget.value === "" ? Number.NaN : event.currentTarget.valueAsNumber;
+                        setInputs((current) => ({ ...current, [field.id]: nextValue }));
+                      }}
+                    />
+                    {field.unit && <span id={unitId}>{field.unit}</span>}
+                  </span>
+                  {field.help && <small id={helpId}>{field.help}</small>}
+                </div>
+              );
+            })}
           </div>
         </form>
 
-        <div className="calculator-results" aria-live="polite">
+        <div className="calculator-results" role="region" aria-labelledby={resultHeadingId}>
           <div className="section-heading">
             <div>
-              <h3>Calculated result</h3>
+              <h3 id={resultHeadingId}>Calculated result</h3>
               <p className="calculator-equation"><code>{definition.equation}</code></p>
             </div>
           </div>
           {calculation.error ? (
-            <div className="inline-message inline-message--error" role="alert"><Icon name="alert" size={18} /> {calculation.error}</div>
+            <div id={calculationErrorId} className="inline-message inline-message--error" role="alert"><Icon name="alert" size={18} /> {calculation.error}</div>
           ) : (
             <>
               <dl className="result-metric-grid">

@@ -14,6 +14,34 @@ describe("diffDriveStep", () => {
     expect(p.x).toBeCloseTo(0);
     expect(p.theta).toBeGreaterThan(0);
   });
+
+  it("integrates a constant curved arc exactly", () => {
+    const p = diffDriveStep({ x: 0, y: 0, theta: 0 }, 0, 1, 1, 1);
+    expect(p.x).toBeCloseTo(0.5 * Math.sin(1), 12);
+    expect(p.y).toBeCloseTo(0.5 * (1 - Math.cos(1)), 12);
+    expect(p.theta).toBeCloseTo(1, 12);
+  });
+
+  it("integrates the mirrored right arc exactly", () => {
+    const p = diffDriveStep({ x: 0, y: 0, theta: 0 }, 1, 0, 1, 1);
+    expect(p.x).toBeCloseTo(0.5 * Math.sin(1), 12);
+    expect(p.y).toBeCloseTo(-0.5 * (1 - Math.cos(1)), 12);
+    expect(p.theta).toBeCloseTo(-1, 12);
+  });
+
+  it("uses the stable straight branch near zero curvature", () => {
+    const p = diffDriveStep({ x: 0, y: 0, theta: 0 }, 1, 1 + 1e-13, 1, 1);
+    expect(p.x).toBeCloseTo(1 + 0.5e-13, 12);
+    expect(p.y).toBeCloseTo(0, 12);
+    expect(p.theta).toBeCloseTo(1e-13, 12);
+  });
+
+  it("rejects invalid geometry and time", () => {
+    expect(() => diffDriveStep({ x: 0, y: 0, theta: 0 }, 1, 1, 0, 1))
+      .toThrow(/wheelBase/);
+    expect(() => diffDriveStep({ x: 0, y: 0, theta: 0 }, 1, 1, 1, -1))
+      .toThrow(/dt/);
+  });
 });
 
 describe("normalizeAngle", () => {

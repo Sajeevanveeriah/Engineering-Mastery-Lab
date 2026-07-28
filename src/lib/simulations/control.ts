@@ -81,6 +81,9 @@ export function simulatePid(p: PidParams): SimPoint[] {
     const d = t >= p.disturbanceTime ? p.disturbance : 0;
     const input = u + d;
 
+    out.push({ t, pv: y, sp: p.setpoint, u });
+    if (i === n) break;
+
     if (p.plant === "first-order") {
       // tau * dy/dt + y = input
       y += ((input - y) / p.tau) * p.dt;
@@ -91,8 +94,6 @@ export function simulatePid(p: PidParams): SimPoint[] {
       ydot += yddot * p.dt;
       y += ydot * p.dt;
     }
-
-    out.push({ t, pv: y, sp: p.setpoint, u });
   }
   return out;
 }

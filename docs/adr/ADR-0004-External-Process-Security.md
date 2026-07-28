@@ -51,7 +51,11 @@ decision for every command.
 - stdout and stderr are each capped at 2 MiB while their pipes continue to be
   drained. Reader completion has one shared 500 ms post-process deadline;
   incomplete capture is marked truncated.
-- Cancellation is registered by identifier and kills the direct child.
+- Cancellation is registered by identifier. On Windows, the child is attached
+  to a host-owned Job Object configured to terminate members when closed. On
+  Unix, the child starts in a new process group. Timeout and cancellation
+  terminate the job or process group, then terminate and reap the direct child
+  as a final fallback.
 
 ### ngspice command boundary
 
@@ -106,8 +110,9 @@ decision for every command.
 - Real-tool behaviour still requires verification with installed ngspice and
   KiCad versions.
 - A malicious binary could imitate an accepted file name and version banner.
-- Direct-child cancellation does not guarantee descendant process-tree
-  containment on every platform.
+- Source tests exercise timeout and cancellation of a descendant process tree.
+  Packaged runtime behaviour still requires verification on each claimed
+  operating system.
 - A narrow validation-to-use race remains if another process can rewrite a
   generated deck between the final content check and file opening by ngspice.
 - External tools retain the current user's privileges and their own parser

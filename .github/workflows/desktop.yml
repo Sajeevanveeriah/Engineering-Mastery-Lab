@@ -121,7 +121,7 @@ jobs:
       - name: Upload artefacts
         uses: actions/upload-artifact@v4
         with:
-          name: engineering-workbench-0.1.0-${{ matrix.name }}-unsigned
+          name: engineering-workbench-0.2.0-${{ matrix.name }}-unsigned
           if-no-files-found: error
           path: |
             src-tauri/target/release/bundle/msi/*.msi

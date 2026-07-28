@@ -10,7 +10,10 @@ export function PathwayDetail() {
   const { progress, update } = useProgress();
   if (!pathway) return <Navigate to="/learn/pathways" replace />;
   const state = progress.pathways[pathway.id];
-  const completed = new Set(state?.completedStepIds ?? []);
+  const orderedStepIds = pathway.steps.map((step) => step.id);
+  const completed = new Set(
+    orderedStepIds.filter((stepId) => state?.completedStepIds.includes(stepId))
+  );
   const nextStep = pathway.steps.find((step) => !completed.has(step.id)) ?? pathway.steps[0];
   const bookmarked = Boolean(progress.bookmarks[bookmarkKey("pathway", pathway.id)]);
 
@@ -37,16 +40,19 @@ export function PathwayDetail() {
       lastStepId: stepId,
       completedStepIds: []
     };
-    const nextCompleted = existing.completedStepIds.includes(stepId)
-      ? existing.completedStepIds.filter((id) => id !== stepId)
-      : [...existing.completedStepIds, stepId];
+    const nextCompletedSet = new Set(
+      orderedStepIds.filter((id) => existing.completedStepIds.includes(id))
+    );
+    if (nextCompletedSet.has(stepId)) nextCompletedSet.delete(stepId);
+    else nextCompletedSet.add(stepId);
+    const nextCompleted = orderedStepIds.filter((id) => nextCompletedSet.has(id));
     return {
       ...current,
       pathways: {
         ...current.pathways,
         [pathway.id]: {
           ...existing,
-          status: nextCompleted.length === pathway.steps.length ? "completed" : "enrolled",
+          status: nextCompleted.length === orderedStepIds.length ? "completed" : "enrolled",
           lastStepId: stepId,
           completedStepIds: nextCompleted
         }
@@ -60,8 +66,26 @@ export function PathwayDetail() {
       <header className="detail-hero">
         <div><p className="eyebrow">{pathway.disciplines.join(" / ")}</p><h1>{pathway.name}</h1><p>{pathway.purpose}</p><div className="detail-meta"><span>{pathway.difficulty}</span><span>{pathway.effortHours} indicative hours</span><span>{pathway.steps.length} evidence-led steps</span></div></div>
         <div className="detail-hero__actions">
-          <button className="icon-button" type="button" aria-label={`${bookmarked ? "Remove" : "Add"} pathway bookmark`} aria-pressed={bookmarked} onClick={() => update((current) => ({ ...current, bookmarks: { ...current.bookmarks, [bookmarkKey("pathway", pathway.id)]: !bookmarked } }))}><Icon name={bookmarked ? "check" : "plus"} /></button>
-          {!state ? <button className="primary" type="button" onClick={enrol}>Enrol locally</button> : <Link className="btn primary" to={nextStep.route}>{completed.size === pathway.steps.length ? "Review pathway" : "Resume next step"}</Link>}
+          {!state ? (
+            <>
+              <Link className="btn primary" to={nextStep.route} onClick={enrol}>Start pathway</Link>
+              <button className="btn" type="button" onClick={enrol}>Add to plan</button>
+            </>
+          ) : (
+            <Link className="btn primary" to={nextStep.route}>
+              {completed.size === pathway.steps.length ? "Review pathway" : completed.size === 0 ? "Start pathway" : "Resume next step"}
+            </Link>
+          )}
+          <button
+            className="btn"
+            type="button"
+            aria-label={`${bookmarked ? "Remove" : "Add"} pathway bookmark`}
+            aria-pressed={bookmarked}
+            onClick={() => update((current) => ({ ...current, bookmarks: { ...current.bookmarks, [bookmarkKey("pathway", pathway.id)]: !bookmarked } }))}
+          >
+            <Icon name={bookmarked ? "check" : "plus"} size={16} />
+            {bookmarked ? "Bookmarked" : "Bookmark"}
+          </button>
         </div>
       </header>
       <div className="detail-columns">

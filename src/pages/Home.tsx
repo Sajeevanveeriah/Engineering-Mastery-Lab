@@ -5,38 +5,67 @@ import { useProgress } from "../components/ProgressContext";
 import { modules } from "../data/modules";
 import { pathways } from "../data/pathways";
 import { projects } from "../data/projects";
-import { toolsCatalogue } from "../data/catalogue";
 import { artefactCount, challengePassCount, moduleProgress, overallProgress } from "../lib/metrics";
+
+const recentTypeLabels = {
+  lab: "Laboratory",
+  pathway: "Pathway",
+  project: "Project",
+  tool: "Tool",
+  skill: "Skill"
+} as const;
 
 export function Home() {
   const { progress } = useProgress();
   const overall = overallProgress(progress);
   const evidence = artefactCount(progress);
   const recommendedPathway = pathways.find((item) => item.id === progress.profile?.recommendedPathwayId) ?? pathways[0];
+  const currentPathway = [...pathways]
+    .filter((pathway) => Boolean(progress.pathways[pathway.id]))
+    .sort((left, right) =>
+      progress.pathways[right.id].enrolledAt.localeCompare(progress.pathways[left.id].enrolledAt)
+    )[0] ?? recommendedPathway;
+  const currentPathwayState = progress.pathways[currentPathway.id];
+  const completedPathwaySteps = currentPathway.steps.filter((step) =>
+    currentPathwayState?.completedStepIds.includes(step.id)
+  );
+  const pathwayPercent = currentPathway.steps.length === 0
+    ? 0
+    : Math.round((completedPathwaySteps.length / currentPathway.steps.length) * 100);
+  const nextPathwayStep = currentPathway.steps.find((step) =>
+    !currentPathwayState?.completedStepIds.includes(step.id)
+  );
   const latest = progress.recentItems[0];
   const firstIncomplete = modules.find((module) => moduleProgress(progress, module).percent < 100) ?? modules[0];
-  const continueTarget = latest ?? {
+  const continueTarget = latest ?? (currentPathwayState ? {
+    id: currentPathway.id,
+    type: "pathway" as const,
+    title: currentPathway.name,
+    route: nextPathwayStep?.route ?? `/learn/pathways/${currentPathway.id}`,
+    visitedAt: currentPathwayState.enrolledAt
+  } : {
     id: firstIncomplete.id,
     type: "lab" as const,
     title: firstIncomplete.title,
     route: `/learn/labs/${firstIncomplete.id}`,
     visitedAt: ""
-  };
+  });
   const activeProjectEntry = Object.entries(progress.projects).find(([, state]) => state.status === "active");
   const activeProject = activeProjectEntry ? projects.find((item) => item.id === activeProjectEntry[0]) : undefined;
-  const recentTools = progress.recentItems
-    .filter((item) => item.type === "tool")
-    .map((item) => toolsCatalogue.find((tool) => tool.id === item.id))
-    .filter((item): item is NonNullable<typeof item> => Boolean(item))
-    .slice(0, 3);
-  const isNew = overall.done === 0 && Object.keys(progress.projects).length === 0 && progress.recentItems.length === 0;
+  const recentWork = progress.recentItems.slice(0, 4);
+  const isNew = overall.done === 0
+    && Object.keys(progress.pathways).length === 0
+    && Object.keys(progress.projects).length === 0
+    && progress.recentItems.length === 0;
 
   return (
     <section className="page product-home">
       <PageHeader
         eyebrow={progress.profile ? `Local profile${progress.profile.displayName ? ` - ${progress.profile.displayName}` : ""}` : "Guest mode"}
-        title={isNew ? "Build capability you can prove" : "Continue where the evidence leads"}
-        description="Structured laboratories, practical projects, and engineering evidence in one focused local learning studio."
+        title="Today"
+        description={isNew
+          ? "Build capability you can prove through structured laboratories, practical projects, and recorded evidence."
+          : "Continue where the evidence leads across your recent work, current pathway, and active project."}
         actions={<button className="btn btn--ghost" type="button" onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true }))}><Icon name="search" size={17} /> Find anything</button>}
       />
 
@@ -62,11 +91,18 @@ export function Home() {
         <section aria-labelledby="current-journey-heading">
           <div className="section-heading section-heading--outside"><div><p className="eyebrow">Where am I heading?</p><h2 id="current-journey-heading">Current pathway</h2></div><Link to="/learn/pathways">All pathways</Link></div>
           <article className="bounded-object">
-            <span className="badge">{recommendedPathway.difficulty}</span>
-            <h3>{recommendedPathway.name}</h3>
-            <p>{recommendedPathway.outcomes[0]}</p>
-            <dl className="inline-facts"><div><dt>Effort</dt><dd>{recommendedPathway.effortHours} h</dd></div><div><dt>Steps</dt><dd>{recommendedPathway.steps.length}</dd></div></dl>
-            <Link to={`/learn/pathways/${recommendedPathway.id}`}>View pathway <Icon name="arrow-right" size={15} /></Link>
+            <span className="badge">{currentPathway.difficulty}</span>
+            <h3>{currentPathway.name}</h3>
+            <p>{currentPathway.outcomes[0]}</p>
+            <dl className="inline-facts">
+              <div><dt>Status</dt><dd>{currentPathwayState?.status === "completed" ? "Completed" : currentPathwayState ? "In plan" : "Recommended"}</dd></div>
+              <div><dt>Steps</dt><dd>{completedPathwaySteps.length}/{currentPathway.steps.length}</dd></div>
+              <div><dt>Recorded</dt><dd>{pathwayPercent}%</dd></div>
+              <div><dt>Effort</dt><dd>{currentPathway.effortHours} h</dd></div>
+            </dl>
+            <Link to={currentPathwayState && nextPathwayStep ? nextPathwayStep.route : `/learn/pathways/${currentPathway.id}`}>
+              {currentPathwayState?.status === "completed" ? "Review pathway" : currentPathwayState ? "Continue pathway" : "View pathway"} <Icon name="arrow-right" size={15} />
+            </Link>
           </article>
         </section>
         <section aria-labelledby="active-project-heading">
@@ -90,13 +126,30 @@ export function Home() {
         <Link className="btn" to="/portfolio">Open portfolio</Link>
       </section>
 
-      <section aria-labelledby="tools-heading">
-        <div className="section-heading section-heading--outside"><div><p className="eyebrow">What can help right now?</p><h2 id="tools-heading">{recentTools.length ? "Recent tools" : "Featured tools"}</h2></div><Link to="/tools">All tools</Link></div>
-        <div className="simple-link-list">
-          {(recentTools.length ? recentTools : toolsCatalogue.slice(0, 3)).map((tool) => (
-            <Link key={tool.id} to={tool.route}><span><strong>{tool.title}</strong><small>{tool.description}</small></span><span className="badge">{tool.capability}</span></Link>
-          ))}
-        </div>
+      <section aria-labelledby="recent-work-heading">
+        <div className="section-heading section-heading--outside"><div><p className="eyebrow">Where have I been?</p><h2 id="recent-work-heading">Recent work</h2></div><Link to="/learn">Discover learning</Link></div>
+        {recentWork.length > 0 ? (
+          <div className="simple-link-list">
+            {recentWork.map((item, index) => {
+              const visited = new Date(item.visitedAt);
+              const visitedLabel = Number.isNaN(visited.valueOf())
+                ? "Recently opened"
+                : `Opened ${visited.toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}`;
+              return (
+                <Link key={`${item.type}-${item.id}-${index}`} to={item.route}>
+                  <span><strong>{item.title}</strong><small>{visitedLabel}</small></span>
+                  <span className="badge">{recentTypeLabels[item.type]}</span>
+                </Link>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="empty-state">
+            <strong>No recent work yet</strong>
+            <p>Open a pathway, laboratory, project, skill, or tool and it can appear here when that object records a visit.</p>
+            <Link className="btn" to="/learn">Discover learning</Link>
+          </div>
+        )}
       </section>
     </section>
   );

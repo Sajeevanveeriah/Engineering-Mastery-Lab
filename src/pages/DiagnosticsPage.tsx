@@ -121,7 +121,7 @@ export function DiagnosticsPage() {
     }
   };
 
-  const useAutoDetect = async (adapterId: string, label: string) => {
+  const resetToAutoDetect = async (adapterId: string, label: string) => {
     const tool = toolForAdapter(adapterId);
     if (!tool) return;
     setActiveTool(tool);
@@ -195,7 +195,7 @@ export function DiagnosticsPage() {
                 {isDesktop && row.info.kind === "external" && (
                   <div className="button-row" aria-label={`${row.info.name} executable controls`}>
                     <button className="primary" type="button" disabled={busy || activeTool !== null} onClick={() => void chooseExecutable(row.info.id, row.info.name)}><Icon name="folder" size={16} /> {activeTool === toolForAdapter(row.info.id) ? "Choosing" : "Choose executable"}</button>
-                    <button type="button" disabled={busy || activeTool !== null} onClick={() => void useAutoDetect(row.info.id, row.info.name)}><Icon name="refresh" size={16} /> Use auto-detect</button>
+                    <button type="button" disabled={busy || activeTool !== null} onClick={() => void resetToAutoDetect(row.info.id, row.info.name)}><Icon name="refresh" size={16} /> Use auto-detect</button>
                   </div>
                 )}
                 {!row.detection.ready && (row.detection.error || row.detection.remediation) && (

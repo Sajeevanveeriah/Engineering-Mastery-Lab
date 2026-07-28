@@ -183,7 +183,7 @@ export const modules: ModuleContent[] = [
     build: "Log real data from any sensor (CPU temperature counts!) for a week. Fit a trend, define an anomaly rule, and write one page on where your model would mislead an operator.",
     evidence: ["Regression interpretation note (challenge 1)", "k-tuning table with confusion matrices", "Anomaly/RUL mini report including a limitations section"],
     reflect: "Where is the line between a useful engineering indicator and a model you should not trust for decisions?",
-    next: { label: "Back to the dashboard - log your evidence", route: "/" }
+    next: { label: "Back to Today - log your evidence", route: "/" }
   },
   {
     id: "mechanical",
@@ -237,7 +237,7 @@ export const modules: ModuleContent[] = [
     build: "Take any past university or personal project and retrofit professional artefacts: 10 requirements, a traceability matrix, an FMEA and a one-page decision log. This is a portfolio piece in itself.",
     evidence: ["Exported traceability matrix (JSON)", "Exported FMEA with mitigations", "Completed FAT checklist with results"],
     reflect: "Which artefact would have most improved a past project of yours, and what did it cost you not to have it?",
-    next: { label: "Dashboard - review your domain scores and plan the next sprint", route: "/" }
+    next: { label: "Today - review your domain scores and plan the next sprint", route: "/" }
   }
 ];
 

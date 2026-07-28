@@ -42,7 +42,7 @@ Fix the netlist; the full ngspice output is preserved in the result.
 
 ## Workspaces
 
-**"This project was created by a newer version of Engineering Workbench"**
+**"This project was created by a newer version of Project Workbench"**
 The manifest `schemaVersion` is above what this build supports. Update the app;
 the file is never modified on a failed open.
 

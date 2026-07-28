@@ -1,8 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import * as THREE from "three";
 import { STLExporter } from "three/examples/jsm/exporters/STLExporter.js";
 import { buildCadObject, disposeCadObject } from "../lib/cad/geometry";
 import {
+  CAD_IMPORT_MAX_BYTES,
   cadFileStem,
   calculateCadMetrics,
   defaultCadDesign,
@@ -10,6 +11,7 @@ import {
   flangeHoleCentres,
   generateCadSvg,
   generateOpenScad,
+  importCadFile,
   importCadJson,
   plateHoleCentres,
   validateCadDesign,
@@ -22,6 +24,15 @@ function designFor(partType: CadPartType): CadDesign {
 }
 
 describe("CAD model validation and metrics", () => {
+  it("rejects an oversized selected CAD file before reading its content", async () => {
+    const text = vi.fn(async () => exportCadJson(defaultCadDesign));
+    await expect(importCadFile({
+      size: CAD_IMPORT_MAX_BYTES + 1,
+      text
+    })).rejects.toThrow(/exceeds 100000 bytes/);
+    expect(text).not.toHaveBeenCalled();
+  });
+
   it("accepts the default design and locates its four plate holes", () => {
     const design = designFor("plate");
 

@@ -15,14 +15,16 @@ Build, simulate and prove real engineering capability.
 
 The global application has five primary destinations:
 
-- Home: one clear continue action, current pathway, active project, recent
-  tools, and an evidence snapshot.
-- Learn: pathways, laboratories, skills, filters, discovery, and bookmarks.
-- Projects: 12 data-driven engineering briefs with milestones, validation,
+- Today: one clear continue action, current pathway, active project, recent
+  work across the product, and an evidence snapshot.
+- Learn: pathways, laboratories, five flagship engineering workflows, skills,
+  filters, discovery, and bookmarks.
+- Build: 12 data-driven engineering briefs with milestones, validation,
   notes, evidence, estimates, and local state.
-- Tools: calculators, unit conversion, materials reference, CAD Studio,
-  Project Workbench, and diagnostics.
-- Portfolio: challenge, artefact, reflection, skill, project, and manual
+- Analyse: calculators, unit conversion, materials reference, the shared
+  engineering project workspace, CAD Studio, Project Workbench, and
+  diagnostics.
+- Prove: challenge, artefact, reflection, skill, project, and manual
   evidence with print, JSON, and Markdown exports.
 
 Pricing, Settings, About, search, and the local profile are secondary actions
@@ -54,6 +56,12 @@ stage remains addressable, timed simulators remain mounted, and the existing
 panel-activity context pauses PLC and robotics timers while their simulator is
 hidden.
 
+Five flagship workflows add deeper, fixture-backed learning for controls,
+robotics and autonomy, embedded electronics and sensing, mechanical design and
+dynamics, and applied AI and ML. Each workflow retains prerequisites, outcomes,
+equations, a deterministic fixture, challenge criteria, failure cases, a
+rubric, and links into Build and Prove.
+
 ## Local profile and progress
 
 First-run onboarding creates an optional versioned local learner profile from a
@@ -61,7 +69,7 @@ goal, disciplines, experience level, weekly effort, and optional display name.
 Deterministic rules recommend a pathway. Onboarding can be skipped and edited
 later.
 
-Progress schema version 2 stores:
+Progress schema version 3 stores:
 
 - every version 1 skill rating, challenge result, reflection, artefact, sprint
   item, and theme;
@@ -70,11 +78,14 @@ Progress schema version 2 stores:
 - laboratory stage positions;
 - bookmarks and recent items;
 - project milestones, evidence, notes, and state;
+- validated local engineering workspace records containing bounded project
+  bundle JSON;
 - manual evidence and evidence-based achievements;
 - theme and accessibility preferences;
 - bounded unknown version 1 fields under `legacy`.
 
-Version 1 imports are migrated deterministically. Import validation remains
+Version 1 and version 2 imports are migrated deterministically. Import
+validation remains
 bounded by file size, collection size, key safety, string length, URL, route,
 timestamp, and nesting checks. Prototype-pollution keys are rejected. Settings
 provides in-session undo after import or reset.
@@ -87,6 +98,29 @@ webview. There is no account, live cloud sync, billing, or telemetry endpoint.
 The web and desktop builds include the learning laboratories, a validated
 engineering-calculator catalogue, unit conversion, materials reference,
 parametric CAD Studio, portfolio, and static SPICE validation.
+
+The lazy-loaded engineering project workspace at `/tools/engineering` provides
+the local foundations for a shared engineering kernel:
+
+- engineering project schema version 2 with unit-bearing variables, SI base
+  values, provenance, assumptions, validation state, uncertainty metadata and
+  calculation-version references;
+- bounded CSV and JSON datasets, named scenarios, deterministic scenario
+  comparison, controlled plain-text notebook blocks and acyclic evidence
+  lineage;
+- a motor-sizing vertical slice covering continuous and peak torque, speed and
+  mechanical power without selecting a commercial motor;
+- project bundle schema version 2 with deterministic version 1 migration,
+  SHA-256 integrity checking, import preview, conflict reporting and
+  in-session undo;
+- data-only Project Pack schema version 1 with compatibility metadata,
+  virtual-file manifest, licence and provenance; and
+- deterministic Markdown and JSON engineering reports with accessible chart
+  tables, limitations and integrity metadata.
+
+The five flagship routes and engineering workspace are route-local lazy
+chunks. Their pure kernel, interchange and ecosystem modules do not add native
+authority.
 
 The Tauri desktop build additionally provides Project Workbench:
 
@@ -103,9 +137,11 @@ not disable the learning product.
 CAD Studio is lazy-loaded and uses Three.js only inside its route chunk. It
 supports bounded plate, flange, spacer, and angle templates with 3D and drawing
 previews, validation, mass properties, local draft storage, and STL, OpenSCAD,
-SVG, and JSON exports. It is not a general CAD kernel or
+SVG, and JSON exports. A WebGL capability check, defensive renderer creation,
+local fallback and route recovery keep parameters, drawing preview and exports
+usable when 3D rendering is unavailable. It is not a general CAD kernel or
 manufacturing-certified CAD. Project Workbench and Diagnostics are also
-lazy-loaded.
+lazy-loaded behind local route recovery.
 
 ## Desktop security boundary
 
@@ -136,6 +172,14 @@ availability, and product-event providers. The current application uses:
 - billing availability set to false;
 - a no-op product event provider.
 
+Provider-neutral Phase 5 foundations also define bounded local reference
+records for version-vector synchronisation, explicit conflict resolution,
+tombstones, idempotent operation receipts, export and recovery, curated
+content manifests, synthetic cohort fixtures, and privacy-thresholded educator
+aggregates. These modules are local and data-only. Hosted identity,
+synchronisation, billing, collaboration, cohorts and educator analytics remain
+unavailable and no network provider is connected.
+
 The Pricing page describes possible Free, Pro, and Teams or Educators hosted
 offers without a checkout, form submission, external request, or payment
 collection.
@@ -145,7 +189,7 @@ See
 
 ## Setup
 
-Node.js 20 or newer is required. Node.js 22 is recommended.
+Node.js 20.19 or newer is required. Node.js 22.13 or newer is recommended.
 
 ```bash
 npm install
@@ -159,10 +203,22 @@ Dependencies should be installed only as an explicit setup action. Version
 
 ```bash
 npm run lint
+npm run typecheck
 npm test
 npm run build
+npm run test:e2e
+npm run test:visual-review
+npm audit --omit=dev --audit-level=high
 git diff --check
 ```
+
+`npm run test:e2e` uses the locked Playwright version and a locally installed
+Chromium runtime. Install that runtime once with
+`npx playwright install chromium`. Browser tests include route smoke,
+keyboard-focus, automated accessibility and reviewed visual-regression states.
+`npm run test:visual-review` separately captures the complete required state
+set for human inspection; a successful capture command is not itself a visual
+pass.
 
 Desktop development also needs the stable Rust toolchain and platform webview
 dependencies described in
@@ -189,6 +245,15 @@ frontend uses relative assets.
 Legacy aliases remain available for `/labs`, every `/labs/:id`, `/skills`,
 `/pathways`, `/toolbox`, `/cad`, `/workbench`, and `/diagnostics`.
 
+The current foundation routes include:
+
+- `/learn/flagships/controls`
+- `/learn/flagships/robotics-autonomy`
+- `/learn/flagships/embedded-electronics-sensing`
+- `/learn/flagships/mechanical-design-dynamics`
+- `/learn/flagships/applied-ai-ml`
+- `/tools/engineering`
+
 The verified repository configuration identifies the static deployment route
 as:
 
@@ -197,7 +262,13 @@ as:
 ## Documentation
 
 - [Architecture](docs/Architecture.md)
+- [Data and Schema Model](docs/Data-And-Schema-Model.md)
+- [Kernel Authoring Guide](docs/Kernel-Authoring-Guide.md)
+- [Project Pack Format](docs/Project-Pack-Format.md)
+- [Migration Guide](docs/Migration-Guide.md)
 - [Product and Monetisation Architecture](docs/20260725-Engineering-Mastery-Lab-Product-And-Monetisation-Architecture-Rev00.md)
+- [Future Hosted-Provider Integration](docs/Future_Supabase_Integration.md)
+- [Release Checklist](docs/Release-Checklist.md)
 - [Installation](docs/Installation.md)
 - [Development Setup](docs/Development-Setup.md)
 - [Known Limitations](docs/Known-Limitations.md)

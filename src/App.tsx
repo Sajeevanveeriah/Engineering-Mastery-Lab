@@ -1,7 +1,8 @@
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
+import { ToolRouteBoundary } from "./components/ToolRouteBoundary";
 import { WorkbenchProvider } from "./components/WorkbenchContext";
 import { ProgressProvider } from "./components/ProgressContext";
 import { Home } from "./pages/Home";
@@ -28,10 +29,12 @@ import { Settings } from "./pages/Settings";
 import { About } from "./pages/About";
 import { NotFoundPage } from "./pages/NotFoundPage";
 
-const ToolboxPage = lazy(() => import("./pages/ToolboxPage").then((module) => ({ default: module.ToolboxPage })));
-const CadStudioPage = lazy(() => import("./pages/CadStudioPage").then((module) => ({ default: module.CadStudioPage })));
-const WorkbenchPage = lazy(() => import("./pages/WorkbenchPage").then((module) => ({ default: module.WorkbenchPage })));
-const DiagnosticsPage = lazy(() => import("./pages/DiagnosticsPage").then((module) => ({ default: module.DiagnosticsPage })));
+const loadToolboxPage = () => import("./pages/ToolboxPage").then((module) => ({ default: module.ToolboxPage }));
+const loadCadStudioPage = () => import("./pages/CadStudioPage").then((module) => ({ default: module.CadStudioPage }));
+const loadWorkbenchPage = () => import("./pages/WorkbenchPage").then((module) => ({ default: module.WorkbenchPage }));
+const loadDiagnosticsPage = () => import("./pages/DiagnosticsPage").then((module) => ({ default: module.DiagnosticsPage }));
+const loadFlagshipWorkflowPage = () => import("./pages/FlagshipWorkflowPage").then((module) => ({ default: module.FlagshipWorkflowPage }));
+const loadEngineeringWorkspacePage = () => import("./pages/EngineeringWorkspacePage").then((module) => ({ default: module.EngineeringWorkspacePage }));
 
 function LoadingRoute() {
   return <div className="page route-loading" role="status">Loading local capability...</div>;
@@ -61,6 +64,10 @@ export default function App() {
                   <Route path="/learn" element={<LearnHub />} />
                   <Route path="/learn/pathways" element={<LearnHub initialFormat="Pathway" />} />
                   <Route path="/learn/pathways/:pathwayId" element={<PathwayDetail />} />
+                  <Route
+                    path="/learn/flagships/:flagshipId"
+                    element={<ToolRouteBoundary load={loadFlagshipWorkflowPage} toolName="Flagship engineering workflow" />}
+                  />
                   <Route path="/learn/labs" element={<LearnHub initialFormat="Laboratory" />} />
                   {labRoutes.map(([id, element]) => <Route key={id} path={`/learn/labs/${id}`} element={element} />)}
                   <Route path="/learn/skills" element={<SkillsMatrix />} />
@@ -68,12 +75,28 @@ export default function App() {
                   <Route path="/projects" element={<Projects />} />
                   <Route path="/projects/:projectId" element={<ProjectDetail />} />
                   <Route path="/tools" element={<ToolsHub />} />
-                  <Route path="/tools/calculators" element={<ToolboxPage />} />
+                  <Route
+                    path="/tools/calculators"
+                    element={<ToolRouteBoundary load={loadToolboxPage} toolName="Engineering Calculators" />}
+                  />
                   <Route path="/tools/converter" element={<UnitConverter />} />
                   <Route path="/tools/materials" element={<MaterialsReference />} />
-                  <Route path="/tools/cad" element={<CadStudioPage />} />
-                  <Route path="/tools/workbench" element={<WorkbenchPage />} />
-                  <Route path="/tools/diagnostics" element={<DiagnosticsPage />} />
+                  <Route
+                    path="/tools/engineering"
+                    element={<ToolRouteBoundary load={loadEngineeringWorkspacePage} toolName="Engineering project workspace" />}
+                  />
+                  <Route
+                    path="/tools/cad"
+                    element={<ToolRouteBoundary load={loadCadStudioPage} toolName="CAD Studio" />}
+                  />
+                  <Route
+                    path="/tools/workbench"
+                    element={<ToolRouteBoundary load={loadWorkbenchPage} toolName="Project Workbench" />}
+                  />
+                  <Route
+                    path="/tools/diagnostics"
+                    element={<ToolRouteBoundary load={loadDiagnosticsPage} toolName="Desktop Diagnostics" />}
+                  />
                   <Route path="/portfolio" element={<Portfolio />} />
                   <Route path="/pricing" element={<Pricing />} />
                   <Route path="/settings" element={<Settings />} />

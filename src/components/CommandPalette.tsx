@@ -1,15 +1,21 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { searchCatalogue } from "../data/catalogue";
+import { searchCommandCatalogue } from "../data/catalogue";
 import { Icon } from "./Icon";
 
-export function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
+interface CommandPaletteProps {
+  open: boolean;
+  onClose: () => void;
+  onRequestNavigate: (route: string) => boolean;
+}
+
+export function CommandPalette({ open, onClose, onRequestNavigate }: CommandPaletteProps) {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
-  const results = useMemo(() => searchCatalogue(query), [query]);
+  const results = useMemo(() => searchCommandCatalogue(query), [query]);
 
   useEffect(() => {
     if (!open) return;
@@ -48,6 +54,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
   if (!open) return null;
 
   const choose = (route: string) => {
+    if (!onRequestNavigate(route)) return;
     onClose();
     navigate(route);
   };
@@ -77,7 +84,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
             value={query}
             onChange={(event) => { setQuery(event.target.value); setActive(0); }}
             onKeyDown={onInputKeyDown}
-            placeholder="Search labs, pathways, projects, skills, and tools"
+            placeholder="Search destinations, laboratories, pathways, projects, skills, and tools"
             autoComplete="off"
             aria-controls="global-search-results"
             aria-activedescendant={results[active] ? `search-result-${results[active].id}` : undefined}

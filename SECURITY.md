@@ -2,8 +2,8 @@
 
 ## Release status
 
-Version 0.2.0 is a functional completion candidate, not a published production
-release. Security findings should be reported through a private GitHub security
+Version 0.2.0 is an uncommitted local implementation under verification, not a
+published production release. Security findings should be reported through a private GitHub security
 advisory for this repository. Include the affected platform, reproduction
 steps, expected behaviour and observed behaviour. Do not disclose an unpatched
 vulnerability in a public issue.
@@ -14,6 +14,12 @@ The browser build does not read local project folders or execute local tools.
 Desktop capabilities cross a typed Tauri command boundary into Rust. Renderer
 data, workspace content, manifests, receipts, file names and tool output are
 treated as untrusted inputs.
+
+Browser-local progress imports, engineering project bundles, datasets, notebook
+text, Project Packs, engineering report inputs, sync envelopes and cohort
+fixtures are also treated as untrusted data. Their TypeScript validators are
+data-integrity controls. They do not grant filesystem, process, network,
+identity or billing authority.
 
 ## Implemented controls
 
@@ -56,6 +62,21 @@ treated as untrusted inputs.
 11. **Bounded receipts.** Latest-run receipts have a strict schema, safe paths,
     manifest and capability matching, bounded collections and an 8 MiB size
     ceiling. Invalid or corrupt receipts fail closed.
+12. **Bounded local interchange.** Progress, project bundles, Project Packs,
+    datasets and local sync exports have explicit schema versions, collection
+    and text limits, unsafe-key rejection and strict field validation.
+13. **Data-only Project Packs.** Project Pack imports accept JSON, Markdown and
+    plain-text virtual files only. Safe relative paths, extension-to-media-type
+    matching, byte counts, manifest hashes and whole-pack integrity are
+    checked. Executable extensions and executable text patterns are rejected.
+    A pack is never unpacked or executed.
+14. **Controlled notebook.** Engineering notebook blocks contain sanitised
+    plain text or validated references. Script, style, markup and executable
+    cells are not supported.
+15. **Hosted capabilities fail unavailable.** The Phase 5 local reference
+    providers make no network request. Hosted identity, synchronisation,
+    billing, collaboration, cohorts and educator analytics are explicitly
+    unavailable. Synthetic cohort providers reject provider-managed data.
 
 ## Residual risks and boundaries
 
@@ -63,8 +84,9 @@ treated as untrusted inputs.
   completion branch.
 - Tool identity is not cryptographically attested. A deliberately substituted
   binary could imitate a valid file name and version banner.
-- Cancellation kills the direct child. Complete descendant process-tree
-  containment is not implemented on every platform.
+- Process-tree containment uses a Windows Job Object or a Unix process group.
+  This is implemented and regression-tested on the current source, but the
+  packaged runtime remains unverified on macOS and Linux.
 - External tools run with the current user's privileges and retain their own
   parser and implementation risks.
 - There is a narrow validation-to-use race if another process can rewrite an
@@ -74,8 +96,39 @@ treated as untrusted inputs.
   cancelled tool can leave partial generated outputs.
 - macOS and Linux runtime and package behaviour are not verified by current
   completion evidence.
-- The `openPath` TypeScript bridge method remains in source for future work,
-  but no current UI action or Tauri capability grants external opening.
+- No current renderer API, UI action or Tauri capability grants external
+  opening or reveal access.
+- SHA-256 values in project bundles, Project Packs and reports detect content
+  changes. They are not signatures, authentication, proof of authorship,
+  notarisation or protection against a malicious producer that can replace the
+  content and its digest together.
+- The local reference synchronisation and conflict modules do not provide
+  authentication, authorisation, tenant isolation, encryption, durable
+  storage, transport security, audit retention or hosted backup.
+- Project Pack executable-text rejection is a conservative data-content filter,
+  not a general malware scanner. Packs must remain data-only and must not gain
+  an execution path without a new threat model and explicit authority review.
+
+## Requirements before any hosted connection
+
+A future identity, sync, cohort, collaboration, billing or educator provider
+must not be enabled until all of the following are designed, implemented and
+independently verified:
+
+- authentication, session lifecycle and least-privilege authorisation;
+- tenant and organisation separation, record ownership and object-level access
+  enforcement;
+- data classification, minimisation, purpose limitation, consent and telemetry
+  controls;
+- retention, deletion, user export and account-closure semantics;
+- deterministic conflict handling and auditable administrative overrides;
+- encryption in transit and at rest, secret rotation and dependency review;
+- bounded audit records with access controls and retention limits;
+- backup, restore, disaster recovery and recovery-point testing;
+- vulnerability intake, incident detection, response, notification and
+  post-incident review; and
+- privacy impact and threat-model review for the exact provider, data flows and
+  deployment.
 
 See [Known Limitations](docs/Known-Limitations.md) and
 [ADR-0004](docs/adr/ADR-0004-External-Process-Security.md) for release impact

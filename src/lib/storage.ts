@@ -71,8 +71,15 @@ export interface AccessibilityPreferences {
   highContrast: boolean;
 }
 
+export interface EngineeringWorkspaceRecord {
+  schemaVersion: 1;
+  projectId: string;
+  bundleJson: string;
+  updatedAt: string;
+}
+
 export interface ProgressState {
-  version: 2;
+  version: 3;
   skillRatings: Record<string, SkillRating>;
   challenges: Record<string, ChallengeResult>;
   reflections: Record<string, string>;
@@ -89,6 +96,7 @@ export interface ProgressState {
   manualEvidence: ManualEvidence[];
   achievements: string[];
   accessibility: AccessibilityPreferences;
+  engineeringWorkspaces: Record<string, EngineeringWorkspaceRecord>;
   legacy: Record<string, unknown>;
 }
 
@@ -103,8 +111,12 @@ export interface ProgressStateV1 {
   [key: string]: unknown;
 }
 
+export interface ProgressStateV2 extends Omit<ProgressState, "version" | "engineeringWorkspaces"> {
+  version: 2;
+}
+
 export const emptyProgress: ProgressState = {
-  version: 2,
+  version: 3,
   skillRatings: {},
   challenges: {},
   reflections: {},
@@ -121,9 +133,11 @@ export const emptyProgress: ProgressState = {
   manualEvidence: [],
   achievements: [],
   accessibility: { reducedMotion: false, highContrast: false },
+  engineeringWorkspaces: {},
   legacy: {}
 };
 
+const KEY_V3 = "engineering-mastery-lab/progress/v3";
 const KEY_V2 = "engineering-mastery-lab/progress/v2";
 const KEY_V1 = "engineering-mastery-lab/progress/v1";
 
@@ -136,6 +150,7 @@ export const PROGRESS_IMPORT_LIMITS = {
   challengeNotesCharacters: 20_000,
   reflectionCharacters: 20_000,
   notesCharacters: 40_000,
+  bundleCharacters: 750_000,
   shortTextCharacters: 240,
   urlCharacters: 2_000,
   legacyDepth: 8
@@ -149,26 +164,28 @@ const V2_FIELDS = new Set([
   "profile", "onboardingComplete", "pathways", "labPositions", "bookmarks", "recentItems",
   "projects", "manualEvidence", "achievements", "accessibility", "legacy"
 ]);
+const V3_FIELDS = new Set([...V2_FIELDS, "engineeringWorkspaces"]);
 
 export function loadProgress(): ProgressState {
+  return loadStoredProgress(KEY_V3)
+    ?? loadStoredProgress(KEY_V2)
+    ?? loadStoredProgress(KEY_V1)
+    ?? structuredClone(emptyProgress);
+}
+
+function loadStoredProgress(key: string): ProgressState | null {
   try {
-    const current = localStorage.getItem(KEY_V2);
-    if (current && current.length <= PROGRESS_IMPORT_LIMITS.jsonCharacters) {
-      return validateProgress(JSON.parse(current));
-    }
-    const old = localStorage.getItem(KEY_V1);
-    if (old && old.length <= PROGRESS_IMPORT_LIMITS.jsonCharacters) {
-      return validateProgress(JSON.parse(old));
-    }
+    const value = localStorage.getItem(key);
+    if (!value || value.length > PROGRESS_IMPORT_LIMITS.jsonCharacters) return null;
+    return validateProgress(JSON.parse(value));
   } catch {
-    // Invalid or unavailable browser storage falls back to a clean in-memory state.
+    return null;
   }
-  return structuredClone(emptyProgress);
 }
 
 export function saveProgress(state: ProgressState): boolean {
   try {
-    localStorage.setItem(KEY_V2, JSON.stringify(state));
+    localStorage.setItem(KEY_V3, JSON.stringify(state));
     return true;
   } catch {
     return false;
@@ -207,14 +224,33 @@ export function migrateProgressV1(value: ProgressStateV1): ProgressState {
   };
 }
 
+export function migrateProgressV2(value: ProgressStateV2): ProgressState {
+  assertOnlyFields(value as unknown as Record<string, unknown>, V2_FIELDS, "progress file");
+  return validateProgressV2Fields(value as unknown as Record<string, unknown>, true);
+}
+
 function validateProgress(value: unknown): ProgressState {
   if (!isRecord(value)) throw new Error("Imported file is not a progress object");
   if (value.version === 1) return migrateProgressV1(value as ProgressStateV1);
-  if (value.version !== 2) throw new Error("Unsupported progress file version");
-  assertOnlyFields(value, V2_FIELDS, "progress file");
-
+  if (value.version === 2) return migrateProgressV2(value as unknown as ProgressStateV2);
+  if (value.version !== 3) throw new Error("Unsupported progress file version");
+  assertOnlyFields(value, V3_FIELDS, "progress file");
   return {
-    version: 2,
+    ...validateProgressV2Fields(value),
+    engineeringWorkspaces: validateSection(
+      value.engineeringWorkspaces,
+      "engineeringWorkspaces",
+      validateEngineeringWorkspaceRecord
+    )
+  };
+}
+
+function validateProgressV2Fields(
+  value: Record<string, unknown>,
+  allowLegacyLabStageRoute = false
+): ProgressState {
+  return {
+    version: 3,
     skillRatings: validateSection(value.skillRatings, "skillRatings", validateSkillRating),
     challenges: validateSection(value.challenges, "challenges", validateChallenge),
     reflections: validateSection(value.reflections, "reflections", validateReflection),
@@ -226,13 +262,16 @@ function validateProgress(value: unknown): ProgressState {
     pathways: validateSection(value.pathways, "pathways", validatePathwayProgress),
     labPositions: validateSection(value.labPositions, "labPositions", validateLabPosition),
     bookmarks: validateSection(value.bookmarks, "bookmarks", validateBooleanItem),
-    recentItems: validateArray(value.recentItems, "recentItems", validateRecentItem),
+    recentItems: validateArray(value.recentItems, "recentItems", (item, path) =>
+      validateRecentItem(item, path, allowLegacyLabStageRoute)
+    ),
     projects: validateSection(value.projects, "projects", validateProjectProgress),
     manualEvidence: validateArray(value.manualEvidence, "manualEvidence", validateManualEvidence),
     achievements: validateArray(value.achievements, "achievements", (item, path) =>
       validateBoundedString(item, path, PROGRESS_IMPORT_LIMITS.shortTextCharacters)
     ),
     accessibility: validateAccessibility(value.accessibility),
+    engineeringWorkspaces: {},
     legacy: validateLegacyRecord(value.legacy, "legacy")
   };
 }
@@ -293,7 +332,11 @@ function validateLabPosition(value: unknown, path: string): LabPosition {
   };
 }
 
-function validateRecentItem(value: unknown, path: string): RecentItem {
+function validateRecentItem(
+  value: unknown,
+  path: string,
+  allowLegacyLabStageRoute = false
+): RecentItem {
   if (!isRecord(value)) throw new Error(`${path} must be an object`);
   assertOnlyFields(value, new Set(["id", "type", "title", "route", "visitedAt"]), path);
   if (!["lab", "pathway", "project", "tool", "skill"].includes(String(value.type))) throw new Error(`${path}.type is invalid`);
@@ -301,7 +344,11 @@ function validateRecentItem(value: unknown, path: string): RecentItem {
     id: validateBoundedString(value.id, `${path}.id`, 120),
     type: value.type as ProgressItemType,
     title: validateBoundedString(value.title, `${path}.title`, PROGRESS_IMPORT_LIMITS.shortTextCharacters),
-    route: validateRoute(value.route, `${path}.route`),
+    route: validateRoute(
+      value.route,
+      `${path}.route`,
+      allowLegacyLabStageRoute && value.type === "lab"
+    ),
     visitedAt: validateTimestamp(value.visitedAt, `${path}.visitedAt`)
   };
 }
@@ -344,6 +391,22 @@ function validateAccessibility(value: unknown): AccessibilityPreferences {
   return {
     reducedMotion: validateOptionalBoolean(value.reducedMotion, "accessibility.reducedMotion"),
     highContrast: validateOptionalBoolean(value.highContrast, "accessibility.highContrast")
+  };
+}
+
+function validateEngineeringWorkspaceRecord(value: unknown, path: string): EngineeringWorkspaceRecord {
+  if (!isRecord(value)) throw new Error(`${path} must be an object`);
+  assertOnlyFields(value, new Set(["schemaVersion", "projectId", "bundleJson", "updatedAt"]), path);
+  if (value.schemaVersion !== 1) throw new Error(`${path}.schemaVersion is unsupported`);
+  return {
+    schemaVersion: 1,
+    projectId: validateBoundedString(value.projectId, `${path}.projectId`, 120),
+    bundleJson: validateBoundedString(
+      value.bundleJson,
+      `${path}.bundleJson`,
+      PROGRESS_IMPORT_LIMITS.bundleCharacters
+    ),
+    updatedAt: validateTimestamp(value.updatedAt, `${path}.updatedAt`)
   };
 }
 
@@ -414,10 +477,28 @@ function validateOptionalBoolean(value: unknown, path: string): boolean {
   return validateBooleanItem(value, path);
 }
 
-function validateRoute(value: unknown, path: string): string {
+function validateRoute(
+  value: unknown,
+  path: string,
+  allowLegacyLabStageRoute = false
+): string {
   const route = validateBoundedString(value, path, 300);
-  if (!route.startsWith("/") || route.startsWith("//")) throw new Error(`${path} must be an internal route`);
-  return route;
+  if (
+    /^(?:\/|\/[A-Za-z0-9._~-]+(?:\/[A-Za-z0-9._~-]+)*\/?)$/.test(route) &&
+    !containsDotPathSegment(route)
+  ) {
+    return route;
+  }
+  if (allowLegacyLabStageRoute) {
+    const legacy = /^(\/learn\/labs\/[A-Za-z0-9._~-]+)\?stage=(learn|simulate|challenge|diagnose|build|evidence|reflect|next)$/
+      .exec(route);
+    if (legacy && !containsDotPathSegment(legacy[1])) return legacy[1];
+  }
+  throw new Error(`${path} must be a canonical internal route`);
+}
+
+function containsDotPathSegment(route: string): boolean {
+  return route.split("/").some((segment) => segment === "." || segment === "..");
 }
 
 function validateUrl(value: unknown, path: string): string {
@@ -485,7 +566,11 @@ function validateLegacyValue(value: unknown, path: string, depth: number): unkno
 
 function validateEntryKey(key: string, section: string): void {
   if (key.trim() === "" || key.length > PROGRESS_IMPORT_LIMITS.keyCharacters) throw new Error(`${section} contains an invalid key`);
-  if (key === "__proto__" || key === "prototype" || key === "constructor" || /[\u0000-\u001f\u007f]/.test(key)) {
+  const hasControlCharacter = [...key].some((character) => {
+    const code = character.charCodeAt(0);
+    return code <= 0x1f || code === 0x7f;
+  });
+  if (key === "__proto__" || key === "prototype" || key === "constructor" || hasControlCharacter) {
     throw new Error(`${section} contains an unsafe key`);
   }
 }

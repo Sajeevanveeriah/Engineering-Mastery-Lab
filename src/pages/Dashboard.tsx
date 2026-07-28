@@ -12,7 +12,13 @@ import {
   overallProgress,
   sprintProgress
 } from "../lib/metrics";
-import { exportProgress, importProgress, type ProgressState } from "../lib/storage";
+import { readBoundedLocalTextFile } from "../lib/localFileImport";
+import {
+  PROGRESS_IMPORT_LIMITS,
+  exportProgress,
+  importProgress,
+  type ProgressState
+} from "../lib/storage";
 
 const sprintItems = [
   { id: "sprint-sim", label: "Complete one simulation session" },
@@ -49,7 +55,11 @@ export function Dashboard() {
 
   const doImport = async (file: File) => {
     try {
-      const imported = importProgress(await file.text());
+      const imported = importProgress(await readBoundedLocalTextFile(
+        file,
+        PROGRESS_IMPORT_LIMITS.jsonCharacters,
+        "Progress file"
+      ));
       const importedRatings = Object.values(imported.skillRatings).filter((rating) => rating.level > 0).length;
       const importedPasses = Object.values(imported.challenges).filter((challenge) => challenge.passed).length;
       const approved = window.confirm(

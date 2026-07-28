@@ -818,7 +818,7 @@ svg.plot { display: block; width: 100%; height: auto; border: 1px solid var(--bo
 .toolbox-summary span { color: var(--text-dim); font-size: 0.75rem; }
 .toolbox-page > .tab-group > .tabs { position: sticky; top: 76px; z-index: 8; margin-bottom: 1rem; }
 .toolbox-calculator-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); align-items: start; gap: 0.9rem; }
-.calculator-catalogue { position: sticky; top: 136px; display: grid; gap: 0.6rem; max-height: calc(100vh - 156px); padding: 0.75rem; overflow: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-card); }
+.calculator-catalogue { position: sticky; top: 136px; display: grid; gap: 0.6rem; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-card); }
 .calculator-catalogue__list { display: grid; gap: 0.3rem; }
 .calculator-catalogue__list button { display: block; width: 100%; padding: 0.65rem; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--text); cursor: pointer; text-align: left; }
 .calculator-catalogue__list button:hover { background: var(--bg-inset); }
@@ -893,9 +893,9 @@ svg.plot { display: block; width: 100%; height: auto; border: 1px solid var(--bo
 .cad-properties { border-left: 1px solid var(--border); }
 .cad-pane-heading { margin: -0.75rem -0.75rem 0.75rem; padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--border); background: var(--bg-inset); }
 .cad-pane-heading span,
-.cad-pane-heading strong { display: block; }
+.cad-pane-heading h2 { display: block; }
 .cad-pane-heading span { color: var(--text-dim); font-size: 0.62rem; font-weight: 750; letter-spacing: 0.1em; text-transform: uppercase; }
-.cad-pane-heading strong { font-size: 0.82rem; }
+.cad-pane-heading h2 { margin: 0; font-size: 0.82rem; }
 .cad-template-list { display: grid; gap: 0.35rem; }
 .cad-template-list button { display: flex; width: 100%; min-height: 62px; align-items: flex-start; gap: 0.5rem; padding: 0.55rem; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--text); cursor: pointer; text-align: left; }
 .cad-template-list button > svg { flex: 0 0 auto; margin-top: 0.1rem; color: var(--text-dim); }
@@ -921,6 +921,9 @@ svg.plot { display: block; width: 100%; height: auto; border: 1px solid var(--bo
 .cad-viewport { position: relative; min-height: 600px; overflow: hidden; }
 .cad-viewport canvas { display: block; width: 100%; height: 100%; touch-action: none; }
 .cad-viewport__hint { position: absolute; right: 0.7rem; bottom: 0.7rem; z-index: 1; padding: 0.3rem 0.45rem; border: 1px solid var(--border); border-radius: 5px; background: color-mix(in srgb, var(--bg-card) 88%, transparent); color: var(--text-dim); font-size: 0.62rem; pointer-events: none; }
+.cad-viewport--fallback { display: grid; min-height: 0; align-content: start; overflow: visible; }
+.cad-viewport--fallback > .empty-state { margin: 1rem; padding: clamp(1rem, 3vw, 1.8rem); border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-card); }
+.cad-viewport--fallback .cad-drawing-panel { min-height: 420px; }
 .cad-invalid-preview { display: grid; min-height: 600px; place-content: center; justify-items: center; padding: 2rem; color: var(--danger); text-align: center; }
 .cad-invalid-preview h2 { margin-top: 0.8rem; }
 .cad-invalid-preview p { max-width: 520px; color: var(--text-dim); }

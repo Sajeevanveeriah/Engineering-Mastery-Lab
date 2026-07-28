@@ -5,6 +5,13 @@ command-line tool, through contract v1 (`src/lib/adapters/contract.ts`). The UI,
 diagnostics screen and evidence report consume adapters only through the
 registry, so a correctly written adapter appears everywhere automatically.
 
+The Phase 4 adapter-ecosystem descriptor in
+`src/lib/interchange/adapterEcosystem.ts` is a separate, provider-neutral,
+data-only contract. It describes discovery, compatibility, execution policy
+and deterministic fixture evidence. It does not grant process or filesystem
+authority and it does not replace the existing `EngineAdapter`,
+`PlatformBridge` or Rust allow-list.
+
 ## The contract
 
 ```ts
@@ -39,6 +46,10 @@ Rules you must follow:
 6. **Handle malformed tool output** by returning `failed` with the raw output
    preserved in `raw`; never crash the app on a parser error.
 
+The browser build resolves `getPlatformBridge()` to `null`. The desktop build
+dynamically creates `TauriBridge`. Tests use `MemoryBridge`. There is no
+external open or reveal method in the current bridge.
+
 ## External tools need a Rust allow-list entry
 
 The frontend cannot pass raw argument arrays. To integrate a new executable:
@@ -53,7 +64,12 @@ The frontend cannot pass raw argument arrays. To integrate a new executable:
    subcommand rejection.
 
 Timeouts, output caps, cancellation and no-shell spawning are provided by
-`run_with_limits`; do not reimplement them.
+`run_with_limits`; do not reimplement them. Timeout or cancellation terminates
+the Windows Job Object or Unix process group and then reaps the child. A new
+adapter must not weaken that process-tree boundary.
+
+The Tauri capability manifest must grant only the named command. Do not add a
+shell, generic process, opener, broad filesystem or arbitrary-path capability.
 
 ## Testing without the real tool
 
@@ -77,3 +93,57 @@ cancellation, non-zero exit, malformed output, unsafe path rejection.
 
 Add the adapter in `src/lib/adapters/instance.ts`. Nothing else is needed;
 Diagnostics, the Workbench and evidence reports discover it via the registry.
+
+## Provider-neutral descriptor
+
+Use `AdapterEcosystemDescriptor` only when a catalogue or Project Pack needs a
+bounded description of an adapter:
+
+```ts
+interface AdapterEcosystemDescriptor {
+  schemaVersion: 1;
+  adapterId: string;
+  adapterVersion: string;
+  kind: "builtin" | "external";
+  availability: AdapterAvailability;
+  capabilities: EcosystemCapability[];
+  executionPolicy: AdapterExecutionPolicy;
+}
+```
+
+Descriptor rules:
+
+- the adapter version is a semantic version;
+- every capability id is namespaced as `<adapterId>.<capability>`;
+- each capability declares input and output schema versions;
+- an optional deterministic fixture id identifies test evidence;
+- timeout policy is bounded from 50 ms to 120,000 ms;
+- output policy is bounded from 1,024 to 16,000,000 bytes; and
+- cancellation is declared as cooperative at this descriptor layer.
+
+`planAdapterExecution` hashes a canonical request and returns `ready`,
+`blocked-tool-missing`, `blocked-adapter` or `cancelled-before-start`.
+`settleAdapterExecution` maps observed elapsed time, cancellation and adapter
+status to a deterministic terminal state. Neither function launches, waits for
+or terminates a process.
+
+`createDeterministicFixtureResult` validates the declared fixture, enforces the
+descriptor output limit and hashes canonical input and output. Its
+`verificationBoundary` is exactly `deterministic-fixture-only`. Never present
+fixture evidence as proof that an external tool, packaged desktop runtime or
+operating-system integration was executed.
+
+## Acceptance checks for a new adapter
+
+Before registration or release:
+
+1. Validate the descriptor and reject duplicate adapter or capability ids.
+2. Cover ready, missing, disabled, unknown, timeout, cancellation, non-zero
+   exit, malformed output, output-cap and unsafe-path cases.
+3. Verify the TypeScript request mirrors a typed Rust enum variant exactly.
+4. Verify the Rust argument vector, input zone, output zone and executable
+   detection using unit tests.
+5. Run the narrow adapter tests, nearby workspace and report regressions,
+   TypeScript checks, Rust formatting, Clippy and Rust tests.
+6. Run the real tool only when it is installed and explicitly in scope. Label
+   fixture-only evidence honestly when it is not.
