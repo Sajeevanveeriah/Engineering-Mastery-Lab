@@ -3,31 +3,35 @@
 ## Release classification
 
 Engineering Mastery Lab v0.2.0 is an uncommitted local implementation
-candidate. Project Workbench is one desktop capability inside the product. The
-current working tree is not a production release and is not cleared for public
-redistribution.
+candidate on branch `saj/complete-engineering-workbench`. Project Workbench is
+one desktop capability inside the product. The current working tree is not a
+production release and is not cleared for public redistribution.
 
 ## Verification gaps
 
-- The complete current local TypeScript, unit, Chromium, visual, Rust and
-  Windows packaging matrix is recorded in `Release-Checklist.md`. The
-  dependency audits still fail, the working tree remains uncommitted, and the
-  external gates below still prevent a production-release claim.
-- The final application source was built into fresh non-empty Windows x64 MSI
-  and NSIS bundles and their SHA-256 hashes were recorded. The release
-  executable opened a responding native window titled `Engineering Mastery
-  Lab` and was then closed. The installers have not been installed, signed or
-  tested on a clean host.
+- The complete current local TypeScript, unit, Chromium, visual and Rust matrix
+  is recorded in `Release-Checklist.md`. The production-only audit retains two
+  moderate React Router advisories. The complete audit retains those entries
+  plus five high PostCSS entries propagated through the development toolchain.
+  npm reports no fix for the listed vulnerable package paths. No dependency
+  change was authorised.
+- The earlier Phase 1.1 through Phase 5 application checkpoint was built into
+  fresh non-empty Windows x64 MSI and NSIS bundles and their SHA-256 hashes
+  were recorded. Those binaries do not contain the later curriculum
+  integration. The earlier release executable opened a responding native
+  window titled `Engineering Mastery Lab` and was then closed. The installers
+  have not been installed, signed or tested on a clean host.
 - macOS and Linux runtime and package behaviour is unverified. Source and CI
   configuration are not substitutes for actual runner results.
 - ngspice and KiCad were not installed on the development host used for the
   completion checks. Their parsers and adapter workflows are fixture-tested,
   but a real-tool end-to-end run remains required.
 - The current-source browser matrix includes Chromium automation, axe checks,
-  reflow, forced colours, deterministic snapshots and human inspection of 37
-  rendered states. Firefox, WebKit, Safari, NVDA, JAWS and VoiceOver remain
-  unverified. No formal WCAG conformance claim is made.
-- The packaged Tauri webview startup was smoke-tested, but no current
+  reflow, forced colours, deterministic snapshots and 66 named visual-review
+  states. Firefox, WebKit, Safari, NVDA, JAWS and VoiceOver remain unverified.
+  No formal WCAG conformance claim is made.
+- The earlier packaged Tauri webview startup was smoke-tested, but the later
+  curriculum integration was not repackaged or launched. No current
   interaction test exercises a complete webview-to-IPC adapter workflow. Rust
   command tests and TypeScript `MemoryBridge` tests verify each side, but not
   that packaged-process contract.
@@ -42,8 +46,9 @@ redistribution.
 - Desktop workbench manifest schema version 1 and receipt schema version 2 are
   supported. Newer, missing or malformed versions are rejected; these desktop
   files have no migration framework.
-- Browser progress schema version 3 can import deterministic version 1 and
-  version 2 backups. It does not import an unsupported future progress version.
+- Browser progress schema version 4 can import deterministic version 1,
+  version 2 and version 3 backups. It does not import an unsupported future
+  progress version.
 - Engineering project schema version 2 and project bundle schema version 2 are
   current. Bundle version 1 has a deterministic migration path. There is no
   general project migration registry.
@@ -183,6 +188,36 @@ redistribution.
   requirements or captured in an evidence receipt.
 - Exported geometry must be inspected in the production CAD or CAM system used
   for release.
+
+## Curriculum and learning-record boundaries
+
+- The complete curriculum and accelerated reboot are educational structures.
+  They do not assess professional competency, confer accreditation, replace a
+  degree, grant a licence or prove fitness for a real engineering decision.
+- Engineers Australia Stage 1 labels are educational mappings only. Engineers
+  Australia has not reviewed, endorsed or accredited this implementation.
+- Workbook-derived resource checks are dated records. Most resources were not
+  fetched again during this implementation run. The interface distinguishes
+  retained workbook evidence from newer revalidation.
+- External-resource access can change after the recorded date. An official
+  label does not guarantee availability, free access, current compatibility or
+  endorsement.
+- Completion, diagnostic score, confidence, evidence reference and
+  mastery-gate result are learner-controlled local records. The application
+  does not authenticate evidence or independently observe task performance.
+- Diagnostic scores of 3 or 4 can skip ordinary lesson sessions but cannot
+  skip proof or release sessions. This rule prevents a software shortcut; it
+  does not prove that a diagnostic was performed honestly.
+- The 2,750-minute accelerated plan is workbook source data, not a promise of
+  completion time. Actual learning time varies and is recorded separately.
+- The twelve-week block plan cycles against ISO calendar weeks. It does not
+  read private calendars, infer free time, resolve time zones for appointments
+  or schedule notifications.
+- P1-P4 are local learning releases, not deployed robot releases. Hardware
+  purchasing, deployment and safety acceptance remain outside the product.
+- The resource inventory can become visually long because all 64 source
+  records remain inspectable. Search and track filters reduce the set, but
+  there is no server-side pagination.
 
 ## Product boundaries
 

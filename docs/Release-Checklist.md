@@ -3,6 +3,61 @@
 Use this checklist against the exact release working tree or commit. A result
 from an earlier source state is supporting evidence only.
 
+## Current curriculum integration checkpoint
+
+The following checks were run on 2026-07-28 against the unstaged and
+uncommitted curriculum integration on branch
+`saj/complete-engineering-workbench` at unchanged HEAD
+`8c43d2dbdc98b824e0c271e59558cf6761ce5fc9`. The source workbook was outside
+the repository and was not copied into the tree.
+
+| Gate | Result | Evidence scope |
+|---|---|---|
+| Workbook filename | Passed | Exact filename `20260726-Robotics-AI-Study-Plan-Rev00.xlsx` |
+| Workbook SHA-256 | Passed | `a0ffeeb6835603ae0846db7ee201028a5cdd032b8fe54153649b2aff72e4c2b8` |
+| Workbook package and rendering | Passed | Nine sheets parsed and all nine rendered sheets inspected |
+| Independent curriculum counts | Passed | 110 sessions, 2,750 minutes, M0-M9 counts, 64 resources, 61 referenced resources, three optional resources, ten diagnostics, four releases and twelve weekly rows |
+| `npm run typecheck` | Passed | Complete TypeScript source |
+| `npm run lint` | Passed with zero warnings | Complete repository lint scope |
+| `npm test` | 43 files and 349 tests passed | Complete unit, migration, content, numeric, security and retained regression suites |
+| `npm run build` | Passed; 169 modules transformed | Production build; initial route chunk 585.83 kB and large CAD capability retained as a separate lazy chunk |
+| `npm run test:e2e` | 154 of 154 tests passed | Production-build-backed Chromium suite |
+| Axe automated accessibility checks | 30 of 30 states passed with no serious or critical findings | New curriculum routes, retained routes and onboarding |
+| Canonical route and reflow matrix | Passed | Every new route at 320 CSS px; roadmap at 320, 390, 768, 1,024 and 1,440 CSS px; representative 200 and 400 percent equivalents |
+| Theme and migration interactions | Passed | System light and dark, live operating-system change, manual override, versioned import preview, exact undo and weekly-review reload |
+| Deterministic visual snapshots | 6 of 6 passed | Today, Learn, mobile shell, CAD, motor sizing and flagship workflow |
+| `npm run test:visual-review` | 66 of 66 captures passed and all named PNG states inspected | Today variants, complete roadmap, M0, M5, M9, S001, S110, diagnostics, modules, P1-P4, progress, capstone, resources, import, themes, mobile and retained states |
+| `npm ls --depth=0` | Passed | Installed top-level dependency tree |
+| `npm audit --omit=dev --audit-level=moderate` | Failed | Two moderate React Router advisories; npm reports no fix for the listed vulnerable package path |
+| Full `npm audit --audit-level=high` | Failed | Two moderate React Router and five high PostCSS development-tree entries; npm reports no fix for the listed vulnerable package paths |
+| `cargo fmt --check` | Passed | Current Rust source |
+| `cargo clippy --all-targets --all-features -- -D warnings` | Passed | All Rust targets and features |
+| `cargo test` | 49 tests passed | Native command, path, process and workspace boundaries |
+| Native authority diff | Passed | No file under `src-tauri` changed |
+| `git diff --check` and U+2013/U+2014 scans | Passed | Final tracked and untracked source, tests and documentation |
+
+The browser suite uses installed Playwright Chromium and a production Vite
+build. Visual-capture success was not treated as human review: the generated
+PNGs were opened and inspected for hierarchy, clipping, overflow, wrapping,
+contrast, state fidelity and responsive behaviour.
+
+The dependency-audit failures block a clean supply-chain gate. They were not
+silenced or reclassified, and no install or dependency change was authorised.
+The complete implementation can therefore be described as a locally verified
+functional candidate with named residual risks, not as a production release.
+
+Not run in this curriculum task:
+
+- dependency installation or upgrade;
+- MSI or NSIS rebuild or installation;
+- packaged desktop launch;
+- real ngspice or KiCad execution;
+- Firefox, WebKit or Safari automation;
+- NVDA, JAWS or VoiceOver manual testing;
+- macOS or Linux package jobs;
+- networked CI;
+- commit, push, merge, tag, deployment or publication.
+
 ## Earlier Phase 0 and Phase 1 checkpoint
 
 The following checks were run on 2026-07-28 against the uncommitted
@@ -40,7 +95,7 @@ rasterises the live framebuffer because the standard headless screenshot path
 does not composite the WebGL layer; the functional test reads the live
 framebuffer independently.
 
-## Current Phase 1.1 through Phase 5 checkpoint
+## Earlier Phase 1.1 through Phase 5 checkpoint
 
 The following checks were run on 2026-07-28 against the final application
 source in the uncommitted `saj/complete-engineering-workbench` working tree at

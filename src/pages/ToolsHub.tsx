@@ -25,6 +25,10 @@ export function ToolsHub() {
   return (
     <section className="page tools-page">
       <PageHeader eyebrow="Engineering capability" title="Analyse" description="Choose a bounded tool by purpose without turning every calculator, reference, or workspace into global navigation." />
+      <section className="analysis-entry" aria-labelledby="learning-analysis-entry-heading">
+        <div><p className="eyebrow">Truthful curriculum metrics</p><h2 id="learning-analysis-entry-heading">Learning progress analysis</h2><p>Compare exposure, practice, evidence and mastery by stage, milestone and domain, with confidence kept separate from verified gates.</p></div>
+        <Link className="btn primary" to="/tools/progress">Open progress analysis</Link>
+      </section>
       <div className="learning-boundary" role="note">
         <strong>Runtime labels.</strong> Web and Desktop means the in-app capability is available in either runtime. Desktop requires the installed desktop app. These labels do not confirm that optional third-party tools are installed or that results are professionally validated.
       </div>

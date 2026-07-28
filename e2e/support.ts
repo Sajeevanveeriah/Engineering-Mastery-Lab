@@ -61,6 +61,41 @@ export interface ProgressFixture {
   legacy: Record<string, unknown>;
 }
 
+export interface CurriculumRecordFixture {
+  status: "not-started" | "in-progress" | "done" | "skipped-diagnostic";
+  blocker: string | null;
+  confidence: number | null;
+  actualMinutes: number;
+  notes: string;
+  evidenceReferences: string[];
+  attemptCount: number;
+  diagnosticScore: number | null;
+  gateResult: "not-assessed" | "passed" | "study-required";
+  completedAt: string | null;
+  contentVersion: string;
+}
+
+export interface ProgressFixtureV4 extends Omit<ProgressFixture, "version" | "theme"> {
+  version: 4;
+  themePreference: "system" | "light" | "dark";
+  engineeringWorkspaces: Record<string, {
+    schemaVersion: 1;
+    projectId: string;
+    bundleJson: string;
+    updatedAt: string;
+  }>;
+  curriculumRecords: Record<string, CurriculumRecordFixture>;
+  weeklyReviews: Record<string, {
+    weekKey: string;
+    plannedBlocks: number;
+    completedBlocks: number;
+    evidenceCount: number;
+    reflection: string;
+    createdAt: string;
+    updatedAt: string;
+  }>;
+}
+
 const fixedTime = "2026-07-01T02:00:00.000Z";
 
 export const emptyProgress: ProgressFixture = {
@@ -169,9 +204,28 @@ export const seededProgress: ProgressFixture = {
   }
 };
 
-export async function installProgress(page: Page, progress: ProgressFixture): Promise<void> {
+export function createV4Progress(
+  source: ProgressFixture = emptyProgress,
+  options: {
+    themePreference?: ProgressFixtureV4["themePreference"];
+    curriculumRecords?: ProgressFixtureV4["curriculumRecords"];
+    weeklyReviews?: ProgressFixtureV4["weeklyReviews"];
+  } = {}
+): ProgressFixtureV4 {
+  const { version: _version, theme: _theme, ...common } = structuredClone(source);
+  return {
+    ...common,
+    version: 4,
+    themePreference: options.themePreference ?? "system",
+    engineeringWorkspaces: {},
+    curriculumRecords: options.curriculumRecords ?? {},
+    weeklyReviews: options.weeklyReviews ?? {}
+  };
+}
+
+export async function installProgress(page: Page, progress: ProgressFixture | ProgressFixtureV4): Promise<void> {
   await page.addInitScript((fixture) => {
-    localStorage.setItem("engineering-mastery-lab/progress/v2", JSON.stringify(fixture));
+    localStorage.setItem(`engineering-mastery-lab/progress/v${fixture.version}`, JSON.stringify(fixture));
   }, progress);
 }
 

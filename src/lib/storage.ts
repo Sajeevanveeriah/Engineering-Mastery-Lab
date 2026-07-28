@@ -1,7 +1,15 @@
+import {
+  mandatoryRebootProofSessionIds,
+  masteryContentIdAliases
+} from "../data/curriculumMetadata";
+
 export type Theme = "dark" | "light";
+export type ThemePreference = "system" | Theme;
 export type ExperienceLevel = "foundation" | "intermediate" | "advanced";
 export type LearnerGoal = "foundations" | "role" | "refresh" | "project";
 export type ProgressItemType = "lab" | "pathway" | "project" | "tool" | "skill";
+export type LearningStatus = "not-started" | "in-progress" | "done" | "skipped-diagnostic";
+export type MasteryGateResult = "not-assessed" | "passed" | "study-required";
 
 export interface SkillRating {
   level: number;
@@ -78,14 +86,38 @@ export interface EngineeringWorkspaceRecord {
   updatedAt: string;
 }
 
+export interface LearningRecord {
+  status: LearningStatus;
+  blocker: string | null;
+  confidence: number | null;
+  actualMinutes: number;
+  notes: string;
+  evidenceReferences: string[];
+  attemptCount: number;
+  diagnosticScore: number | null;
+  gateResult: MasteryGateResult;
+  completedAt: string | null;
+  contentVersion: string;
+}
+
+export interface WeeklyReviewRecord {
+  weekKey: string;
+  plannedBlocks: number;
+  completedBlocks: number;
+  evidenceCount: number;
+  reflection: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ProgressState {
-  version: 3;
+  version: 4;
   skillRatings: Record<string, SkillRating>;
   challenges: Record<string, ChallengeResult>;
   reflections: Record<string, string>;
   artefacts: Record<string, boolean>;
   sprintChecklist: Record<string, boolean>;
-  theme: Theme;
+  themePreference: ThemePreference;
   profile: LocalLearnerProfile | null;
   onboardingComplete: boolean;
   pathways: Record<string, PathwayProgress>;
@@ -97,6 +129,8 @@ export interface ProgressState {
   achievements: string[];
   accessibility: AccessibilityPreferences;
   engineeringWorkspaces: Record<string, EngineeringWorkspaceRecord>;
+  curriculumRecords: Record<string, LearningRecord>;
+  weeklyReviews: Record<string, WeeklyReviewRecord>;
   legacy: Record<string, unknown>;
 }
 
@@ -111,18 +145,30 @@ export interface ProgressStateV1 {
   [key: string]: unknown;
 }
 
-export interface ProgressStateV2 extends Omit<ProgressState, "version" | "engineeringWorkspaces"> {
+type LegacyProgressFields = Omit<
+  ProgressState,
+  "version" | "themePreference" | "engineeringWorkspaces" | "curriculumRecords" | "weeklyReviews"
+>;
+
+export interface ProgressStateV2 extends LegacyProgressFields {
   version: 2;
+  theme: Theme;
+}
+
+export interface ProgressStateV3 extends LegacyProgressFields {
+  version: 3;
+  theme: Theme;
+  engineeringWorkspaces: Record<string, EngineeringWorkspaceRecord>;
 }
 
 export const emptyProgress: ProgressState = {
-  version: 3,
+  version: 4,
   skillRatings: {},
   challenges: {},
   reflections: {},
   artefacts: {},
   sprintChecklist: {},
-  theme: "light",
+  themePreference: "system",
   profile: null,
   onboardingComplete: false,
   pathways: {},
@@ -134,9 +180,12 @@ export const emptyProgress: ProgressState = {
   achievements: [],
   accessibility: { reducedMotion: false, highContrast: false },
   engineeringWorkspaces: {},
+  curriculumRecords: {},
+  weeklyReviews: {},
   legacy: {}
 };
 
+const KEY_V4 = "engineering-mastery-lab/progress/v4";
 const KEY_V3 = "engineering-mastery-lab/progress/v3";
 const KEY_V2 = "engineering-mastery-lab/progress/v2";
 const KEY_V1 = "engineering-mastery-lab/progress/v1";
@@ -165,9 +214,16 @@ const V2_FIELDS = new Set([
   "projects", "manualEvidence", "achievements", "accessibility", "legacy"
 ]);
 const V3_FIELDS = new Set([...V2_FIELDS, "engineeringWorkspaces"]);
+const V4_FIELDS = new Set([
+  ...[...V3_FIELDS].filter((field) => field !== "theme"),
+  "themePreference",
+  "curriculumRecords",
+  "weeklyReviews"
+]);
 
 export function loadProgress(): ProgressState {
-  return loadStoredProgress(KEY_V3)
+  return loadStoredProgress(KEY_V4)
+    ?? loadStoredProgress(KEY_V3)
     ?? loadStoredProgress(KEY_V2)
     ?? loadStoredProgress(KEY_V1)
     ?? structuredClone(emptyProgress);
@@ -185,7 +241,7 @@ function loadStoredProgress(key: string): ProgressState | null {
 
 export function saveProgress(state: ProgressState): boolean {
   try {
-    localStorage.setItem(KEY_V3, JSON.stringify(state));
+    localStorage.setItem(KEY_V4, JSON.stringify(state));
     return true;
   } catch {
     return false;
@@ -219,24 +275,20 @@ export function migrateProgressV1(value: ProgressStateV1): ProgressState {
     reflections: validateSection(value.reflections, "reflections", validateReflection),
     artefacts: validateSection(value.artefacts, "artefacts", validateBooleanItem),
     sprintChecklist: validateSection(value.sprintChecklist, "sprintChecklist", validateBooleanItem),
-    theme: validateTheme(value.theme),
+    themePreference: migrateLegacyTheme(value.theme),
     legacy
   };
 }
 
 export function migrateProgressV2(value: ProgressStateV2): ProgressState {
   assertOnlyFields(value as unknown as Record<string, unknown>, V2_FIELDS, "progress file");
-  return validateProgressV2Fields(value as unknown as Record<string, unknown>, true);
+  return validateLegacyProgressFields(value as unknown as Record<string, unknown>, true);
 }
 
-function validateProgress(value: unknown): ProgressState {
-  if (!isRecord(value)) throw new Error("Imported file is not a progress object");
-  if (value.version === 1) return migrateProgressV1(value as ProgressStateV1);
-  if (value.version === 2) return migrateProgressV2(value as unknown as ProgressStateV2);
-  if (value.version !== 3) throw new Error("Unsupported progress file version");
-  assertOnlyFields(value, V3_FIELDS, "progress file");
+export function migrateProgressV3(value: ProgressStateV3): ProgressState {
+  assertOnlyFields(value as unknown as Record<string, unknown>, V3_FIELDS, "progress file");
   return {
-    ...validateProgressV2Fields(value),
+    ...validateLegacyProgressFields(value as unknown as Record<string, unknown>),
     engineeringWorkspaces: validateSection(
       value.engineeringWorkspaces,
       "engineeringWorkspaces",
@@ -245,18 +297,87 @@ function validateProgress(value: unknown): ProgressState {
   };
 }
 
-function validateProgressV2Fields(
+function validateProgress(value: unknown): ProgressState {
+  if (!isRecord(value)) throw new Error("Imported file is not a progress object");
+  if (value.version === 1) return migrateProgressV1(value as ProgressStateV1);
+  if (value.version === 2) return migrateProgressV2(value as unknown as ProgressStateV2);
+  if (value.version === 3) return migrateProgressV3(value as unknown as ProgressStateV3);
+  if (value.version !== 4) throw new Error("Unsupported progress file version");
+  assertOnlyFields(value, V4_FIELDS, "progress file");
+  return assembleProgressState(
+    validateCommonProgressFields(value),
+    validateThemePreference(value.themePreference),
+    validateSection(
+      value.engineeringWorkspaces,
+      "engineeringWorkspaces",
+      validateEngineeringWorkspaceRecord
+    ),
+    validateCurriculumRecords(value.curriculumRecords),
+    validateSection(value.weeklyReviews, "weeklyReviews", validateWeeklyReviewRecord)
+  );
+}
+
+function validateLegacyProgressFields(
   value: Record<string, unknown>,
   allowLegacyLabStageRoute = false
 ): ProgressState {
+  return assembleProgressState(
+    validateCommonProgressFields(value, allowLegacyLabStageRoute),
+    migrateLegacyTheme(value.theme),
+    {},
+    {},
+    {}
+  );
+}
+
+function assembleProgressState(
+  common: Omit<
+    ProgressState,
+    "version" | "themePreference" | "engineeringWorkspaces" | "curriculumRecords" | "weeklyReviews"
+  >,
+  themePreference: ThemePreference,
+  engineeringWorkspaces: Record<string, EngineeringWorkspaceRecord>,
+  curriculumRecords: Record<string, LearningRecord>,
+  weeklyReviews: Record<string, WeeklyReviewRecord>
+): ProgressState {
   return {
-    version: 3,
+    version: 4,
+    skillRatings: common.skillRatings,
+    challenges: common.challenges,
+    reflections: common.reflections,
+    artefacts: common.artefacts,
+    sprintChecklist: common.sprintChecklist,
+    themePreference,
+    profile: common.profile,
+    onboardingComplete: common.onboardingComplete,
+    pathways: common.pathways,
+    labPositions: common.labPositions,
+    bookmarks: common.bookmarks,
+    recentItems: common.recentItems,
+    projects: common.projects,
+    manualEvidence: common.manualEvidence,
+    achievements: common.achievements,
+    accessibility: common.accessibility,
+    engineeringWorkspaces,
+    curriculumRecords,
+    weeklyReviews,
+    legacy: common.legacy
+  };
+}
+
+function validateCommonProgressFields(
+  value: Record<string, unknown>,
+  allowLegacyLabStageRoute = false
+): Omit<
+  ProgressState,
+  "version" | "themePreference" | "engineeringWorkspaces" | "curriculumRecords" | "weeklyReviews"
+> {
+  return {
     skillRatings: validateSection(value.skillRatings, "skillRatings", validateSkillRating),
     challenges: validateSection(value.challenges, "challenges", validateChallenge),
     reflections: validateSection(value.reflections, "reflections", validateReflection),
     artefacts: validateSection(value.artefacts, "artefacts", validateBooleanItem),
     sprintChecklist: validateSection(value.sprintChecklist, "sprintChecklist", validateBooleanItem),
-    theme: validateTheme(value.theme),
     profile: validateProfile(value.profile),
     onboardingComplete: validateOptionalBoolean(value.onboardingComplete, "onboardingComplete"),
     pathways: validateSection(value.pathways, "pathways", validatePathwayProgress),
@@ -271,14 +392,21 @@ function validateProgressV2Fields(
       validateBoundedString(item, path, PROGRESS_IMPORT_LIMITS.shortTextCharacters)
     ),
     accessibility: validateAccessibility(value.accessibility),
-    engineeringWorkspaces: {},
     legacy: validateLegacyRecord(value.legacy, "legacy")
   };
 }
 
-function validateTheme(value: unknown): Theme {
-  if (value === undefined) return "light";
+function migrateLegacyTheme(value: unknown): ThemePreference {
+  if (value === undefined) return "system";
   if (value !== "light" && value !== "dark") throw new Error("theme must be either light or dark");
+  return value;
+}
+
+function validateThemePreference(value: unknown): ThemePreference {
+  if (value === undefined) return "system";
+  if (value !== "system" && value !== "light" && value !== "dark") {
+    throw new Error("themePreference must be system, light or dark");
+  }
   return value;
 }
 
@@ -408,6 +536,159 @@ function validateEngineeringWorkspaceRecord(value: unknown, path: string): Engin
     ),
     updatedAt: validateTimestamp(value.updatedAt, `${path}.updatedAt`)
   };
+}
+
+function validateCurriculumRecords(value: unknown): Record<string, LearningRecord> {
+  if (value === undefined) return {};
+  if (!isRecord(value)) throw new Error("curriculumRecords must be an object");
+  const keys = Object.keys(value);
+  if (keys.length > PROGRESS_IMPORT_LIMITS.entriesPerSection) {
+    throw new Error(`curriculumRecords exceeds ${PROGRESS_IMPORT_LIMITS.entriesPerSection} entries`);
+  }
+  const result: Record<string, LearningRecord> = {};
+  for (const sourceId of keys) {
+    validateEntryKey(sourceId, "curriculumRecords");
+    const canonicalId = masteryContentIdAliases[sourceId] ?? sourceId;
+    const record = validateLearningRecord(value[sourceId], `curriculumRecords.${sourceId}`);
+    if (record.status === "skipped-diagnostic") {
+      if (record.diagnosticScore === null || record.diagnosticScore < 3) {
+        throw new Error(`curriculumRecords.${sourceId} cannot skip without diagnostic score 3 or 4`);
+      }
+      if (mandatoryRebootProofSessionIds.has(canonicalId)) {
+        throw new Error(`curriculumRecords.${sourceId} cannot skip a mandatory proof session`);
+      }
+    }
+    if (result[canonicalId] !== undefined && JSON.stringify(result[canonicalId]) !== JSON.stringify(record)) {
+      throw new Error(`curriculumRecords has conflicting records for ${canonicalId}`);
+    }
+    Object.defineProperty(result, canonicalId, {
+      configurable: true,
+      enumerable: true,
+      value: record,
+      writable: true
+    });
+  }
+  return result;
+}
+
+function validateLearningRecord(value: unknown, path: string): LearningRecord {
+  if (!isRecord(value)) throw new Error(`${path} must be a learning record object`);
+  assertOnlyFields(value, new Set([
+    "status",
+    "blocker",
+    "confidence",
+    "actualMinutes",
+    "notes",
+    "evidenceReferences",
+    "attemptCount",
+    "diagnosticScore",
+    "gateResult",
+    "completedAt",
+    "contentVersion"
+  ]), path);
+  if (!["not-started", "in-progress", "done", "skipped-diagnostic"].includes(String(value.status))) {
+    throw new Error(`${path}.status is invalid`);
+  }
+  if (
+    typeof value.actualMinutes !== "number"
+    || !Number.isInteger(value.actualMinutes)
+    || value.actualMinutes < 0
+    || value.actualMinutes > 100_000
+  ) {
+    throw new Error(`${path}.actualMinutes must be an integer from 0 to 100000`);
+  }
+  if (
+    typeof value.attemptCount !== "number"
+    || !Number.isInteger(value.attemptCount)
+    || value.attemptCount < 0
+    || value.attemptCount > 10_000
+  ) {
+    throw new Error(`${path}.attemptCount must be an integer from 0 to 10000`);
+  }
+  const confidence = validateNullableInteger(value.confidence, `${path}.confidence`, 1, 5);
+  const diagnosticScore = validateNullableInteger(value.diagnosticScore, `${path}.diagnosticScore`, 0, 4);
+  if (!["not-assessed", "passed", "study-required"].includes(String(value.gateResult))) {
+    throw new Error(`${path}.gateResult is invalid`);
+  }
+  const completedAt = value.completedAt === null
+    ? null
+    : validateTimestamp(value.completedAt, `${path}.completedAt`);
+  if ((value.status === "done" || value.status === "skipped-diagnostic") && completedAt === null) {
+    throw new Error(`${path}.completedAt is required for a completed state`);
+  }
+  const contentVersion = validateBoundedString(
+    value.contentVersion,
+    `${path}.contentVersion`,
+    PROGRESS_IMPORT_LIMITS.shortTextCharacters
+  );
+  if (contentVersion.trim() === "") throw new Error(`${path}.contentVersion is required`);
+  return {
+    status: value.status as LearningStatus,
+    blocker: value.blocker === null
+      ? null
+      : validateBoundedString(value.blocker, `${path}.blocker`, PROGRESS_IMPORT_LIMITS.notesCharacters),
+    confidence,
+    actualMinutes: value.actualMinutes,
+    notes: validateBoundedString(value.notes, `${path}.notes`, PROGRESS_IMPORT_LIMITS.notesCharacters),
+    evidenceReferences: validateStringArray(value.evidenceReferences, `${path}.evidenceReferences`),
+    attemptCount: value.attemptCount,
+    diagnosticScore,
+    gateResult: value.gateResult as MasteryGateResult,
+    completedAt,
+    contentVersion
+  };
+}
+
+function validateWeeklyReviewRecord(value: unknown, path: string): WeeklyReviewRecord {
+  if (!isRecord(value)) throw new Error(`${path} must be a weekly review object`);
+  assertOnlyFields(value, new Set([
+    "weekKey",
+    "plannedBlocks",
+    "completedBlocks",
+    "evidenceCount",
+    "reflection",
+    "createdAt",
+    "updatedAt"
+  ]), path);
+  const weekKey = validateBoundedString(value.weekKey, `${path}.weekKey`, 20);
+  if (!/^\d{4}-W(?:0[1-9]|[1-4]\d|5[0-3])$/.test(weekKey)) {
+    throw new Error(`${path}.weekKey must use YYYY-Www`);
+  }
+  return {
+    weekKey,
+    plannedBlocks: validateBoundedInteger(value.plannedBlocks, `${path}.plannedBlocks`, 0, 100),
+    completedBlocks: validateBoundedInteger(value.completedBlocks, `${path}.completedBlocks`, 0, 100),
+    evidenceCount: validateBoundedInteger(value.evidenceCount, `${path}.evidenceCount`, 0, 100),
+    reflection: validateBoundedString(
+      value.reflection,
+      `${path}.reflection`,
+      PROGRESS_IMPORT_LIMITS.reflectionCharacters
+    ),
+    createdAt: validateTimestamp(value.createdAt, `${path}.createdAt`),
+    updatedAt: validateTimestamp(value.updatedAt, `${path}.updatedAt`)
+  };
+}
+
+function validateNullableInteger(
+  value: unknown,
+  path: string,
+  minimum: number,
+  maximum: number
+): number | null {
+  if (value === null) return null;
+  return validateBoundedInteger(value, path, minimum, maximum);
+}
+
+function validateBoundedInteger(
+  value: unknown,
+  path: string,
+  minimum: number,
+  maximum: number
+): number {
+  if (typeof value !== "number" || !Number.isInteger(value) || value < minimum || value > maximum) {
+    throw new Error(`${path} must be an integer from ${minimum} to ${maximum}`);
+  }
+  return value;
 }
 
 function validateSection<T>(value: unknown, section: string, validator: (item: unknown, path: string) => T): Record<string, T> {

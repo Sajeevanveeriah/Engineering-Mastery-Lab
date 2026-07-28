@@ -1,11 +1,13 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { loadProgress, saveProgress, type ProgressState } from "../lib/storage";
+import { loadProgress, saveProgress, type ProgressState, type Theme } from "../lib/storage";
+import { applyTheme, resolveTheme } from "../lib/theme";
 
 interface ProgressApi {
   progress: ProgressState;
   update: (fn: (p: ProgressState) => ProgressState) => void;
   replace: (p: ProgressState) => void;
   persistenceAvailable: boolean;
+  resolvedTheme: Theme;
 }
 
 const Ctx = createContext<ProgressApi | null>(null);
@@ -13,26 +15,41 @@ const Ctx = createContext<ProgressApi | null>(null);
 export function ProgressProvider({ children }: { children: ReactNode }) {
   const [progress, setProgress] = useState<ProgressState>(() => loadProgress());
   const [persistenceAvailable, setPersistenceAvailable] = useState(true);
+  const [systemDark, setSystemDark] = useState(() =>
+    typeof window.matchMedia === "function"
+    && window.matchMedia("(prefers-color-scheme: dark)").matches
+  );
 
   useEffect(() => {
     setPersistenceAvailable(saveProgress(progress));
-    document.documentElement.dataset.theme = progress.theme;
-    document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute(
-      "content",
-      progress.theme === "dark" ? "#050c16" : "#f3f6fa"
-    );
   }, [progress]);
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") return;
+    const query = window.matchMedia("(prefers-color-scheme: dark)");
+    setSystemDark(query.matches);
+    if (progress.themePreference !== "system") return;
+    const handleChange = (event: MediaQueryListEvent) => setSystemDark(event.matches);
+    query.addEventListener("change", handleChange);
+    return () => query.removeEventListener("change", handleChange);
+  }, [progress.themePreference]);
+
+  useEffect(() => {
+    applyTheme(progress.themePreference, systemDark);
+  }, [progress.themePreference, systemDark]);
 
   const update = useCallback((fn: (p: ProgressState) => ProgressState) => {
     setProgress((current) => fn(structuredClone(current)));
   }, []);
   const replace = useCallback((next: ProgressState) => setProgress(next), []);
+  const resolvedTheme = resolveTheme(progress.themePreference, systemDark);
   const api = useMemo<ProgressApi>(() => ({
     progress,
     update,
     replace,
-    persistenceAvailable
-  }), [persistenceAvailable, progress, replace, update]);
+    persistenceAvailable,
+    resolvedTheme
+  }), [persistenceAvailable, progress, replace, resolvedTheme, update]);
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;
 }
 

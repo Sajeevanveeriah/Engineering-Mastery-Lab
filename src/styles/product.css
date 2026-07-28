@@ -469,3 +469,915 @@ select { min-height: 44px; }
   .evidence-feed { grid-template-columns: 1fr 1fr; }
   body { background: #fff; color: #000; }
 }
+
+/* Curriculum and evidence surfaces */
+.curriculum-entry-grid,
+.release-grid,
+.diagnostic-grid,
+.analysis-stage-grid,
+.release-review-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 0.9rem;
+  margin-block: 1.4rem 2rem;
+}
+
+.curriculum-entry-grid > a,
+.release-grid > article,
+.diagnostic-grid > article,
+.analysis-stage-grid > article,
+.release-review-grid > section {
+  min-width: 0;
+  padding: clamp(1rem, 2vw, 1.35rem);
+  border: 1px solid var(--border);
+  border-radius: var(--studio-radius-large);
+  background: var(--bg-card);
+  box-shadow: var(--studio-shadow-small);
+}
+
+.curriculum-entry-grid > a {
+  display: grid;
+  align-content: start;
+  gap: 0.65rem;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.curriculum-entry-grid > a:hover {
+  border-color: color-mix(in srgb, var(--accent) 58%, var(--border));
+  box-shadow: var(--studio-shadow);
+  transform: translateY(-2px);
+}
+
+.curriculum-entry-grid h2,
+.release-grid h3,
+.diagnostic-grid h2,
+.analysis-stage-grid h3 {
+  margin: 0;
+}
+
+.curriculum-entry-grid p,
+.release-grid p,
+.analysis-stage-grid p {
+  margin: 0;
+  color: var(--text-dim);
+}
+
+.curriculum-entry-grid strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: auto;
+  color: var(--accent);
+}
+
+.curriculum-now,
+.analysis-entry,
+.capstone-entry,
+.analysis-hero,
+.release-increment,
+.spending-gate,
+.mastery-gate,
+.evidence-requirement {
+  position: relative;
+  min-width: 0;
+  margin-block: 1.3rem;
+  padding: clamp(1.1rem, 2.6vw, 1.7rem);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--studio-radius-large);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(color-mix(in srgb, var(--accent) 5%, transparent) 1px, transparent 1px),
+    var(--bg-card);
+  background-size: 24px 24px;
+}
+
+.analysis-entry,
+.capstone-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+}
+
+.analysis-entry > div,
+.capstone-entry > div {
+  max-width: 72ch;
+}
+
+.curriculum-now__facts,
+.capstone-status,
+.curriculum-counts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: 1px;
+  margin: 1rem 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--studio-radius);
+  background: var(--border);
+}
+
+.curriculum-now__facts > div,
+.capstone-status > article,
+.curriculum-counts > article {
+  min-width: 0;
+  padding: 0.9rem;
+  background: var(--bg-card);
+}
+
+.curriculum-now__facts dt,
+.capstone-status span,
+.curriculum-counts span {
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.curriculum-now__facts dd {
+  margin: 0.3rem 0 0;
+  font-weight: 750;
+}
+
+.capstone-status strong,
+.capstone-status small,
+.curriculum-counts strong,
+.curriculum-counts small {
+  display: block;
+  margin-top: 0.3rem;
+}
+
+.capstone-status strong,
+.curriculum-counts strong {
+  font-size: clamp(1.2rem, 2vw, 1.7rem);
+}
+
+.minimum-day,
+.weekly-review-due {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--border);
+}
+
+.minimum-day span,
+.weekly-review-due span {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--text-dim);
+}
+
+.roadmap-jump {
+  position: sticky;
+  z-index: 4;
+  top: 74px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  width: fit-content;
+  max-width: 100%;
+  margin: 1rem auto 1.5rem;
+  padding: 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-card) 90%, transparent);
+  box-shadow: var(--studio-shadow-small);
+  backdrop-filter: blur(14px);
+}
+
+.roadmap-jump a {
+  min-width: 42px;
+  padding: 0.45rem 0.65rem;
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  font-weight: 750;
+  text-align: center;
+  text-decoration: none;
+}
+
+.roadmap-jump a:hover,
+.roadmap-jump a:focus-visible {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.capability-roadmap,
+.milestone-roadmap {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.capability-stage,
+.milestone-section {
+  min-width: 0;
+  padding: clamp(1rem, 2.4vw, 1.7rem);
+  border: 1px solid var(--border);
+  border-radius: var(--studio-radius-large);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--text) 3%, transparent) 1px, transparent 1px),
+    linear-gradient(color-mix(in srgb, var(--text) 3%, transparent) 1px, transparent 1px),
+    var(--bg-card);
+  background-size: 28px 28px;
+}
+
+.capability-stage > header,
+.milestone-section > header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: start;
+}
+
+.capability-stage > header > div:first-child,
+.milestone-section > header > div:first-child {
+  max-width: 76ch;
+}
+
+.stage-progress {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(72px, 1fr));
+  gap: 1px;
+  min-width: 190px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--studio-radius);
+  background: var(--border);
+}
+
+.stage-progress > div {
+  padding: 0.65rem;
+  background: var(--bg-card);
+}
+
+.stage-progress dt {
+  color: var(--text-dim);
+  font-size: 0.62rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.stage-progress dd {
+  margin: 0.2rem 0 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.module-track,
+.session-strip {
+  display: grid;
+  gap: 0.55rem;
+  margin: 1.2rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.module-track > li,
+.session-strip > li {
+  min-width: 0;
+}
+
+.module-track a {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 0.8rem;
+  align-items: center;
+  min-width: 0;
+  padding: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--studio-radius);
+  background: color-mix(in srgb, var(--bg-card) 96%, var(--accent));
+  color: var(--text);
+  text-decoration: none;
+}
+
+.module-track a:hover,
+.session-strip a:hover {
+  border-color: var(--accent);
+}
+
+.module-track__index {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.module-track strong,
+.module-track small,
+.module-track em {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.module-track small,
+.module-track em {
+  margin-top: 0.2rem;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  font-style: normal;
+}
+
+.status-badge--done,
+.status-badge--skipped-diagnostic {
+  border-color: var(--success);
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.status-badge--in-progress {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.status-badge--not-started {
+  color: var(--text-dim);
+}
+
+.prerequisite-map,
+.resource-page > section,
+.analysis-progress-page > section,
+.module-detail-page main > section,
+.session-page main > section,
+.capstone-page > section,
+.release-detail-page > section {
+  margin-block: 1.5rem;
+}
+
+.milestone-gauge {
+  display: grid;
+  width: 118px;
+  aspect-ratio: 1;
+  place-content: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg-card);
+  text-align: center;
+}
+
+.milestone-gauge strong {
+  font-size: 1.45rem;
+}
+
+.milestone-gauge span {
+  color: var(--text-dim);
+  font-size: 0.65rem;
+}
+
+.definition-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: 0.8rem;
+  margin-block: 1rem;
+}
+
+.definition-grid > div {
+  min-width: 0;
+  padding: 0.75rem;
+  border-left: 2px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--bg-card) 92%, var(--accent));
+}
+
+.definition-grid dt {
+  color: var(--text-dim);
+  font-size: 0.65rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.definition-grid dd {
+  margin: 0.3rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.session-strip {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+}
+
+.session-strip a {
+  display: grid;
+  min-height: 132px;
+  gap: 0.5rem;
+  align-content: start;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--studio-radius);
+  background: var(--bg-card);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.session-strip a > span {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+
+.session-strip em {
+  margin-top: auto;
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  font-style: normal;
+  text-transform: capitalize;
+}
+
+.release-grid > article {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.release-grid .btn {
+  margin-top: auto;
+}
+
+.release-grid dl {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.release-grid dl > div {
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--border);
+}
+
+.release-grid dt {
+  color: var(--text-dim);
+  font-size: 0.65rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.release-grid dd {
+  margin: 0.2rem 0 0;
+}
+
+.session-layout,
+.module-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 370px);
+  gap: clamp(1rem, 2.5vw, 2rem);
+  align-items: start;
+}
+
+.session-layout > *,
+.module-detail-layout > * {
+  min-width: 0;
+}
+
+.session-object,
+.equation-panel,
+.worked-example,
+.session-record {
+  padding: clamp(1rem, 2vw, 1.4rem);
+  border: 1px solid var(--border);
+  border-radius: var(--studio-radius-large);
+  background: var(--bg-card);
+}
+
+.session-object--build {
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
+}
+
+.session-record {
+  position: sticky;
+  top: 88px;
+  display: grid;
+  gap: 0.8rem;
+  box-shadow: var(--studio-shadow);
+}
+
+.session-record label {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.session-record label > span {
+  color: var(--text);
+}
+
+.session-record label small {
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.session-record textarea {
+  min-width: 0;
+}
+
+.weekly-review-card {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(320px, 1.2fr);
+  gap: clamp(1rem, 3vw, 2rem);
+  align-items: start;
+  padding: clamp(1rem, 2vw, 1.4rem);
+  border: 1px solid var(--border);
+  border-radius: var(--studio-radius-large);
+  background: var(--bg-card);
+  box-shadow: var(--studio-shadow);
+}
+
+.weekly-review-card form {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.weekly-review-card .primary {
+  justify-self: start;
+}
+
+.resource-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 0.8rem;
+}
+
+.resource-list > article {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--studio-radius);
+  background: var(--bg-card);
+}
+
+.resource-list > article > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.resource-list h2,
+.resource-list h3,
+.resource-list p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.resource-list .btn {
+  margin-top: auto;
+}
+
+.session-pagination {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.equation-panel article {
+  min-width: 0;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--studio-radius);
+  background: var(--bg-inset);
+}
+
+.equation-panel code,
+.worked-example code {
+  overflow-wrap: anywhere;
+  color: var(--accent);
+  font-family: var(--font-mono);
+}
+
+.equation-panel article > code {
+  display: block;
+  font-size: clamp(1rem, 2vw, 1.35rem);
+  font-weight: 750;
+}
+
+.equation-panel dl {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.equation-panel dl > div {
+  display: grid;
+  grid-template-columns: minmax(60px, auto) minmax(0, 1fr);
+  gap: 0.7rem;
+}
+
+.equation-panel dd {
+  margin: 0;
+}
+
+.worked-example__answer {
+  margin-block: 0.6rem;
+  font-size: clamp(1.5rem, 4vw, 2.4rem);
+}
+
+.verification-strip {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: center;
+  margin-top: 1rem;
+  padding: 0.8rem;
+  border-left: 3px solid var(--success);
+  background: var(--success-soft);
+}
+
+.verification-strip span {
+  color: var(--success);
+  font-size: 0.7rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.verification-strip small {
+  color: var(--text-dim);
+}
+
+.learning-action-grid,
+.analysis-two-column {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-block: 1.5rem;
+}
+
+.learning-action-grid > section,
+.analysis-two-column > section {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--studio-radius-large);
+  background: var(--bg-card);
+}
+
+.diagnostic-grid > article {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.diagnostic-grid > article > div:first-child {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.diagnostic-grid label,
+.catalogue-filters label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.diagnostic-card--pass {
+  border-color: var(--success) !important;
+}
+
+.diagnostic-card--study {
+  border-color: var(--warn) !important;
+}
+
+.analysis-hero {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.65fr) minmax(300px, 1.35fr);
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.dimension-bars {
+  display: grid;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.dimension-bars > div {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) 44px;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.dimension-bars > div > span:first-child {
+  color: var(--text-dim);
+  font-size: 0.68rem;
+  font-weight: 750;
+  text-transform: capitalize;
+}
+
+.dimension-bars__track {
+  display: block;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: var(--bg-inset);
+}
+
+.dimension-bars__track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+.dimension-bars > div:nth-child(2) .dimension-bars__track > span {
+  background: var(--accent-2);
+}
+
+.dimension-bars > div:nth-child(3) .dimension-bars__track > span {
+  background: var(--warn);
+}
+
+.dimension-bars > div:nth-child(4) .dimension-bars__track > span {
+  background: var(--success);
+}
+
+.dimension-bars strong {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.import-preview {
+  margin-block: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--accent);
+  border-radius: var(--studio-radius);
+  background: var(--accent-soft);
+}
+
+.evidence-graph ol {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(130px, 1fr));
+  gap: 0.6rem;
+  margin: 1rem 0;
+  padding: 0;
+  overflow-x: auto;
+  list-style: none;
+}
+
+.evidence-graph li {
+  position: relative;
+  min-width: 130px;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--studio-radius);
+  background: var(--bg-card);
+}
+
+.evidence-graph li:not(:last-child)::after {
+  position: absolute;
+  top: 50%;
+  right: -0.55rem;
+  width: 0.5rem;
+  border-top: 1px solid var(--accent);
+  content: "";
+}
+
+.evidence-graph strong,
+.evidence-graph span {
+  display: block;
+}
+
+.evidence-graph span {
+  margin-top: 0.3rem;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+}
+
+.release-review-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.check-list {
+  padding-left: 1.2rem;
+}
+
+.module-detail-page blockquote {
+  margin-inline: 0;
+  padding: 1rem;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  font-family: var(--font-editorial);
+  font-size: 1.1rem;
+}
+
+@media (max-width: 1024px) {
+  .session-layout,
+  .module-detail-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .session-record {
+    position: static;
+  }
+
+  .analysis-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .weekly-review-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .analysis-entry,
+  .capstone-entry,
+  .minimum-day,
+  .weekly-review-due {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .capability-stage > header,
+  .milestone-section > header {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .stage-progress {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .module-track a {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .module-track .status-badge {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .learning-action-grid,
+  .analysis-two-column,
+  .release-review-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .verification-strip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .roadmap-jump {
+    top: 66px;
+    width: 100%;
+    border-radius: var(--studio-radius);
+  }
+}
+
+@media (max-width: 420px) {
+  .curriculum-entry-grid,
+  .release-grid,
+  .diagnostic-grid,
+  .analysis-stage-grid,
+  .resource-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .session-pagination {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dimension-bars > div {
+    grid-template-columns: 64px minmax(0, 1fr) 40px;
+    gap: 0.45rem;
+  }
+
+  .equation-panel dl > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (forced-colors: active) {
+  .curriculum-entry-grid > a,
+  .capability-stage,
+  .milestone-section,
+  .session-record,
+  .dimension-bars__track,
+  .evidence-graph li {
+    border: 1px solid CanvasText;
+  }
+
+  .dimension-bars__track > span {
+    forced-color-adjust: none;
+    background: Highlight !important;
+  }
+}

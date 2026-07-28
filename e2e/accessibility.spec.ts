@@ -5,6 +5,15 @@ import { emptyProgress, installProgress, seededProgress } from "./support";
 const criticalRoutes = [
   "/",
   "/learn",
+  "/learn/roadmap",
+  "/learn/reboot",
+  "/learn/reboot/sessions/S001",
+  "/learn/modules/EML-E1-D04",
+  "/learn/modules/EML-E2-D11",
+  "/learn/modules/EML-E3-D18",
+  "/learn/modules/EML-E3-D22",
+  "/learn/diagnostics",
+  "/learn/resources",
   "/learn/pathways/controls",
   "/learn/labs/pid?stage=simulate",
   "/learn/flagships/controls",
@@ -13,12 +22,15 @@ const criticalRoutes = [
   "/learn/flagships/mechanical-design-dynamics",
   "/learn/flagships/applied-ai-ml",
   "/projects",
+  "/projects/releases/P4",
   "/projects/temperature-controller",
   "/tools",
+  "/tools/progress",
   "/tools/engineering",
   "/tools/calculators",
   "/tools/cad",
   "/portfolio",
+  "/portfolio/capstone",
   "/settings"
 ];
 

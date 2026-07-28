@@ -1,15 +1,85 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
-import { emptyProgress, installProgress, seededProgress, type ProgressFixture } from "./support";
+import {
+  createV4Progress,
+  emptyProgress,
+  installProgress,
+  seededProgress,
+  type CurriculumRecordFixture,
+  type ProgressFixture,
+  type ProgressFixtureV4
+} from "./support";
 
 interface VisualState {
   name: string;
   route: string;
-  progress?: ProgressFixture;
+  progress?: ProgressFixture | ProgressFixtureV4;
   viewport?: { width: number; height: number };
   fullPage?: boolean;
+  preserveScroll?: boolean;
   prepare?: (page: Page) => Promise<void>;
   afterNavigate?: (page: Page) => Promise<void>;
 }
+
+function curriculumRecord(
+  overrides: Partial<CurriculumRecordFixture> = {}
+): CurriculumRecordFixture {
+  return {
+    status: "in-progress",
+    blocker: null,
+    confidence: 3,
+    actualMinutes: 25,
+    notes: "Representative visual-review record.",
+    evidenceReferences: ["test:visual-review"],
+    attemptCount: 1,
+    diagnosticScore: null,
+    gateResult: "not-assessed",
+    completedAt: null,
+    contentVersion: "2026.07.28",
+    ...overrides
+  };
+}
+
+const todayInProgress = createV4Progress(seededProgress, {
+  curriculumRecords: {
+    S001: curriculumRecord({ status: "done", gateResult: "not-assessed", completedAt: "2026-07-27T02:00:00Z" }),
+    S002: curriculumRecord({ status: "in-progress", actualMinutes: 12, evidenceReferences: [] })
+  }
+});
+
+const completedM0 = createV4Progress(seededProgress, {
+  curriculumRecords: Object.fromEntries(
+    Array.from({ length: 6 }, (_, index) => {
+      const id = `S${String(index + 1).padStart(3, "0")}`;
+      return [id, curriculumRecord({
+        status: "done",
+        gateResult: id === "S006" ? "passed" : "not-assessed",
+        completedAt: "2026-07-27T02:00:00Z"
+      })];
+    })
+  )
+});
+
+const diagnosticPass = createV4Progress(emptyProgress, {
+  curriculumRecords: {
+    "DIAG-M0": curriculumRecord({
+      status: "done",
+      diagnosticScore: 4,
+      gateResult: "passed",
+      completedAt: "2026-07-27T02:00:00Z"
+    })
+  }
+});
+
+const diagnosticStudyRequired = createV4Progress(emptyProgress, {
+  curriculumRecords: {
+    "DIAG-M0": curriculumRecord({
+      status: "done",
+      diagnosticScore: 2,
+      gateResult: "study-required",
+      completedAt: "2026-07-27T02:00:00Z"
+    })
+  }
+});
 
 async function captureState(page: Page, testInfo: TestInfo, state: VisualState): Promise<void> {
   await page.setViewportSize(state.viewport ?? { width: 1440, height: 1000 });
@@ -23,8 +93,8 @@ async function captureState(page: Page, testInfo: TestInfo, state: VisualState):
   await expect(page.locator("main#main-content h1").first()).toBeVisible();
   await page.evaluate(() => {
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
-    window.scrollTo(0, 0);
   });
+  if (!state.preserveScroll) await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({
     path: testInfo.outputPath(`${state.name}.png`),
     animations: "disabled",
@@ -40,6 +110,48 @@ const reviewStates: VisualState[] = [
   },
   { name: "today-empty", route: "/" },
   { name: "today-seeded", route: "/", progress: seededProgress },
+  { name: "today-curriculum-in-progress", route: "/", progress: todayInProgress },
+  { name: "today-milestone-complete", route: "/", progress: completedM0 },
+  { name: "complete-curriculum-roadmap", route: "/learn/roadmap", viewport: { width: 1440, height: 1100 } },
+  {
+    name: "reboot-roadmap-m0",
+    route: "/learn/reboot",
+    viewport: { width: 1440, height: 1100 },
+    fullPage: false,
+    preserveScroll: true,
+    afterNavigate: async (page) => page.locator("#milestone-M0").scrollIntoViewIfNeeded()
+  },
+  {
+    name: "reboot-roadmap-m5",
+    route: "/learn/reboot",
+    viewport: { width: 1440, height: 1100 },
+    fullPage: false,
+    preserveScroll: true,
+    afterNavigate: async (page) => page.locator("#milestone-M5").scrollIntoViewIfNeeded()
+  },
+  {
+    name: "reboot-roadmap-m9",
+    route: "/learn/reboot",
+    viewport: { width: 1440, height: 1100 },
+    fullPage: false,
+    preserveScroll: true,
+    afterNavigate: async (page) => page.locator("#milestone-M9").scrollIntoViewIfNeeded()
+  },
+  { name: "reboot-session-s001", route: "/learn/reboot/sessions/S001", viewport: { width: 1440, height: 1100 } },
+  { name: "reboot-session-s110", route: "/learn/reboot/sessions/S110", viewport: { width: 1440, height: 1100 } },
+  { name: "diagnostic-pass", route: "/learn/diagnostics", progress: diagnosticPass },
+  { name: "diagnostic-study-required", route: "/learn/diagnostics", progress: diagnosticStudyRequired },
+  { name: "worked-maths-module", route: "/learn/modules/EML-E1-D04", viewport: { width: 1440, height: 1100 } },
+  { name: "circuit-module", route: "/learn/modules/EML-E2-D11", viewport: { width: 1440, height: 1100 } },
+  { name: "robotics-simulation-module", route: "/learn/modules/EML-E3-D18", viewport: { width: 1440, height: 1100 } },
+  { name: "ai-ml-evaluation-module", route: "/learn/modules/EML-E3-D22", viewport: { width: 1440, height: 1100 } },
+  { name: "rover-release-p1", route: "/projects/releases/P1" },
+  { name: "rover-release-p2", route: "/projects/releases/P2" },
+  { name: "rover-release-p3", route: "/projects/releases/P3" },
+  { name: "rover-release-p4", route: "/projects/releases/P4" },
+  { name: "curriculum-progress-analysis", route: "/tools/progress", progress: completedM0 },
+  { name: "capstone-evidence", route: "/portfolio/capstone", progress: completedM0 },
+  { name: "curriculum-resources", route: "/learn/resources", viewport: { width: 1440, height: 1100 } },
   { name: "learn-discovery", route: "/learn" },
   { name: "pathway-detail", route: "/learn/pathways/controls", progress: seededProgress },
   { name: "laboratory-learn", route: "/learn/labs/pid?stage=learn" },
@@ -183,6 +295,40 @@ const reviewStates: VisualState[] = [
     viewport: { width: 1440, height: 1100 }
   },
   {
+    name: "import-preview",
+    route: "/settings",
+    viewport: { width: 1024, height: 1100 },
+    afterNavigate: async (page) => {
+      await page.getByLabel("Choose progress backup").setInputFiles({
+        name: "validated-progress-v2.json",
+        mimeType: "application/json",
+        buffer: Buffer.from(JSON.stringify(emptyProgress))
+      });
+      await expect(page.getByRole("region", { name: "validated-progress-v2.json" })).toBeVisible();
+    }
+  },
+  {
+    name: "import-conflict",
+    route: "/settings",
+    viewport: { width: 1024, height: 1100 },
+    afterNavigate: async (page) => {
+      const first = curriculumRecord({ status: "in-progress", notes: "alias" });
+      const second = curriculumRecord({ status: "in-progress", notes: "canonical" });
+      const conflicting = createV4Progress(emptyProgress, {
+        curriculumRecords: {
+          "EML-E3-ROS2": first,
+          "EML-E3-D18": second
+        }
+      });
+      await page.getByLabel("Choose progress backup").setInputFiles({
+        name: "conflicting-progress-v4.json",
+        mimeType: "application/json",
+        buffer: Buffer.from(JSON.stringify(conflicting))
+      });
+      await expect(page.getByRole("alert")).toContainText("conflicting records");
+    }
+  },
+  {
     name: "cad-webgl",
     route: "/tools/cad",
     viewport: { width: 1440, height: 1100 },
@@ -249,12 +395,55 @@ const reviewStates: VisualState[] = [
     viewport: { width: 1024, height: 900 }
   },
   {
+    name: "system-resolved-light",
+    route: "/settings",
+    progress: createV4Progress(seededProgress, { themePreference: "system" }),
+    prepare: async (page) => page.emulateMedia({ colorScheme: "light" }),
+    viewport: { width: 1024, height: 900 }
+  },
+  {
+    name: "system-resolved-dark",
+    route: "/settings",
+    progress: createV4Progress(seededProgress, { themePreference: "system" }),
+    prepare: async (page) => page.emulateMedia({ colorScheme: "dark" }),
+    viewport: { width: 1024, height: 900 }
+  },
+  {
+    name: "manual-light",
+    route: "/settings",
+    progress: createV4Progress(seededProgress, { themePreference: "light" }),
+    prepare: async (page) => page.emulateMedia({ colorScheme: "dark" }),
+    viewport: { width: 1024, height: 900 }
+  },
+  {
+    name: "manual-dark",
+    route: "/settings",
+    progress: createV4Progress(seededProgress, { themePreference: "dark" }),
+    prepare: async (page) => page.emulateMedia({ colorScheme: "light" }),
+    viewport: { width: 1024, height: 900 }
+  },
+  {
     name: "reduced-motion",
     route: "/tools",
     progress: {
       ...structuredClone(seededProgress),
       accessibility: { reducedMotion: true, highContrast: false }
     },
+    viewport: { width: 1024, height: 900 }
+  },
+  {
+    name: "higher-contrast",
+    route: "/learn/roadmap",
+    progress: {
+      ...createV4Progress(seededProgress),
+      accessibility: { reducedMotion: false, highContrast: true }
+    },
+    viewport: { width: 1024, height: 900 }
+  },
+  {
+    name: "forced-colours",
+    route: "/learn/roadmap",
+    prepare: async (page) => page.emulateMedia({ forcedColors: "active" }),
     viewport: { width: 1024, height: 900 }
   }
 ];

@@ -16,21 +16,45 @@ Build, simulate and prove real engineering capability.
 The global application has five primary destinations:
 
 - Today: one clear continue action, current pathway, active project, recent
-  work across the product, and an evidence snapshot.
-- Learn: pathways, laboratories, five flagship engineering workflows, skills,
-  filters, discovery, and bookmarks.
-- Build: 12 data-driven engineering briefs with milestones, validation,
-  notes, evidence, estimates, and local state.
+  work across the product, the next accelerated session, current capability
+  stage, milestone, rover release, weekly review, and an evidence snapshot.
+- Learn: the complete E0-E4 prerequisite roadmap, the S001-S110 accelerated
+  reboot, practical diagnostics, a source inventory, pathways, laboratories,
+  five flagship engineering workflows, skills, discovery, and bookmarks.
+- Build: four workbook-derived rover releases plus 12 retained data-driven
+  engineering briefs with milestones, validation, notes, evidence, estimates,
+  and local state.
 - Analyse: calculators, unit conversion, materials reference, the shared
-  engineering project workspace, CAD Studio, Project Workbench, and
-  diagnostics.
-- Prove: challenge, artefact, reflection, skill, project, and manual
-  evidence with print, JSON, and Markdown exports.
+  engineering project workspace, curriculum progress analysis, CAD Studio,
+  Project Workbench, and diagnostics.
+- Prove: the defensible rover capstone, challenge, artefact, reflection, skill,
+  project, and manual evidence with print, JSON, and Markdown exports.
 
 Pricing, Settings, About, search, and the local profile are secondary actions
 in the top bar.
 
 ## Guided learning
+
+The complete curriculum adds five dependency-ordered capability stages:
+
+- E0 Engineering Starter
+- E1 Undergraduate Foundations
+- E2 Mechatronics Core
+- E3 Robotics and AI Specialisation
+- E4 R&D Mastery and Proof
+
+Those stages contain 25 substantive domain modules. Every module includes
+prerequisites, measurable outcomes, vocabulary and symbols, equations with SI
+units, a worked numeric example with an independent check, retrieval practice,
+a practical task, diagnostic guidance, evidence requirements, a mastery gate,
+source provenance, an accessible visual equivalent, and non-accrediting
+Engineers Australia Stage 1 educational mapping.
+
+The accelerated reboot is the workbook-derived execution track. It contains
+exactly 110 stable sessions, S001-S110, grouped into milestones M0-M9 and four
+rover releases. Its total plan is 2,750 minutes, or 45 hours 50 minutes.
+Practical diagnostic scores of 3 or 4 may skip ordinary lesson sessions.
+Milestone proof and release sessions remain mandatory.
 
 Ten resumable pathways cover:
 
@@ -69,7 +93,7 @@ goal, disciplines, experience level, weekly effort, and optional display name.
 Deterministic rules recommend a pathway. Onboarding can be skipped and edited
 later.
 
-Progress schema version 3 stores:
+Progress schema version 4 stores:
 
 - every version 1 skill rating, challenge result, reflection, artefact, sprint
   item, and theme;
@@ -83,12 +107,22 @@ Progress schema version 3 stores:
 - manual evidence and evidence-based achievements;
 - theme and accessibility preferences;
 - bounded unknown version 1 fields under `legacy`.
+- selected System, Light, or Dark appearance separately from the resolved
+  light or dark presentation;
+- curriculum records with completion state, blocker, confidence, actual
+  minutes, notes, evidence references, attempt count, diagnostic result,
+  mastery-gate result, completion time, and content version; and
+- weekly planned-versus-completed review records.
 
-Version 1 and version 2 imports are migrated deterministically. Import
+Version 1, version 2, and version 3 imports are migrated deterministically.
+Existing explicit Light or Dark choices remain explicit; a missing new
+preference defaults to System. Stable content aliases migrate only when the
+mapping is unambiguous, and conflicting current and aliased records block the
+import. Import
 validation remains
 bounded by file size, collection size, key safety, string length, URL, route,
 timestamp, and nesting checks. Prototype-pollution keys are rejected. Settings
-provides in-session undo after import or reset.
+provides a validated preview and exact in-session undo after import or reset.
 
 All profile and progress data stays in the current browser profile or desktop
 webview. There is no account, live cloud sync, billing, or telemetry endpoint.
@@ -247,6 +281,15 @@ Legacy aliases remain available for `/labs`, every `/labs/:id`, `/skills`,
 
 The current foundation routes include:
 
+- `/learn/roadmap`
+- `/learn/reboot`
+- `/learn/reboot/sessions/S001` through `/learn/reboot/sessions/S110`
+- `/learn/modules/:moduleId`
+- `/learn/diagnostics`
+- `/learn/resources`
+- `/projects/releases/P1` through `/projects/releases/P4`
+- `/tools/progress`
+- `/portfolio/capstone`
 - `/learn/flagships/controls`
 - `/learn/flagships/robotics-autonomy`
 - `/learn/flagships/embedded-electronics-sensing`
@@ -266,6 +309,9 @@ as:
 - [Kernel Authoring Guide](docs/Kernel-Authoring-Guide.md)
 - [Project Pack Format](docs/Project-Pack-Format.md)
 - [Migration Guide](docs/Migration-Guide.md)
+- [Curriculum Integration and Verification](docs/20260728-Curriculum-Integration-And-Verification-Rev00.md)
+- [Learning Roadmap](docs/Learning_Roadmap.md)
+- [Contributing](CONTRIBUTING.md)
 - [Product and Monetisation Architecture](docs/20260725-Engineering-Mastery-Lab-Product-And-Monetisation-Architecture-Rev00.md)
 - [Future Hosted-Provider Integration](docs/Future_Supabase_Integration.md)
 - [Release Checklist](docs/Release-Checklist.md)
