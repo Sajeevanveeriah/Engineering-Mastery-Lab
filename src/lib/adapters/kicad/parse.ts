@@ -87,7 +87,10 @@ function parseJsonObject(json: string, label: string): Record<string, unknown> {
   try {
     parsed = JSON.parse(json);
   } catch (err) {
-    throw new Error(`${label} report is not valid JSON: ${err instanceof Error ? err.message : String(err)}`);
+    throw new Error(
+      `${label} report is not valid JSON: ${err instanceof Error ? err.message : String(err)}`,
+      { cause: err }
+    );
   }
   if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
     throw new Error(`${label} report must be a JSON object.`);

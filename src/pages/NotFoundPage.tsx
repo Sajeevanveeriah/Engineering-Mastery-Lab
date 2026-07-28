@@ -13,10 +13,10 @@ export function NotFoundPage() {
       <div className="card empty-state">
         <Icon name="pathways" size={32} />
         <h2>Return to a known route</h2>
-        <p className="muted">Open Home to continue, or browse the complete learning catalogue.</p>
+        <p className="muted">Open Today to continue, or browse the complete learning catalogue.</p>
         <div className="button-row button-row--centre">
           <Link className="btn primary" to="/">
-            Home
+            Today
           </Link>
           <Link className="btn" to="/learn">
             Browse learning

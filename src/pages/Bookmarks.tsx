@@ -6,8 +6,23 @@ import { searchableCatalogue } from "../data/catalogue";
 export function Bookmarks() {
   const { progress } = useProgress();
   const items = searchableCatalogue.filter((item) => {
-    const type = item.type === "Laboratory" ? "lab" : item.type === "Pathway" ? "pathway" : item.type === "Project" ? "project" : "tool";
-    return progress.bookmarks[`${type}:${item.id.replace(/^(lab|pathway|project)-/, "")}`];
+    if (item.type === "Skill") {
+      const domainId = item.id.replace(/^skill-/, "");
+      return Boolean(
+        progress.bookmarks[`skill:${domainId}`]
+        || progress.bookmarks[`tool:${domainId}`]
+        || progress.bookmarks[`tool:${item.id}`]
+      );
+    }
+    const type = item.type === "Laboratory"
+      ? "lab"
+      : item.type === "Pathway"
+        ? "pathway"
+        : item.type === "Project"
+          ? "project"
+          : "tool";
+    const id = item.id.replace(/^(lab|pathway|project)-/, "");
+    return Boolean(progress.bookmarks[`${type}:${id}`]);
   });
   return (
     <section className="page">
@@ -15,7 +30,7 @@ export function Bookmarks() {
       <div className="simple-link-list">
         {items.map((item) => <Link key={item.id} to={item.route}><span><strong>{item.title}</strong><small>{item.description}</small></span><span className="badge">{item.type}</span></Link>)}
       </div>
-      {items.length === 0 && <div className="empty-state"><strong>No bookmarks yet</strong><p>Use the bookmark control in Learn, Projects, or Tools.</p><Link className="btn" to="/learn">Explore learning</Link></div>}
+      {items.length === 0 && <div className="empty-state"><strong>No bookmarks yet</strong><p>Use the bookmark control in Learn, Build, or Analyse.</p><Link className="btn" to="/learn">Explore learning</Link></div>}
     </section>
   );
 }

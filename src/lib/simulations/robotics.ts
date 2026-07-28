@@ -8,12 +8,26 @@ export interface Pose {
 
 /** Integrate differential-drive kinematics one step (exact for constant inputs over dt). */
 export function diffDriveStep(pose: Pose, vLeft: number, vRight: number, wheelBase: number, dt: number): Pose {
+  if (![pose.x, pose.y, pose.theta, vLeft, vRight, wheelBase, dt].every(Number.isFinite)) {
+    throw new Error("Differential-drive inputs must be finite");
+  }
+  if (wheelBase <= 0) throw new Error("wheelBase must be greater than zero");
+  if (dt < 0) throw new Error("dt must be greater than or equal to zero");
   const v = (vLeft + vRight) / 2;
   const w = (vRight - vLeft) / wheelBase;
+  const nextTheta = pose.theta + w * dt;
+  if (Math.abs(w) < 1e-12) {
+    return {
+      x: pose.x + v * Math.cos(pose.theta) * dt,
+      y: pose.y + v * Math.sin(pose.theta) * dt,
+      theta: normalizeAngle(nextTheta)
+    };
+  }
+  const radius = v / w;
   return {
-    x: pose.x + v * Math.cos(pose.theta) * dt,
-    y: pose.y + v * Math.sin(pose.theta) * dt,
-    theta: normalizeAngle(pose.theta + w * dt)
+    x: pose.x + radius * (Math.sin(nextTheta) - Math.sin(pose.theta)),
+    y: pose.y + radius * (Math.cos(pose.theta) - Math.cos(nextTheta)),
+    theta: normalizeAngle(nextTheta)
   };
 }
 

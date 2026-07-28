@@ -7,7 +7,12 @@
   --studio-cobalt: #165dcc;
   --studio-cobalt-hover: #0d49a6;
   --studio-cyan: #087d8c;
+  --studio-green: #147552;
   --studio-amber: #9b5c08;
+  --studio-red: #aa2940;
+  --font-body: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-editorial: Georgia, "Times New Roman", serif;
+  --font-mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -17,15 +22,22 @@
   --space-7: 3rem;
   --measure: 72ch;
   --page-width: 1240px;
+  --content-wide: 1120px;
+  --content-reading: 72ch;
   --rail-width: 236px;
   --rail-collapsed: 76px;
+  --studio-radius-small: 6px;
   --studio-radius: 12px;
   --studio-radius-large: 20px;
+  --studio-border: 1px solid var(--studio-line);
+  --studio-shadow-small: 0 1px 2px rgb(26 37 51 / 7%);
   --studio-shadow: 0 14px 40px rgb(26 37 51 / 8%);
-  --motion-fast: 150ms;
+  --motion-fast: 160ms;
   --motion-standard: 240ms;
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--studio-cobalt) 34%, transparent);
   --break-mobile: 760px;
   --break-tablet: 1024px;
+  --break-wide: 1280px;
 }
 
 [data-theme="light"] {
@@ -48,7 +60,9 @@
   --studio-cobalt: #70aaff;
   --studio-cobalt-hover: #98c1ff;
   --studio-cyan: #66ced9;
+  --studio-green: #55d3bd;
   --studio-amber: #ffc16f;
+  --studio-red: #ff8293;
   --bg: var(--studio-bg);
   --bg-card: var(--studio-surface);
   --text: var(--studio-ink);

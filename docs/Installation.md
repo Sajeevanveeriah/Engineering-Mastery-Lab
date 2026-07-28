@@ -10,7 +10,7 @@ the browser, and CAD or calculation files use the browser download flow.
 Authorised project workspaces and external ngspice or KiCad execution remain
 desktop-only.
 
-## Desktop app (Engineering Workbench)
+## Desktop app (Engineering Mastery Lab)
 
 Unsigned installers are produced by CI (`Desktop packages` workflow) and by a
 local build (`npm run build:desktop`):

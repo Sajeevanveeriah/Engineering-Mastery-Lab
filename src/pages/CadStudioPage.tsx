@@ -13,6 +13,7 @@ import {
   exportCadJson,
   generateCadSvg,
   generateOpenScad,
+  importCadFile,
   importCadJson,
   validateCadDesign,
   type CadDesign,
@@ -159,7 +160,7 @@ export function CadStudioPage() {
 
   const importDesign = async (file: File) => {
     try {
-      const imported = importCadJson(await file.text());
+      const imported = await importCadFile(file);
       setDesign(imported);
       setMessage({ tone: "success", text: `Loaded ${file.name}. Review the preview and dimensions before export.` });
       setViewNonce((current) => current + 1);
@@ -212,7 +213,7 @@ export function CadStudioPage() {
         <aside className="cad-model-tree" aria-labelledby="cad-model-tree-heading">
           <div className="cad-pane-heading">
             <span>Model</span>
-            <strong id="cad-model-tree-heading">Part templates</strong>
+            <h2 id="cad-model-tree-heading">Part templates</h2>
           </div>
           <div className="cad-template-list">
             {partTypes.map((part) => (
@@ -254,7 +255,7 @@ export function CadStudioPage() {
         <aside className="cad-properties" aria-labelledby="cad-properties-heading">
           <div className="cad-pane-heading">
             <span>Properties</span>
-            <strong id="cad-properties-heading">Parameters</strong>
+            <h2 id="cad-properties-heading">Parameters</h2>
           </div>
           <label className="form-field">
             <span>Part name</span>

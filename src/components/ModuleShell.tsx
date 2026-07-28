@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import type { ModuleContent } from "../data/modules";
 import { projects } from "../data/projects";
@@ -66,7 +66,7 @@ export function ModuleShell({ module, simulator }: { module: ModuleContent; simu
         ...state,
         labPositions: { ...state.labPositions, [module.id]: { stageId: active, visitedStageIds: visited, updatedAt: now } },
         recentItems: [
-          { id: module.id, type: "lab" as const, title: module.title, route: `/learn/labs/${module.id}?stage=${active}`, visitedAt: now },
+          { id: module.id, type: "lab" as const, title: module.title, route: `/learn/labs/${module.id}`, visitedAt: now },
           ...state.recentItems.filter((item) => !(item.type === "lab" && item.id === module.id))
         ].slice(0, 20)
       };
@@ -78,7 +78,7 @@ export function ModuleShell({ module, simulator }: { module: ModuleContent; simu
     setSearchParams({ stage }, { replace: true });
   };
 
-  const setChallenge = (id: string, passed: boolean) => {
+  const setChallenge = useCallback((id: string, passed: boolean) => {
     update((state) => ({
       ...state,
       challenges: {
@@ -91,12 +91,12 @@ export function ModuleShell({ module, simulator }: { module: ModuleContent; simu
       }
     }));
     setActionMessage(passed ? "Challenge recorded as passed with verified criteria." : "Challenge recorded as not passed.");
-  };
+  }, [challengeNotes, update]);
 
-  const toggleArtefact = (key: string) => update((state) => ({
+  const toggleArtefact = useCallback((key: string) => update((state) => ({
     ...state,
     artefacts: { ...state.artefacts, [key]: !state.artefacts[key] }
-  }));
+  })), [update]);
 
   const isComplete = (stage: StageId) => {
     if (stage === "challenge") return module.challenges.every((challenge) => progress.challenges[challenge.id]?.passed);
@@ -139,7 +139,7 @@ export function ModuleShell({ module, simulator }: { module: ModuleContent; simu
     ),
     evidence: (
       <section className="module-panel" aria-labelledby={`${module.id}-evidence-heading`}>
-        <div className="module-panel__heading"><span className="step-number">06</span><div><p className="eyebrow">Portfolio record</p><h2 id={`${module.id}-evidence-heading`}>Capture evidence</h2></div></div><p className="muted">Tick an item only when the artefact exists outside this checklist and can be reviewed.</p><ul className="evidence-list">{module.evidence.map((item, index) => { const key = `${module.id}-ev${index}`; return <li key={key}><input id={key} type="checkbox" checked={Boolean(progress.artefacts[key])} onChange={() => toggleArtefact(key)} /><label htmlFor={key}><span>{item}</span><small>{progress.artefacts[key] ? "Recorded as complete" : "Evidence required"}</small></label></li>; })}</ul>
+        <div className="module-panel__heading"><span className="step-number">06</span><div><p className="eyebrow">Prove record</p><h2 id={`${module.id}-evidence-heading`}>Capture evidence</h2></div></div><p className="muted">Tick an item only when the artefact exists outside this checklist and can be reviewed.</p><ul className="evidence-list">{module.evidence.map((item, index) => { const key = `${module.id}-ev${index}`; return <li key={key}><input id={key} type="checkbox" checked={Boolean(progress.artefacts[key])} onChange={() => toggleArtefact(key)} /><label htmlFor={key}><span>{item}</span><small>{progress.artefacts[key] ? "Recorded as complete" : "Evidence required"}</small></label></li>; })}</ul>
       </section>
     ),
     reflect: (
@@ -150,10 +150,22 @@ export function ModuleShell({ module, simulator }: { module: ModuleContent; simu
     next: (
       <section className="module-panel next-step" aria-labelledby={`${module.id}-next-heading`}>
         <div><p className="eyebrow">{status.percent === 100 ? "Laboratory evidence complete" : "Continue the journey"}</p><h2 id={`${module.id}-next-heading`}>{status.percent === 100 ? "Apply and present the work" : "Recommended next learning"}</h2><p>{status.percent === 100 ? "Move into a relevant practical project or curate the evidence in your portfolio." : "Complete the remaining challenge, evidence, and reflection records before treating the lab as complete."}</p></div>
-        <div className="button-row">{relatedProject && <Link className="btn primary" to={`/projects/${relatedProject.slug}`}>{relatedProject.title}<Icon name="arrow-right" size={17} /></Link>}<Link className="btn" to="/portfolio">Open portfolio</Link><Link className="btn btn--quiet" to={module.next.route.replace("/labs/", "/learn/labs/").replace("/skills", "/learn/skills").replace("/pathways", "/learn/pathways")}>{module.next.label.replace(/^Dashboard\b/, "Home").replace(/\s+[\u2013\u2014]\s+/g, " - ")}</Link></div>
+        <div className="button-row">{relatedProject && <Link className="btn primary" to={`/projects/${relatedProject.slug}`}>{relatedProject.title}<Icon name="arrow-right" size={17} /></Link>}<Link className="btn" to="/portfolio">Open Prove</Link><Link className="btn btn--quiet" to={module.next.route.replace("/labs/", "/learn/labs/").replace("/skills", "/learn/skills").replace("/pathways", "/learn/pathways")}>{module.next.label.replace(/^Dashboard\b/, "Today").replace(/\s+[\u2013\u2014]\s+/g, " - ")}</Link></div>
       </section>
     )
-  }), [challengeNotes, module, progress, reflection, relatedProject, simulator, status.percent, verified]);
+  }), [
+    challengeNotes,
+    module,
+    progress,
+    reflection,
+    relatedProject,
+    setChallenge,
+    simulator,
+    status.percent,
+    toggleArtefact,
+    update,
+    verified
+  ]);
 
   return (
     <section className="page module-page">

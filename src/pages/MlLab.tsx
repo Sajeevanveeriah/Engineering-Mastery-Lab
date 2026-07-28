@@ -103,8 +103,8 @@ function ClassifierTool() {
 
 function AnomalyTool() {
   const [threshold, setThreshold] = useState(3);
-  const anomalyIdx = [40, 95, 150];
-  const signal = useMemo(() => syntheticVibration(200, 1, anomalyIdx, 4), []);
+  const anomalyIdx = useMemo(() => [40, 95, 150], []);
+  const signal = useMemo(() => syntheticVibration(200, 1, anomalyIdx, 4), [anomalyIdx]);
   const flagged = zScoreAnomalies(signal, threshold);
   const truePos = flagged.filter((i) => anomalyIdx.includes(i)).length;
   const falsePos = flagged.length - truePos;

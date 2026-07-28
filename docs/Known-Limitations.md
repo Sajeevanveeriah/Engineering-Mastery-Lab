@@ -2,30 +2,35 @@
 
 ## Release classification
 
-Engineering Workbench v0.2.0 is a functional completion candidate. It is not a
-production release and is not cleared for public redistribution.
+Engineering Mastery Lab v0.2.0 is an uncommitted local implementation
+candidate. Project Workbench is one desktop capability inside the product. The
+current working tree is not a production release and is not cleared for public
+redistribution.
 
 ## Verification gaps
 
-- Installer, responsive-route and dependency-audit evidence currently records
-  the v0.1.0 completion baseline. The v0.2.0 Toolbox and CAD changes require a
-  refreshed release verification run.
-- The completion changes were built into fresh non-empty Windows x64 MSI and
-  NSIS bundles and their SHA-256 hashes were recorded. The installers have not
-  been installed, signed or interactively smoke-tested, so packaged runtime
-  behaviour remains unverified.
+- The complete current local TypeScript, unit, Chromium, visual, Rust and
+  Windows packaging matrix is recorded in `Release-Checklist.md`. The
+  dependency audits still fail, the working tree remains uncommitted, and the
+  external gates below still prevent a production-release claim.
+- The final application source was built into fresh non-empty Windows x64 MSI
+  and NSIS bundles and their SHA-256 hashes were recorded. The release
+  executable opened a responding native window titled `Engineering Mastery
+  Lab` and was then closed. The installers have not been installed, signed or
+  tested on a clean host.
 - macOS and Linux runtime and package behaviour is unverified. Source and CI
   configuration are not substitutes for actual runner results.
 - ngspice and KiCad were not installed on the development host used for the
   completion checks. Their parsers and adapter workflows are fixture-tested,
   but a real-tool end-to-end run remains required.
-- Browser rendering received manual review and the final responsive audit
-  passed all 90 route and width cases with zero document overflow. There is no
-  automated axe, NVDA, VoiceOver, browser-zoom or formal WCAG conformance
-  assessment.
-- No current end-to-end test crosses the actual Tauri webview and IPC runtime.
-  Rust command tests and TypeScript `MemoryBridge` tests verify each side, but
-  not a packaged-process contract.
+- The current-source browser matrix includes Chromium automation, axe checks,
+  reflow, forced colours, deterministic snapshots and human inspection of 37
+  rendered states. Firefox, WebKit, Safari, NVDA, JAWS and VoiceOver remain
+  unverified. No formal WCAG conformance claim is made.
+- The packaged Tauri webview startup was smoke-tested, but no current
+  interaction test exercises a complete webview-to-IPC adapter workflow. Rust
+  command tests and TypeScript `MemoryBridge` tests verify each side, but not
+  that packaged-process contract.
 
 ## Workspace boundaries
 
@@ -34,8 +39,14 @@ production release and is not cleared for public redistribution.
   selected root is rejected rather than silently opening another location.
 - Recent identifiers and tool-path overrides are local browser-profile state,
   not portable workspace data.
-- Manifest schema version 1 and receipt schema version 1 are supported. Newer,
-  missing or malformed versions are rejected; there is no migration framework.
+- Desktop workbench manifest schema version 1 and receipt schema version 2 are
+  supported. Newer, missing or malformed versions are rejected; these desktop
+  files have no migration framework.
+- Browser progress schema version 3 can import deterministic version 1 and
+  version 2 backups. It does not import an unsupported future progress version.
+- Engineering project schema version 2 and project bundle schema version 2 are
+  current. Bundle version 1 has a deterministic migration path. There is no
+  general project migration registry.
 - The in-app text editor is intentionally limited to supported text inputs in
   `circuits/` and `requirements/`, with a 1 MiB editor limit. It is not a
   general file manager or graphical schematic or PCB editor.
@@ -53,8 +64,10 @@ production release and is not cleared for public redistribution.
   10 paths. Actual compatibility still needs real-tool verification.
 - Tool detection is not cryptographic provenance. A malicious replacement
   binary could use an expected file name and imitate a product version banner.
-- Cancellation kills the direct child but does not provide complete descendant
-  process-tree containment on every supported operating system.
+- Timeout and cancellation use a Windows Job Object or Unix process group to
+  terminate descendants, with direct-child termination as a fallback. Source
+  tests cover the current host path, but packaged behaviour on every supported
+  operating system remains unverified.
 - A narrow validation-to-use race remains if another process can modify a
   generated deck between final validation and the tool opening the file.
 - Cancellation does not roll back partial external-tool outputs. Directory
@@ -74,7 +87,10 @@ production release and is not cleared for public redistribution.
   failure rather than being represented as captured evidence.
 - Reports compare receipt hashes with current inputs and state mismatches, but
   they do not sign or notarise evidence.
-- Reports are Markdown only. There is no PDF or HTML rendering pipeline.
+- Desktop Workbench evidence reports remain Markdown only. The shared
+  engineering workspace generates deterministic Markdown and JSON reports and
+  offers browser printing; it has no certified PDF renderer or signed report
+  pipeline.
 - A successful adapter status means execution and parsing completed. It does
   not by itself prove engineering acceptance or regulatory compliance.
 
@@ -97,6 +113,48 @@ production release and is not cleared for public redistribution.
   advice. Similar domain-specific warnings shown by other calculators remain
   part of the required engineering review.
 
+## Shared engineering kernel boundaries
+
+- The current engineering project schema is a local TypeScript reference
+  kernel, not a general symbolic mathematics, finite-element, optimisation,
+  uncertainty-propagation or multidisciplinary solver.
+- The unit registry covers a bounded set of dimensions and units. It does not
+  parse arbitrary compound unit expressions or prove dimensional consistency
+  outside registered quantities.
+- Variables can retain tolerance or uncertainty metadata, but the current
+  motor-sizing calculation does not propagate uncertainty.
+- Scenario comparison is deterministic and one record at a time. It is not a
+  parameter sweep, sensitivity study, Monte Carlo analysis or optimiser.
+- CSV and JSON dataset imports are bounded and typed, but there is no remote
+  fetch, streaming import, spreadsheet formula evaluation or large-data
+  engine.
+- Notebook blocks are sanitised plain text or typed references. There is no
+  executable code cell, rich-text renderer, remote embed or collaborative
+  editing.
+- The evidence graph validates references and rejects directed cycles. It does
+  not authenticate evidence, sign provenance or independently verify a claimed
+  relationship.
+- The motor-sizing vertical slice calculates continuous and peak requirements.
+  It does not choose a product, check manufacturer curves, thermal limits,
+  fatigue, electrical drive limits, controls stability or certification.
+
+## Portable interchange boundaries
+
+- Project bundles and Project Packs are JSON documents, not compressed archive
+  formats. A Project Pack manifest describes virtual files and does not write
+  them to the local filesystem.
+- SHA-256 values detect content changes but are not signatures, authentication,
+  proof of authorship, notarisation or malicious-content prevention.
+- Project Pack schema version 1 has no migration path. Unknown schema versions
+  fail closed. Catalogue duplicate ids require an explicit integrity-hash
+  selection rather than silent precedence.
+- Project Pack executable-content checks are deliberately conservative and may
+  reject legitimate prose containing script-like patterns. They are not a
+  general malware scanner.
+- Report output is deterministic only for identical validated inputs, including
+  the explicit timestamp and environment fields. Browser printing depends on
+  the host print pipeline.
+
 ## CAD boundaries
 
 - CAD Studio is a bounded template-based modelling layer, not a general
@@ -109,7 +167,7 @@ production release and is not cleared for public redistribution.
   configurations, feature suppression, collaborative revision control or
   product lifecycle management integration.
 - STEP, IGES and native commercial CAD formats are not supported. Exports are
-  binary STL, OpenSCAD source, SVG drawing and Engineering Workbench design
+  binary STL, OpenSCAD source, SVG drawing and Engineering Mastery Lab design
   JSON.
 - STL does not encode units. The exporter models dimensions in millimetres and
   the receiving application must be set to millimetres explicitly.
@@ -131,11 +189,32 @@ production release and is not cleared for public redistribution.
 - The browser build cannot read local workspaces or execute installed tools.
   It shows a clear desktop-only explanation and keeps the learning application
   available.
-- External open and reveal is not implemented. A TypeScript bridge method
-  remains for future work, but there is no current UI action or Tauri grant.
+- External open and reveal is not implemented. The current TypeScript bridge,
+  UI and Tauri capability manifest expose no such operation.
 - There is no cloud sync, collaboration, account system, mobile application,
   auto-update, code signing, notarisation, bundled ngspice or bundled KiCad.
 - There is no FEM, CFD, multibody solver, general CAD geometry kernel or
   production safety-controller integration.
 - The repository includes an MIT licence, but public release still requires a
   refreshed third-party licence review and completion of the release gates.
+
+## Phase 5 local foundation boundaries
+
+- The local reference synchronisation provider stores records in memory. It is
+  not durable cloud synchronisation, multi-device continuity or a network
+  protocol.
+- Version vectors, tombstones, idempotent operation receipts, explicit
+  conflict resolution, export and recovery are behavioural foundations only.
+  They do not provide authentication, authorisation, encryption, transport,
+  tenant separation, durable audit storage or backup.
+- Opaque identifier validation prevents direct names and email addresses in
+  identifier fields. A producer must still generate non-personal random or
+  explicitly synthetic tokens.
+- Cohort and educator providers accept deterministic synthetic fixtures only.
+  No real learner, educator or organisation data is supported.
+- Aggregate release uses a minimum learner group size of five and suppresses
+  all outcome counts below that threshold. This single rule is not a complete
+  privacy or re-identification control.
+- Hosted identity, synchronisation, billing, collaboration, cohort services
+  and educator analytics remain unavailable. The application makes no claim
+  that those services exist.

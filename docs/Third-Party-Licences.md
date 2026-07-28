@@ -1,6 +1,6 @@
 # Third-party dependency and licence inventory
 
-Working tree target v0.2.0, reviewed 2026-07-17. This human-maintained inventory
+Working tree target v0.2.0, reviewed 2026-07-28. This human-maintained inventory
 covers declared direct dependencies. Regenerate the complete transitive
 inventory before release.
 
@@ -13,9 +13,9 @@ inventory before release.
 | @tauri-apps/api | MIT OR Apache-2.0 |
 | three | MIT |
 
-Direct dev dependencies (typescript, vite, vitest, @vitejs/plugin-react,
+Most direct dev dependencies (typescript, vite, vitest, @vitejs/plugin-react,
 @tauri-apps/cli, @types/three and other @types/* packages) are MIT or
-Apache-2.0-compatible.
+Apache-2.0-compatible. @axe-core/playwright 4.12.1 is MPL-2.0.
 
 The previous production-tree summary was recorded before Three.js was added
 and must not be treated as the v0.2.0 release audit.

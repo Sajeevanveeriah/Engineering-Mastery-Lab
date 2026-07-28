@@ -4,7 +4,7 @@
 
 | Requirement | Version | Purpose |
 |---|---|---|
-| Node.js | 20+ (22 recommended) | Frontend build and tests |
+| Node.js | 20.19+ (22.13+ recommended) | Frontend build and tests |
 | Rust (stable) | 1.77+ | Desktop shell (`src-tauri`) |
 | MSVC Build Tools + Windows SDK | VS 2022 | Windows linking |
 | Xcode command-line tools | current | macOS linking |
@@ -26,14 +26,19 @@ tested through fixtures and the in-memory bridge.
 npm ci                  # install locked dependencies
 npm run dev             # web dev server (http://localhost:5173)
 npm test                # vitest suite (engines, adapters, workspace, report)
-npm run lint            # strict TypeScript type-check
+npm run lint            # ESLint source and test checks
+npm run typecheck       # strict TypeScript validation
 npm run build           # production web build (GitHub Pages base path)
+npx playwright install chromium # install the compatible browser once
+npm run test:e2e        # Playwright routes, a11y, keyboard and visual checks
+npm run test:visual-review # capture required states for human pixel inspection
+npm audit --omit=dev --audit-level=high
 npm run tauri dev       # desktop app with hot reload
 npm run build:desktop   # unsigned desktop installers
 
 cd src-tauri
 cargo fmt --check       # Rust formatting
-cargo clippy --all-targets -- -D warnings
+cargo clippy --all-targets --all-features -- -D warnings
 cargo test              # path/injection/timeout/cancellation/fs tests
 ```
 
@@ -49,6 +54,7 @@ src/lib/workspace/     Manifest schema + project operations
 src/lib/report/        Deterministic evidence report
 src/pages/             UI (Toolbox + CAD + labs + Workbench + Diagnostics)
 src/tests/             Vitest suites and tool-output fixtures
+e2e/                   Playwright route, keyboard, a11y and visual tests
 src-tauri/src/         Rust: paths, process limits, tool allow-list, fs, IPC
 examples/              Committed example workspace (also test input)
 docs/adr/              Architecture decision records

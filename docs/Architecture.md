@@ -18,23 +18,25 @@ provider boundaries and declarative entitlement metadata.
 
 ```text
 Engineering Mastery Lab
-  Home
+  Today
   Learn
     Pathways
     Laboratories
+    Flagship engineering workflows
     Skills
     Bookmarks
-  Projects
+  Build
     Catalogue
     Detail, milestones, notes, evidence
-  Tools
+  Analyse
     Calculators
     Unit converter
     Materials reference
+    Engineering project workspace
     CAD Studio
     Project Workbench
     Diagnostics
-  Portfolio
+  Prove
     Evidence
     Skills
     Achievements
@@ -44,17 +46,21 @@ Engineering Mastery Lab
 Search, Pricing, Settings, About, and local profile controls sit outside the
 five-item primary navigation.
 
-`HashRouter` remains the routing mechanism for static GitHub Pages. Canonical
-routes use `/learn`, `/projects`, `/tools`, and `/portfolio`. Legacy aliases
-redirect old lab, skills, pathways, toolbox, CAD, Workbench, and diagnostics
-links to the new hierarchy.
+The primary product labels do not change canonical routes. `HashRouter` remains
+the routing mechanism for static GitHub Pages. Canonical routes use `/`,
+`/learn`, `/projects`, `/tools`, and `/portfolio`. Legacy aliases redirect old
+lab, skills, pathways, toolbox, CAD, Workbench, and diagnostics links to the
+new hierarchy.
 
 ## Frontend layers
 
 | Area | Responsibility |
 |---|---|
-| `src/data/` | Declarative modules, skills, pathways, projects, search items, plans, and entitlements |
-| `src/lib/storage.ts` | Progress schema version 2, version 1 migration, import validation, and persistence |
+| `src/data/` | Declarative modules, skills, pathways, flagship workflows, projects, search items, plans, and entitlements |
+| `src/lib/storage.ts` | Progress schema version 3, deterministic version 1 and version 2 migration, import validation, engineering workspace records, and persistence |
+| `src/lib/kernel/` | Pure engineering units, variables, datasets, scenarios, notebook, evidence graph, project bundle, and motor-sizing vertical slice |
+| `src/lib/interchange/` | Data-only Project Packs, deterministic engineering reports, canonical JSON, and provider-neutral adapter descriptors |
+| `src/lib/ecosystem/` | Local reference sync records, explicit conflict resolution, synthetic cohorts, privacy-safe aggregates, curated packs, and hosted-capability state |
 | `src/lib/providers.ts` | Learner, progress, entitlement, billing-availability, and product-event seams |
 | `src/lib/recommendation.ts` | Pure deterministic onboarding recommendation |
 | `src/lib/simulations/` | Existing pure engineering simulation functions |
@@ -63,7 +69,7 @@ links to the new hierarchy.
 | `src/lib/report/` | Existing run receipt and Markdown evidence reporting |
 | `src/lib/platform/` | The only frontend seam for local filesystem and process capability |
 | `src/components/` | Product shell, command palette, onboarding, lab journey, plots, and workspace editors |
-| `src/pages/` | Home, Learn, projects, tools, portfolio, commercial information, settings, labs, and desktop workflows |
+| `src/pages/` | Today, Learn, Build, Analyse, Prove, commercial information, settings, labs, and desktop workflows |
 | `src/styles/` | Legacy feature styles plus product tokens and coherent product layout or component styles |
 | `src/tests/` | Simulation, migration, catalogue, provider, storage, adapter, workspace, receipt, report, and workflow tests |
 
@@ -71,7 +77,8 @@ links to the new hierarchy.
 
 `Layout` renders exactly five primary destinations in the desktop rail and
 mobile bottom navigation. It retains the existing unsaved Project Workbench
-navigation guard.
+navigation guard. Those destinations are Today, Learn, Build, Analyse and
+Prove. Search, pricing, settings and product information remain secondary.
 
 `CommandPalette` opens with Ctrl+K or Meta+K. It searches one declarative
 catalogue covering laboratories, pathways, projects, skills, calculators,
@@ -91,12 +98,17 @@ Onboarding appears when `onboardingComplete` is false. The learner can:
 - skip without losing application access.
 
 `recommendPathway` applies deterministic goal, discipline, and experience
-rules. The profile is schema version 1 inside progress schema version 2. It can
+rules. The profile is schema version 1 inside progress schema version 3. It can
 be edited in Settings. It is not an account or sign-in flow.
 
-## Progress schema version 2
+## Progress schema version 3
 
-`ProgressState` version 2 preserves all version 1 fields and adds:
+`ProgressState` version 3 preserves the version 2 learner and progress fields
+and adds bounded `engineeringWorkspaces` records. Each workspace record has
+schema version 1, a project identifier, validated project bundle JSON and a UTC
+update timestamp.
+
+The complete progress record contains:
 
 - local profile and onboarding completion;
 - pathway enrolments, last step, and completed step identifiers;
@@ -105,18 +117,84 @@ be edited in Settings. It is not an account or sign-in flow.
 - project state, milestones, evidence, and notes;
 - manual evidence and evidence-based achievement identifiers;
 - theme and accessibility preferences;
+- validated local engineering workspace records; and
 - bounded `legacy` storage for unknown version 1 root fields.
 
-Load order is the version 2 key, then the version 1 key, then a clean local
-state. Version 1 is never deleted during migration.
+Load order is the version 3 key, then the version 2 key, then the version 1 key,
+then a clean local state. Version 1 and version 2 source values are not deleted
+during migration. Version 2 migration retains every validated version 2 field
+and starts `engineeringWorkspaces` as an empty record. Version 1 migration
+retains recognised fields, moves bounded unknown root fields into `legacy`,
+marks onboarding complete, and starts all newer collections from deterministic
+empty values.
 
-Import accepts versions 1 and 2. Validation bounds JSON character count,
+Import accepts versions 1, 2 and 3. Validation bounds JSON character count,
 collection count, key length, string length, array length, legacy depth,
 timestamps, internal routes, and optional HTTP or HTTPS URLs. Unsafe keys such
 as `__proto__`, `prototype`, and `constructor` are rejected at every validated
-record boundary. Unknown version 2 root fields are rejected.
+record boundary. Unknown version 2 and version 3 root fields are rejected.
 
 Settings owns export, import, reset, confirmation, and in-session undo.
+
+## Shared engineering kernel
+
+`src/lib/kernel/` is a pure TypeScript layer. It imports neither React nor the
+Tauri bridge. The engineering project schema is version 2 and composes:
+
+- version 1 engineering variables with display values, SI base values, units,
+  dimensions, valid ranges, validation status, provenance, assumption status,
+  optional tolerance or uncertainty, timestamps and optional calculation
+  version references;
+- version 1 calculation records with input and output snapshots, equations,
+  algorithm identity and version, assumptions, warnings, boundaries, dataset,
+  scenario, evidence and project references;
+- bounded version 1 datasets with typed columns and explicit null cells;
+- one version 1 scenario set with exactly one protected baseline and optional
+  named scenarios;
+- controlled version 1 notebook blocks containing plain text or typed
+  references;
+- a version 1 directed evidence graph with broken-reference and cycle checks;
+  and
+- optional typed motor-sizing inputs.
+
+The unit registry converts compatible values through declared base units and
+rejects non-finite values, incompatible dimensions and values below a physical
+minimum. The reference motor-sizing model retains gearing, efficiency, load
+inertia, angular acceleration, duty cycle and safety factor. It produces
+continuous and peak operating requirements and explicitly excludes
+manufacturer motor selection, thermal verification and certification.
+
+The engineering project workspace at `/tools/engineering` connects this model
+to bounded dataset preview, deterministic scenario comparison, controlled
+notebook notes, an accessible lineage table, local progress persistence and
+portable interchange. It is a local calculation and evidence surface, not a
+general solver, optimisation engine or cloud workspace.
+
+## Portable interchange and reports
+
+Project bundle schema version 2 is canonical JSON containing engineering
+project schema version 2 plus a SHA-256 digest. Import verifies the complete
+payload before validation or application. Version 1 bundles migrate
+deterministically to project version 2. Import preview identifies project,
+variable, calculation, dataset, scenario, notebook, evidence-node and
+motor-sizing conflicts. Application is in-session and retains an undo value.
+The digest detects changed content but is not authentication or a signature.
+
+Project Pack schema version 1 is a bounded, data-only JSON document. It
+contains compatibility metadata, a learning sequence, a complete engineering
+project, dataset fixtures, notebook templates, an evidence rubric, report
+templates, licence and provenance. A derived virtual-file manifest contains
+safe relative paths, media types, byte counts and SHA-256 values. Import
+rejects executable paths or content, unsafe keys, traversal, unsupported media
+types, schema incompatibility, manifest differences and integrity differences.
+It does not unpack files or execute content.
+
+Engineering report schema version 1 retains SI and display inputs, assumptions,
+tolerances, calculation and model versions, dataset hashes and provenance,
+results, accessible chart tables, validation, warnings, limits, lineage,
+environment and integrity metadata. Deterministic Markdown and JSON renderers
+use the same validated input. Report hashes detect byte changes but do not
+authenticate authorship.
 
 ## Learning and project completion
 
@@ -141,13 +219,13 @@ Timed PLC and robotics effects therefore stop while their simulator is hidden.
 Challenge criteria and evidence requirements remain visible before records are
 created.
 
-Projects are declarative. State stores milestone identifiers, evidence
+Build projects are declarative. State stores milestone identifiers, evidence
 identifiers, notes, and active, paused, or completed status. Completion is
 disabled until every project milestone and required evidence item is checked.
 
-## Portfolio
+## Prove
 
-Portfolio entries are derived from existing challenge results, artefact flags,
+Prove entries are derived from existing challenge results, artefact flags,
 reflections, skill evidence, completed projects, and manual evidence. Derived
 achievement labels require recorded evidence thresholds.
 
@@ -171,17 +249,46 @@ Open-source preview mode returns every declared current entitlement. Pricing
 metadata may describe future plan differences but cannot lock a local feature.
 No provider performs a network request.
 
+Phase 5 adds separate provider-neutral local foundations in
+`src/lib/ecosystem/`. They are not wired to a hosted service:
+
+- opaque identifiers, bounded JSON payloads and canonical records;
+- version vectors, tombstones, operation idempotency, conflict detection,
+  explicit resolution, export and recovery;
+- local curated content-pack manifests;
+- synthetic-only cohort, assignment, completion and evidence-review fixtures;
+- educator aggregates released only when the learner group meets the minimum
+  privacy threshold of five; and
+- capability metadata that marks hosted identity, synchronisation, billing,
+  collaboration, cohorts and educator analytics unavailable.
+
+The local reference synchronisation provider is an in-memory behavioural
+contract, not cloud synchronisation. The cohort and educator implementations
+accept synthetic fixtures only. No telemetry or real learner data flows
+through these foundations.
+
 See
 [Product and Monetisation Architecture](20260725-Engineering-Mastery-Lab-Product-And-Monetisation-Architecture-Rev00.md).
 
 ## Lazy capability loading
 
-The Engineering Toolbox, CAD Studio, Project Workbench, and Diagnostics use
-React lazy routes. The initial Home route does not import their chunks. CAD
+The flagship workflow page, Engineering Toolbox, engineering project
+workspace, CAD Studio, Project Workbench, and Diagnostics use React lazy
+routes. The initial Today route does not import their chunks. CAD
 Studio uses Three.js inside its isolated route chunk for bounded parametric 3D
 inspection. Its pure model layer owns validation, mass properties, and STL,
 OpenSCAD, SVG, and JSON export preparation without moving Three.js into the
 initial application bundle.
+
+Each high-risk lazy tool is wrapped by a route-local error boundary. Route
+changes reset obsolete tool error state while the product shell remains
+mounted. A retry remounts an ordinary failed tool render; a rejected browser
+chunk import reloads the same route because browsers cache failed module
+imports inside the current document. CAD checks WebGL before renderer
+construction and still catches construction failures after a positive check.
+Its local fallback keeps the deterministic drawing, parameters and non-WebGL
+exports available. The global boundary remains the last safety net and exposes
+no stack trace or local path to normal users.
 
 ## Desktop command boundary
 
@@ -191,6 +298,7 @@ The Rust application registers only these command groups:
 |---|---|
 | Workspace authority | `pick_workspace_directory` |
 | Workspace files | `read_text_file`, `write_text_file_atomic`, `list_dir`, `hash_file`, `create_dir_all`, `file_exists` |
+| Engineering-tool selection | `pick_tool_executable`, `clear_tool_executable` |
 | Engineering tools | `detect_tool`, `run_tool`, `cancel_run` |
 
 The renderer cannot establish root authority by supplying an absolute string.
@@ -235,6 +343,11 @@ tool-specific boundaries:
   output;
 - execution uses no shell and enforces timeout, cancellation, and output caps.
 
+Timeout and cancellation terminate a Windows Job Object or Unix process group,
+with direct-child termination and reaping as a final fallback. Source tests
+cover descendants, but packaged runtime evidence must still be gathered on
+every claimed operating system.
+
 Atomic file replacement uses a unique sibling temporary file, flush and
 synchronisation, then same-directory replacement. It has no delete-first
 fallback.
@@ -262,8 +375,19 @@ Project Workbench capability.
 - Material properties are indicative learning references, not design
   allowables.
 - No cloud identity, database, sync, billing, or telemetry is connected.
+- Phase 5 provider-neutral foundations are local reference contracts and
+  synthetic fixtures, not hosted capability.
 - Cross-platform source exists, but only actually run platform checks should be
   claimed.
 - See [Known Limitations](Known-Limitations.md) for additional verification
   gaps and [ADR-0004](adr/ADR-0004-External-Process-Security.md) for security
   trade-offs.
+
+## Related implementation guides
+
+- [Data and Schema Model](Data-And-Schema-Model.md)
+- [Kernel Authoring Guide](Kernel-Authoring-Guide.md)
+- [Project Pack Format](Project-Pack-Format.md)
+- [Migration Guide](Migration-Guide.md)
+- [Adapter Authoring Guide](Adapter-Authoring-Guide.md)
+- [Future Hosted-Provider Integration](Future_Supabase_Integration.md)

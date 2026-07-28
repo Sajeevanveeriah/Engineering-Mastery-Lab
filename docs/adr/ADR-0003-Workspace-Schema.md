@@ -15,6 +15,10 @@ The desktop renderer is not trusted to establish access merely by providing an
 absolute path. A recent-project identifier from browser storage must not become
 persistent filesystem authority.
 
+The Phase 2 through Phase 4 local foundations add a separate browser-local
+engineering project model and portable data formats. Those formats must remain
+distinct from the authorised desktop workspace manifest and run receipt.
+
 ## Decision
 
 ### Directory structure
@@ -51,17 +55,80 @@ project creation.
 
 ### Run receipt schema
 
-`evidence/latest-run.json` uses a separate receipt schema version 1.
+`evidence/latest-run.json` uses a separate receipt schema version 2.
 
 - It stores one latest run, not a history.
-- It records the simulation identifier, capture time, exact adapter result and
-  SHA-256 hashes of declared inputs that existed immediately before execution.
+- It records the simulation identifier, capture time, exact adapter result,
+  the captured simulation and requirement definition, SHA-256 hashes of
+  declared inputs that existed immediately before execution, and declared
+  inputs that were missing.
 - Validation checks the manifest simulation and capability relationship, safe
   paths, timestamps, hashes, result shape, collection limits and an 8 MiB
   total size ceiling.
 - Non-finite result numbers use a lossless tagged JSON representation.
 - Corrupt or unsupported receipts fail closed and are not converted into a
   synthetic result.
+
+### Browser-local engineering project
+
+The shared engineering kernel uses engineering project schema version 2. It
+contains versioned variables, calculation records, datasets, a scenario set,
+notebook blocks, an evidence graph and optional motor-sizing input. Project
+references are validated as a connected record:
+
+- calculations must belong to the project and reference existing variables,
+  datasets, scenarios and evidence nodes;
+- derived variable calculation-version references must match the recorded
+  calculation algorithm and version;
+- notebook references must resolve to an allowed calculation, dataset or
+  evidence node; and
+- the evidence graph must resolve every endpoint and remain acyclic.
+
+The project model is pure TypeScript and grants no desktop filesystem or
+process authority.
+
+### Project bundle schema
+
+The portable project bundle uses schema version 2 and contains one engineering
+project version 2 plus a SHA-256 digest over canonical JSON.
+
+- Import verifies the exact payload digest before project validation.
+- Version 1 bundles migrate deterministically to project version 2. Missing
+  collections receive documented empty defaults, missing timestamps receive a
+  deterministic epoch default and revision starts at zero.
+- Import preview identifies differences at project, variable, calculation,
+  dataset, scenario, notebook, evidence-node and motor-sizing scope.
+- Application replaces the complete in-session project only after preview and
+  can retain one in-session undo value.
+- The digest is an integrity check, not authentication, a signature,
+  certification or proof of authorship.
+
+### Project Pack and report schemas
+
+Project Pack schema version 1 is a bounded, data-only JSON envelope containing
+compatibility metadata, a complete engineering project, learning sequence,
+dataset fixtures, notebook templates, evidence rubric, report templates,
+licence and provenance.
+
+Its manifest describes virtual JSON, Markdown and plain-text files using safe
+relative paths, media types, byte counts and SHA-256 hashes. Import rejects
+executable extensions or content, traversal, unsafe object keys, incompatible
+schema ranges, mismatched manifests and mismatched integrity values. It does
+not unpack or execute virtual files.
+
+Engineering report schema version 1 retains SI and display values,
+assumptions, tolerances, model versions, dataset provenance, results,
+accessible chart tables, validation, warnings, limits, lineage, environment
+and integrity metadata. Markdown and JSON are deterministic for identical
+validated inputs.
+
+### Progress storage
+
+Progress schema version 3 stores bounded engineering workspace records
+alongside the local learner and progress model. Each record contains a project
+id, bundle JSON and update timestamp. Version 1 and version 2 progress backups
+migrate deterministically to version 3. They do not become desktop workspace
+authority.
 
 ### Workspace authority and recents
 
@@ -104,3 +171,9 @@ preserved and temporary cleanup is attempted.
   latest receipt contract.
 - The built-in editor remains a bounded editor for supported circuit and
   requirement text files, not a general filesystem interface.
+- Browser-local engineering bundles and Project Packs can be downloaded,
+  reviewed and re-imported without granting an authorised desktop root.
+- Project Pack and report hashes make accidental corruption and content changes
+  without a corresponding digest recomputation detectable. They do not
+  authenticate an author or protect against replacement of both content and
+  digest.

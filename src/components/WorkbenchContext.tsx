@@ -54,7 +54,10 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
     });
   }, []);
   const clearDraftDirty = useCallback(() => setDraftDirtyState({}), []);
-  const dirtySources = Object.keys(draftDirty).filter((source) => draftDirty[source]);
+  const dirtySources = useMemo(
+    () => Object.keys(draftDirty).filter((source) => draftDirty[source]),
+    [draftDirty]
+  );
   const dirty = manifestDirty || dirtySources.length > 0;
   const unsavedSummary = useMemo(() => {
     const labels = [
@@ -62,7 +65,8 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       ...dirtySources.map((source) => source.replaceAll("-", " "))
     ];
     return labels.length > 0 ? labels.join(", ") : "none";
-  }, [dirtySources.join("|"), manifestDirty]);
+  }, [dirtySources, manifestDirty]);
+  const abortActiveRun = useCallback(() => abortRef.current?.abort(), []);
 
   useEffect(() => {
     let active = true;
@@ -76,9 +80,9 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
     );
     return () => {
       active = false;
-      abortRef.current?.abort();
+      abortActiveRun();
     };
-  }, []);
+  }, [abortActiveRun]);
 
   useEffect(() => {
     if (!dirty) return;

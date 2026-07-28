@@ -1,4 +1,3 @@
-body { overflow-x: hidden; }
 select { min-height: 44px; }
 .product-shell { display: grid; grid-template-columns: var(--rail-width) minmax(0, 1fr); min-height: 100vh; background: var(--bg); transition: grid-template-columns var(--motion-standard) ease; }
 .product-shell--collapsed { grid-template-columns: var(--rail-collapsed) minmax(0, 1fr); }
@@ -47,6 +46,19 @@ select { min-height: 44px; }
 .product-footer { display: flex; justify-content: space-between; gap: 1rem; padding: 1rem clamp(1rem, 3vw, 2.4rem); border-top: 1px solid var(--border); color: var(--text-dim); font-size: 0.72rem; }
 .mobile-bottom-navigation { display: none; }
 .product-rail-backdrop { display: none; }
+.product-shell--focused { grid-template-columns: minmax(0, 1fr); }
+.product-shell--focused .product-rail { position: fixed; z-index: 80; width: min(320px, 88vw); transform: translateX(-102%); transition: transform var(--motion-standard) ease; }
+.product-shell--focused .product-rail--open { transform: translateX(0); }
+.product-shell--focused .product-brand__copy,
+.product-shell--focused .primary-navigation__item span,
+.product-shell--focused .local-mode { width: auto; opacity: 1; pointer-events: auto; }
+.product-shell--focused .product-brand { justify-content: flex-start; padding: 0.85rem; }
+.product-shell--focused .primary-navigation { padding: 1.25rem 0.7rem; }
+.product-shell--focused .primary-navigation__item { justify-content: flex-start; padding: 0.65rem 0.8rem; }
+.product-shell--focused .product-rail__mobile-close,
+.product-shell--focused .product-menu-button { display: grid; }
+.product-shell--focused .product-rail-backdrop { position: fixed; z-index: 70; inset: 0; display: block; border: 0; border-radius: 0; background: rgb(3 9 17 / 62%); }
+.product-shell--focused .rail-collapse { display: none; }
 .narrow-page { max-width: 920px; }
 .route-loading { min-height: 50vh; }
 
@@ -162,7 +174,7 @@ select { min-height: 44px; }
 .portfolio-filter-row label { display: grid; min-width: 190px; gap: 0.3rem; color: var(--text-dim); font-size: 0.7rem; font-weight: 700; }
 .evidence-feed { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8rem; }
 .evidence-feed article, .simple-list article { padding: 1rem; border: 1px solid var(--border); border-radius: 9px; background: var(--bg-card); }
-.evidence-feed article.pending { border-style: dashed; opacity: 0.78; }
+.evidence-feed article.pending { border-style: dashed; }
 .evidence-feed__badges { display: flex; justify-content: space-between; gap: 0.5rem; }
 .evidence-feed h3 { margin: 0.8rem 0 0.3rem; }
 .evidence-feed p { color: var(--text-dim); }
@@ -196,6 +208,7 @@ select { min-height: 44px; }
 .onboarding { width: min(760px, 100%); max-height: calc(100vh - 2rem); padding: clamp(1.2rem, 4vw, 2.4rem); overflow-y: auto; border: 1px solid var(--border); border-radius: var(--studio-radius-large); background: var(--bg-card); box-shadow: 0 30px 90px rgb(0 0 0 / 35%); }
 .settings-onboarding .onboarding { width: min(760px, calc(100vw - 2rem)); }
 .onboarding h1 { font-size: clamp(1.65rem, 4vw, 2.7rem); }
+.onboarding h1[tabindex="-1"]:focus { outline: none; }
 .onboarding__progress { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.35rem; margin-bottom: 1.4rem; }
 .onboarding__progress span { height: 4px; border-radius: 99px; background: var(--border); }
 .onboarding__progress span.active { background: var(--accent); }
@@ -324,8 +337,133 @@ select { min-height: 44px; }
   .product-rail, .product-topbar, .mobile-bottom-navigation, .command-palette, .onboarding { border: 1px solid CanvasText; }
 }
 
+.engineering-workspace-page code,
+.flagship-page code {
+  overflow-wrap: anywhere;
+}
+
+.table-wrap {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.engineering-workspace-page > section,
+.engineering-workspace-page .detail-columns > *,
+.flagship-page .detail-columns > *,
+.settings-sections > section,
+.metric-grid > div {
+  min-width: 0;
+}
+
+.engineering-workspace-page th,
+.engineering-workspace-page td,
+.settings-page th,
+.settings-page td,
+.metric-grid dd {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.flagship-page > .detail-columns > div .table-wrap table {
+  min-width: 34rem;
+}
+
+.flagship-page th,
+.flagship-page td {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.flagship-page .flagship-record-section {
+  margin-block: 1.4rem;
+}
+
+.flagship-record-section > h3 {
+  margin-bottom: 0.75rem;
+}
+
+.flagship-record-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.flagship-record {
+  min-width: 0;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--studio-radius);
+  background: var(--bg-card);
+}
+
+.flagship-record h4 {
+  margin: 0 0 0.65rem;
+  font-size: 0.9rem;
+}
+
+.flagship-record dl {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+}
+
+.flagship-record dl > div {
+  min-width: 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.flagship-record dt {
+  color: var(--text-dim);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.flagship-record dd {
+  margin: 0.2rem 0 0;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.report-preview {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.engineering-workspace-page .inline-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: end;
+  margin-block: 1rem;
+}
+
+.engineering-workspace-page .inline-form label {
+  min-width: 0;
+}
+
+.flagship-page .milestone-list > li > div {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.flagship-page .milestone-list small {
+  display: block;
+}
+
+@media (max-width: 700px) {
+  .engineering-workspace-page .inline-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 @media print {
-  .product-rail, .product-topbar, .mobile-bottom-navigation, .product-footer, .portfolio-page .page-header__actions, .manual-evidence-form, .hub-tabs { display: none !important; }
+  .product-rail, .product-topbar, .mobile-bottom-navigation, .product-footer, .portfolio-page .page-header__actions, .manual-evidence-form, .hub-tabs, .engineering-workspace-page button, .flagship-page button { display: none !important; }
   .product-shell, .portfolio-layout { display: block; }
   .product-workspace .page { width: auto; max-width: none; padding: 0; }
   .evidence-feed { grid-template-columns: 1fr 1fr; }
