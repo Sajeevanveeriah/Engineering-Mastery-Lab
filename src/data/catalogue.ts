@@ -5,7 +5,18 @@ import { skillDomains } from "./skills";
 import { displayDiscipline, primaryDestinations } from "./displayLabels";
 import { flagshipCatalogue } from "./engineeringExperiences";
 
-export type SearchableType = "Destination" | "Laboratory" | "Pathway" | "Project" | "Skill" | "Calculator" | "Reference" | "Tool";
+export type SearchableType =
+  | "Destination"
+  | "Curriculum"
+  | "Laboratory"
+  | "Pathway"
+  | "Project"
+  | "Skill"
+  | "Calculator"
+  | "Reference"
+  | "Analysis"
+  | "Portfolio"
+  | "Tool";
 
 export interface SearchableCatalogueItem {
   id: string;
@@ -214,6 +225,66 @@ export const commandCatalogue: SearchableCatalogueItem[] = [
     keywords: [...destination.keywords],
     capability: "Web and Desktop"
   })),
+  {
+    id: "curriculum-complete-roadmap",
+    title: "Complete engineering curriculum",
+    description: "Five prerequisite-aware capability stages and 25 domain modules.",
+    type: "Curriculum",
+    discipline: "Cross-discipline",
+    route: "/learn/roadmap",
+    keywords: ["E0", "E1", "E2", "E3", "E4", "prerequisites", "robotics", "R&D"],
+    capability: "Web and Desktop"
+  },
+  {
+    id: "curriculum-reboot-roadmap",
+    title: "Robotics and AI/ML Reboot",
+    description: "Authoritative S001-S110 fast-track, diagnostics and rover releases.",
+    type: "Curriculum",
+    discipline: "Robotics and AI/ML",
+    route: "/learn/reboot",
+    keywords: ["sessions", "milestones", "M0", "M5", "M9", "fast-track"],
+    capability: "Web and Desktop"
+  },
+  {
+    id: "curriculum-diagnostics",
+    title: "Curriculum diagnostics",
+    description: "Ten practical gap checks with mandatory milestone proof.",
+    type: "Curriculum",
+    discipline: "Cross-discipline",
+    route: "/learn/diagnostics",
+    keywords: ["score", "skip", "study required", "proof"],
+    capability: "Web and Desktop"
+  },
+  {
+    id: "curriculum-resources",
+    title: "Curriculum resources",
+    description: "Sixty-four provenance-preserving workbook resources.",
+    type: "Reference",
+    discipline: "Cross-discipline",
+    route: "/learn/resources",
+    keywords: ["sources", "provenance", "ROS 2", "Gazebo", "official"],
+    capability: "Web and Desktop"
+  },
+  {
+    id: "curriculum-progress-analysis",
+    title: "Learning progress analysis",
+    description: "Separate exposure, practice, evidence and mastery metrics.",
+    type: "Analysis",
+    discipline: "Cross-discipline",
+    route: "/tools/progress",
+    keywords: ["progress", "confidence", "evidence", "weekly review"],
+    capability: "Web and Desktop"
+  },
+  {
+    id: "curriculum-capstone",
+    title: "Defensible rover capstone",
+    description: "Requirements-to-test traceability and end-to-end evidence proof.",
+    type: "Portfolio",
+    discipline: "Robotics R&D",
+    route: "/portfolio/capstone",
+    keywords: ["capstone", "traceability", "verification", "evidence"],
+    capability: "Web and Desktop"
+  },
   ...searchableCatalogue
 ];
 

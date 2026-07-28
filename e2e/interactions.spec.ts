@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { documentOverflow, emptyProgress, installProgress } from "./support";
+import { createV4Progress, documentOverflow, emptyProgress, installProgress } from "./support";
 
 test.beforeEach(async ({ page }) => {
   await installProgress(page, emptyProgress);
@@ -7,6 +7,7 @@ test.beforeEach(async ({ page }) => {
 
 test("skip navigation moves keyboard focus to the main landmark", async ({ page }) => {
   await page.goto("#/");
+  await expect(page.getByRole("heading", { level: 1, name: "Today" })).toBeVisible();
 
   await page.keyboard.press("Tab");
   const skipLink = page.getByRole("link", { name: "Skip to main content" });
@@ -65,7 +66,7 @@ test("laboratory stage changes remain addressable in the URL", async ({ page }) 
 
 test("a confirmed progress import can be undone to the exact prior in-session state", async ({ page }) => {
   await page.goto("#/settings");
-  const storageKey = "engineering-mastery-lab/progress/v3";
+  const storageKey = "engineering-mastery-lab/progress/v4";
   await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), storageKey)).not.toBeNull();
   const beforeImport = await page.evaluate((key) => localStorage.getItem(key), storageKey);
 
@@ -75,19 +76,74 @@ test("a confirmed progress import can be undone to the exact prior in-session st
     bookmarks: { pid: true },
     achievements: ["local-import-test"]
   };
-  page.once("dialog", (dialog) => dialog.accept());
   await page.getByLabel("Choose progress backup").setInputFiles({
     name: "progress-version-2.json",
     mimeType: "application/json",
     buffer: Buffer.from(JSON.stringify(importedProgress))
   });
 
+  await expect(page.getByRole("region", { name: "progress-version-2.json" })).toBeVisible();
+  await page.getByRole("button", { name: "Replace with validated import" }).click();
   await expect(page.getByRole("status")).toContainText("Progress imported and validated");
   await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), storageKey)).not.toBe(beforeImport);
   await page.getByRole("button", { name: "Undo last import or reset" }).click();
 
-  await expect(page.getByRole("status")).toContainText("previous in-session state was restored");
+  await expect(page.getByRole("status")).toContainText("exact previous exported state was restored");
   await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), storageKey)).toBe(beforeImport);
+});
+
+test("System appearance follows operating-system changes while manual choices do not", async ({ page }) => {
+  await installProgress(page, createV4Progress(emptyProgress, { themePreference: "system" }));
+  await page.emulateMedia({ colorScheme: "light" });
+  await page.goto("#/settings");
+  await expect.poll(() => page.locator("html").getAttribute("data-theme")).toBe("light");
+  await expect(page.locator("html")).toHaveAttribute("data-theme-preference", "system");
+
+  await page.emulateMedia({ colorScheme: "dark" });
+  await expect.poll(() => page.locator("html").getAttribute("data-theme")).toBe("dark");
+
+  await page.getByLabel("Colour theme").selectOption("light");
+  await expect(page.locator("html")).toHaveAttribute("data-theme-preference", "light");
+  await page.emulateMedia({ colorScheme: "dark" });
+  await expect.poll(() => page.locator("html").getAttribute("data-theme")).toBe("light");
+});
+
+test("weekly review records save locally and survive reload", async ({ page }) => {
+  await page.goto("#/tools/progress");
+  await expect(page.getByRole("heading", { level: 2, name: /weekly review$/ })).toBeVisible();
+
+  await page.getByRole("spinbutton", { name: "Completed blocks", exact: true }).fill("9");
+  await page.getByRole("spinbutton", { name: "Evidence items retained", exact: true }).fill("3");
+  await page.getByLabel("Short reflection").fill("State estimation improved; actuator evidence remains next.");
+  await page.getByRole("button", { name: "Save weekly review" }).click();
+
+  await expect(page.getByRole("status")).toContainText(/^Saved \d{4}-W\d{2} locally\.$/);
+  const savedReview = await page.evaluate(() => {
+    const raw = localStorage.getItem("engineering-mastery-lab/progress/v4");
+    const parsed = raw ? JSON.parse(raw) as { weeklyReviews: Record<string, unknown> } : null;
+    return parsed ? Object.values(parsed.weeklyReviews)[0] : null;
+  });
+  expect(savedReview).toMatchObject({
+    completedBlocks: 9,
+    evidenceCount: 3,
+    reflection: "State estimation improved; actuator evidence remains next."
+  });
+
+  await page.reload();
+  await expect(page.getByRole("spinbutton", { name: "Completed blocks", exact: true })).toHaveValue("9");
+  await expect(page.getByRole("spinbutton", { name: "Evidence items retained", exact: true })).toHaveValue("3");
+  await expect(page.getByLabel("Short reflection")).toHaveValue("State estimation improved; actuator evidence remains next.");
+});
+
+test.describe("curriculum responsive width matrix", () => {
+  for (const width of [320, 390, 768, 1024, 1440]) {
+    test(`complete roadmap has no document overflow at ${width} CSS pixels`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("#/learn/roadmap");
+      await expect(page.getByRole("heading", { level: 1, name: "Complete engineering curriculum" })).toBeVisible();
+      expect(await documentOverflow(page)).toBeLessThanOrEqual(1);
+    });
+  }
 });
 
 test.describe("representative zoom reflow", () => {
@@ -95,7 +151,10 @@ test.describe("representative zoom reflow", () => {
     ["/", 2],
     ["/learn/labs/pid?stage=simulate", 4],
     ["/tools/calculators", 4],
-    ["/tools/cad", 2]
+    ["/tools/cad", 2],
+    ["/learn/roadmap", 2],
+    ["/learn/reboot/sessions/S110", 4],
+    ["/learn/modules/EML-E2-D11", 4]
   ] as const) {
     test(`${route} reflows without document overflow at ${zoom * 100}% browser zoom equivalent`, async ({ page }) => {
       await page.setViewportSize({

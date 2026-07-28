@@ -6,6 +6,7 @@ import { useProgress } from "../components/ProgressContext";
 import { bookmarkKey } from "../data/catalogue";
 import { projects } from "../data/projects";
 import type { Difficulty } from "../data/pathways";
+import { rebootProjectReleases } from "../data/rebootCurriculum";
 import { hasExactRequiredIds } from "./ProjectDetail";
 
 type BuildState = "available" | "active" | "paused" | "complete";
@@ -65,6 +66,23 @@ export function Projects() {
         <Icon name="info" size={20} />
         <p><strong>Record boundary.</strong> Project states and completion are learner-managed local records. They do not certify competence or independently validate the engineering work.</p>
       </div>
+      <section aria-labelledby="rover-releases-heading">
+        <div className="section-heading section-heading--outside">
+          <div><p className="eyebrow">Progressive curriculum build</p><h2 id="rover-releases-heading">Robot Zero rover releases</h2></div>
+          <Link to="/learn/reboot">View linked sessions</Link>
+        </div>
+        <div className="release-grid">
+          {rebootProjectReleases.map((release) => (
+            <article key={release.id}>
+              <span className="badge">{release.id}</span>
+              <h3>{release.name}</h3>
+              <p>{release.systemIncrement}</p>
+              <small>{release.sessions} - {release.hardwareRequired === "No" ? "Simulation and software only" : "Hardware optional"}</small>
+              <Link className="btn" to={`/projects/releases/${release.id}`}>Open release brief</Link>
+            </article>
+          ))}
+        </div>
+      </section>
       {isFirstProject && firstFoundationProject && (
         <section className="card" aria-labelledby="first-build-heading">
           <p className="eyebrow">First build</p>

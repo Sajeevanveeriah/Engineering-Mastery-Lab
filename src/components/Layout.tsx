@@ -8,10 +8,19 @@ import { CommandPalette } from "./CommandPalette";
 import { Onboarding } from "./Onboarding";
 
 const routeTitles: Array<[string, string]> = [
+  ["/learn/reboot/sessions/", "Learn: Reboot Session"],
+  ["/learn/modules/", "Learn: Curriculum Module"],
+  ["/learn/roadmap", "Learn: Complete Curriculum"],
+  ["/learn/reboot", "Learn: Accelerated Reboot"],
+  ["/learn/diagnostics", "Learn: Curriculum Diagnostics"],
+  ["/learn/resources", "Learn: Curriculum Resources"],
   ["/learn/pathways/", "Learn: Pathway"],
   ["/learn/labs/", "Learn: Laboratory"],
   ["/learn/flagships/", "Learn: Flagship Workflow"],
+  ["/projects/releases/", "Build: Rover Release"],
   ["/projects/", "Build: Project"],
+  ["/portfolio/capstone", "Prove: Rover Capstone"],
+  ["/tools/progress", "Analyse: Learning Progress"],
   ["/tools/engineering", "Analyse: Engineering Project Workspace"],
   ["/tools/calculators", "Analyse: Engineering Calculators"],
   ["/tools/converter", "Analyse: Unit Converter"],

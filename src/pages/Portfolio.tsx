@@ -1,4 +1,5 @@
 import { type FormEvent, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import { PageHeader } from "../components/PageHeader";
 import { useProgress } from "../components/ProgressContext";
@@ -316,7 +317,7 @@ export function Portfolio() {
         type: "Artefact",
         complete: true,
         stateLabel: "Validated local bundle retained",
-        provenance: `Local progress schema version 3 record saved ${new Date(workspace.updatedAt).toLocaleDateString("en-AU")}. The integrity digest detects corruption but is not authentication or independent engineering validation.`,
+        provenance: `Local progress schema version 4 record saved ${new Date(workspace.updatedAt).toLocaleDateString("en-AU")}. The integrity digest detects corruption but is not authentication or independent engineering validation.`,
         linkedSkillIds: presentation.linkedSkillIds
       });
     }
@@ -419,6 +420,10 @@ export function Portfolio() {
         description="Curate completed records, active work, skill evidence notes, and local achievement thresholds without presenting learner assertions as independent validation."
         actions={<div className="button-row"><button type="button" onClick={() => window.print()}>Print view</button><button type="button" onClick={() => downloadText("engineering-mastery-lab-portfolio.md", markdown, "text/markdown")}>Export Markdown</button><button type="button" onClick={() => downloadText("engineering-mastery-lab-progress.json", exportProgress(progress), "application/json")}>Export JSON</button></div>}
       />
+      <section className="capstone-entry" aria-labelledby="capstone-entry-heading">
+        <div><p className="eyebrow">End-to-end R&D proof</p><h2 id="capstone-entry-heading">Defensible rover capstone</h2><p>Trace stakeholder need through requirements, architecture, risk, tests and results before making a portfolio claim.</p></div>
+        <Link className="btn primary" to="/portfolio/capstone">Open capstone evidence matrix</Link>
+      </section>
       <div className="safety-note safety-note--neutral"><Icon name="info" size={20} /><p><strong>Evidence and provenance boundary.</strong> This view is derived from local progress state, learner-entered notes, learner-confirmed checkboxes, and learner-provided links. The app does not inspect linked assets or provide independent assessment. These records are not a professional licence, qualification, accredited certificate, or standards certification.</p></div>
       <div className="portfolio-summary"><dl><div><dt>Completed records</dt><dd>{completedEntries.length}</dd></div><div><dt>Work in progress</dt><dd>{workInProgressEntries.length}</dd></div><div><dt>Skills with evidence notes</dt><dd>{skillEvidence.length}</dd></div><div><dt>Record thresholds reached</dt><dd>{achievements.length}</dd></div></dl></div>
       {entries.length === 0 && (

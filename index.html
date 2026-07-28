@@ -9,6 +9,37 @@
     <meta property="og:description" content="Build, simulate and prove real engineering capability through structured local learning." />
     <meta property="og:url" content="https://sajeevanveeriah.github.io/Engineering-Mastery-Lab/" />
     <meta name="theme-color" content="#0d1b2a" />
+    <script>
+      (() => {
+        const allowed = new Set(["system", "light", "dark"]);
+        let preference = "system";
+        try {
+          const current = JSON.parse(localStorage.getItem("engineering-mastery-lab/progress/v4") || "null");
+          if (current && allowed.has(current.themePreference)) {
+            preference = current.themePreference;
+          } else {
+            for (const version of [3, 2, 1]) {
+              const legacy = JSON.parse(localStorage.getItem(`engineering-mastery-lab/progress/v${version}`) || "null");
+              if (legacy && (legacy.theme === "light" || legacy.theme === "dark")) {
+                preference = legacy.theme;
+                break;
+              }
+            }
+          }
+        } catch {
+          preference = "system";
+        }
+        const systemDark = typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: dark)").matches;
+        const resolved = preference === "system" ? (systemDark ? "dark" : "light") : preference;
+        document.documentElement.dataset.themePreference = preference;
+        document.documentElement.dataset.theme = resolved;
+        document.documentElement.style.colorScheme = resolved;
+        document.querySelector('meta[name="theme-color"]')?.setAttribute(
+          "content",
+          resolved === "dark" ? "#050c16" : "#f3f6fa"
+        );
+      })();
+    </script>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <title>Engineering Mastery Lab</title>
   </head>

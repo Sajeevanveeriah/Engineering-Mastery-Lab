@@ -6,7 +6,8 @@ import {
   loadProgress,
   emptyProgress,
   migrateProgressV1,
-  migrateProgressV2
+  migrateProgressV2,
+  migrateProgressV3
 } from "../lib/storage";
 
 afterEach(() => {
@@ -25,6 +26,35 @@ const malformedSections: Array<[string, Record<string, unknown>, RegExp]> = [
   ["theme", { theme: "blue" }, /theme/]
 ];
 
+function createVersion2Base() {
+  const {
+    version: _version,
+    themePreference: _themePreference,
+    engineeringWorkspaces: _engineeringWorkspaces,
+    curriculumRecords: _curriculumRecords,
+    weeklyReviews: _weeklyReviews,
+    ...common
+  } = structuredClone(emptyProgress);
+  return { ...common, version: 2 as const, theme: "light" as const };
+}
+
+function completedLearningRecord(overrides: Record<string, unknown> = {}) {
+  return {
+    status: "done",
+    blocker: null,
+    confidence: 4,
+    actualMinutes: 25,
+    notes: "Retained",
+    evidenceReferences: ["test:result-1"],
+    attemptCount: 1,
+    diagnosticScore: null,
+    gateResult: "passed",
+    completedAt: "2026-01-01T00:00:00Z",
+    contentVersion: "2026.07.28",
+    ...overrides
+  };
+}
+
 describe("progress export/import", () => {
   it("round-trips a progress state", () => {
     const state = structuredClone(emptyProgress);
@@ -42,7 +72,7 @@ describe("progress export/import", () => {
       route: "/learn/labs/pid",
       visitedAt: "2026-01-01T00:00:00Z"
     }];
-    state.theme = "light";
+    state.themePreference = "light";
 
     const json = exportProgress(state);
     const restored = importProgress(json);
@@ -59,9 +89,9 @@ describe("progress export/import", () => {
 
   it("fills missing sections with defaults", () => {
     const restored = importProgress(JSON.stringify({ version: 1 }));
-    expect(restored.version).toBe(3);
+    expect(restored.version).toBe(4);
     expect(restored.skillRatings).toEqual({});
-    expect(restored.theme).toBe("light");
+    expect(restored.themePreference).toBe("system");
   });
 
   it("migrates every valid version 1 field without loss", () => {
@@ -76,13 +106,13 @@ describe("progress export/import", () => {
     };
     const migrated = migrateProgressV1(old);
     expect(migrated).toMatchObject({
-      version: 3,
+      version: 4,
       skillRatings: old.skillRatings,
       challenges: old.challenges,
       reflections: old.reflections,
       artefacts: old.artefacts,
       sprintChecklist: old.sprintChecklist,
-      theme: "dark",
+      themePreference: "dark",
       onboardingComplete: true
     });
     expect(migrated.profile).toBeNull();
@@ -114,8 +144,7 @@ describe("progress export/import", () => {
 
   it("migrates version 2 deterministically and preserves every existing section", () => {
     const version2 = {
-      ...structuredClone(emptyProgress),
-      version: 2 as const,
+      ...createVersion2Base(),
       skillRatings: { controls: { level: 2, evidence: "record" } },
       bookmarks: { "tool:converter": true },
       labPositions: {
@@ -143,14 +172,12 @@ describe("progress export/import", () => {
         }
       }
     };
-    const { engineeringWorkspaces, ...oldShape } = version2;
-    expect(engineeringWorkspaces).toEqual({});
-    const first = migrateProgressV2(oldShape);
-    const second = importProgress(JSON.stringify(oldShape));
+    const first = migrateProgressV2(version2);
+    const second = importProgress(JSON.stringify(version2));
 
     expect(first).toEqual(second);
     expect(second).toMatchObject({
-      version: 3,
+      version: 4,
       skillRatings: version2.skillRatings,
       bookmarks: version2.bookmarks,
       labPositions: version2.labPositions,
@@ -164,12 +191,98 @@ describe("progress export/import", () => {
     expect(importProgress(exportProgress(second))).toEqual(second);
 
     expect(() => migrateProgressV2({
-      ...oldShape,
+      ...version2,
       recentItems: [{
         ...version2.recentItems[0],
         route: "/learn/labs/..?stage=learn"
       }]
     })).toThrow(/canonical internal route/);
+  });
+
+  it("migrates version 3 without losing an explicit theme or engineering workspace", () => {
+    const version2 = createVersion2Base();
+    const version3 = {
+      ...version2,
+      version: 3 as const,
+      theme: "dark" as const,
+      engineeringWorkspaces: {
+        rover: {
+          schemaVersion: 1 as const,
+          projectId: "rover",
+          bundleJson: "{\"schemaVersion\":1}",
+          updatedAt: "2026-01-01T00:00:00Z"
+        }
+      }
+    };
+    const migrated = migrateProgressV3(version3);
+    expect(migrated).toMatchObject({
+      version: 4,
+      themePreference: "dark",
+      engineeringWorkspaces: version3.engineeringWorkspaces,
+      curriculumRecords: {},
+      weeklyReviews: {}
+    });
+    expect(importProgress(JSON.stringify(version3))).toEqual(migrated);
+  });
+
+  it("round-trips v4 curriculum and weekly review records", () => {
+    const state = structuredClone(emptyProgress);
+    state.curriculumRecords.S001 = completedLearningRecord() as typeof state.curriculumRecords.S001;
+    state.weeklyReviews["2026-W31"] = {
+      weekKey: "2026-W31",
+      plannedBlocks: 12,
+      completedBlocks: 10,
+      evidenceCount: 3,
+      reflection: "Reduced the next task after one blocker.",
+      createdAt: "2026-07-27T00:00:00Z",
+      updatedAt: "2026-07-27T00:00:00Z"
+    };
+    expect(importProgress(exportProgress(state))).toEqual(state);
+  });
+
+  it("migrates content aliases and blocks conflicting alias records", () => {
+    const source = {
+      ...structuredClone(emptyProgress),
+      curriculumRecords: {
+        "EML-E3-ROS2": completedLearningRecord()
+      }
+    };
+    const migrated = importProgress(JSON.stringify(source));
+    expect(migrated.curriculumRecords["EML-E3-D18"]).toEqual(completedLearningRecord());
+    expect(migrated.curriculumRecords["EML-E3-ROS2"]).toBeUndefined();
+
+    expect(() => importProgress(JSON.stringify({
+      ...source,
+      curriculumRecords: {
+        "EML-E3-ROS2": completedLearningRecord(),
+        "EML-E3-D18": completedLearningRecord({ notes: "Different record" })
+      }
+    }))).toThrow(/conflicting records/);
+  });
+
+  it("blocks diagnostic skips for proof sessions and scores below 3", () => {
+    expect(() => importProgress(JSON.stringify({
+      ...emptyProgress,
+      curriculumRecords: {
+        S006: completedLearningRecord({ status: "skipped-diagnostic", diagnosticScore: 4 })
+      }
+    }))).toThrow(/mandatory proof/);
+    expect(() => importProgress(JSON.stringify({
+      ...emptyProgress,
+      curriculumRecords: {
+        S005: completedLearningRecord({ status: "skipped-diagnostic", diagnosticScore: 2 })
+      }
+    }))).toThrow(/score 3 or 4/);
+  });
+
+  it("restores the exact canonical bytes held before an import", () => {
+    const beforeState = structuredClone(emptyProgress);
+    beforeState.bookmarks["tool:converter"] = true;
+    const beforeBytes = exportProgress(beforeState);
+    const imported = structuredClone(emptyProgress);
+    imported.themePreference = "dark";
+    expect(exportProgress(importProgress(exportProgress(imported)))).not.toBe(beforeBytes);
+    expect(exportProgress(importProgress(beforeBytes))).toBe(beforeBytes);
   });
 
   it("round-trips a bounded validated engineering workspace record", () => {
@@ -261,11 +374,8 @@ describe("progress export/import", () => {
 
 describe("progress storage fallback", () => {
   it("recovers a valid version 2 record when version 3 is malformed", () => {
-    const { engineeringWorkspaces: _engineeringWorkspaces, ...version2Base } =
-      structuredClone(emptyProgress);
     const version2 = {
-      ...version2Base,
-      version: 2,
+      ...createVersion2Base(),
       bookmarks: { "tool:converter": true }
     };
     vi.stubGlobal("localStorage", {
@@ -277,7 +387,7 @@ describe("progress storage fallback", () => {
     });
 
     const loaded = loadProgress();
-    expect(loaded.version).toBe(3);
+    expect(loaded.version).toBe(4);
     expect(loaded.bookmarks).toEqual({ "tool:converter": true });
     expect(loaded.engineeringWorkspaces).toEqual({});
   });
@@ -295,7 +405,7 @@ describe("progress storage fallback", () => {
     });
 
     expect(loadProgress()).toMatchObject({
-      version: 3,
+      version: 4,
       artefacts: { "legacy-report": true },
       engineeringWorkspaces: {}
     });

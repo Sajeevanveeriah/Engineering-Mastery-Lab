@@ -2,10 +2,19 @@ import { Link } from "react-router-dom";
 import { Icon } from "../components/Icon";
 import { PageHeader } from "../components/PageHeader";
 import { useProgress } from "../components/ProgressContext";
-import { modules } from "../data/modules";
+import { capabilityStages, masteryModules } from "../data/masteryCurriculum";
 import { pathways } from "../data/pathways";
 import { projects } from "../data/projects";
-import { artefactCount, challengePassCount, moduleProgress, overallProgress } from "../lib/metrics";
+import { REBOOT_CONTENT_VERSION } from "../data/rebootCurriculum";
+import {
+  currentMilestone,
+  currentProjectRelease,
+  evidenceCompletedSince,
+  nextUnfinishedSession,
+  rebootProgress,
+  weeklyReviewDue
+} from "../lib/curriculum";
+import { artefactCount, challengePassCount, overallProgress } from "../lib/metrics";
 
 const recentTypeLabels = {
   lab: "Laboratory",
@@ -35,21 +44,25 @@ export function Home() {
   const nextPathwayStep = currentPathway.steps.find((step) =>
     !currentPathwayState?.completedStepIds.includes(step.id)
   );
-  const latest = progress.recentItems[0];
-  const firstIncomplete = modules.find((module) => moduleProgress(progress, module).percent < 100) ?? modules[0];
-  const continueTarget = latest ?? (currentPathwayState ? {
-    id: currentPathway.id,
-    type: "pathway" as const,
-    title: currentPathway.name,
-    route: nextPathwayStep?.route ?? `/learn/pathways/${currentPathway.id}`,
-    visitedAt: currentPathwayState.enrolledAt
-  } : {
-    id: firstIncomplete.id,
-    type: "lab" as const,
-    title: firstIncomplete.title,
-    route: `/learn/labs/${firstIncomplete.id}`,
-    visitedAt: ""
-  });
+  const nextSession = nextUnfinishedSession(progress.curriculumRecords);
+  const milestone = currentMilestone(progress.curriculumRecords);
+  const projectRelease = currentProjectRelease(progress.curriculumRecords);
+  const rebootSummary = rebootProgress(progress);
+  const currentMasteryModule = masteryModules.find((module) => {
+    const record = progress.curriculumRecords[module.id];
+    return record?.status !== "done" || record?.gateResult !== "passed";
+  }) ?? masteryModules[masteryModules.length - 1];
+  const currentStage = capabilityStages.find((stage) => stage.id === currentMasteryModule.stageId)
+    ?? capabilityStages[0];
+  const now = new Date();
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+  startOfWeek.setHours(0, 0, 0, 0);
+  const evidenceThisWeek = evidenceCompletedSince(
+    progress.curriculumRecords,
+    startOfWeek.toISOString()
+  );
+  const review = weeklyReviewDue(progress.weeklyReviews, now);
   const activeProjectEntry = Object.entries(progress.projects).find(([, state]) => state.status === "active");
   const activeProject = activeProjectEntry ? projects.find((item) => item.id === activeProjectEntry[0]) : undefined;
   const recentWork = progress.recentItems.slice(0, 4);
@@ -71,20 +84,49 @@ export function Home() {
 
       <section className="home-continue" aria-labelledby="continue-heading">
         <div>
-          <p className="eyebrow">What should I do next?</p>
-          <h2 id="continue-heading">{isNew ? recommendedPathway.name : continueTarget.title}</h2>
-          <p>{isNew ? recommendedPathway.purpose : `Resume your exact last meaningful ${continueTarget.type} location.`}</p>
+          <p className="eyebrow">Continue - {nextSession?.id ?? "Fast-track complete"}</p>
+          <h2 id="continue-heading">{nextSession?.topic ?? "Review the reproducible release"}</h2>
+          <p>{nextSession?.microLesson ?? "All 110 fast-track sessions have a completion or diagnostic-skip record. Review evidence before claiming mastery."}</p>
           <div className="button-row">
-            <Link className="btn primary" to={isNew ? `/learn/pathways/${recommendedPathway.id}` : continueTarget.route}>
-              {isNew ? "Open recommended pathway" : "Continue"} <Icon name="arrow-right" size={17} />
+            <Link className="btn primary" to={nextSession ? `/learn/reboot/sessions/${nextSession.id}` : "/learn/reboot"}>
+              Continue <Icon name="arrow-right" size={17} />
             </Link>
-            {!isNew && <Link className="btn" to="/learn">Explore learning</Link>}
+            <Link className="btn" to="/learn/roadmap">View complete roadmap</Link>
           </div>
         </div>
         <div className="home-continue__metric">
-          <strong>{overall.percent}%</strong>
-          <span>recorded learning progress</span>
+          <strong>{rebootSummary.mastery}%</strong>
+          <span>fast-track mastery gates passed</span>
         </div>
+      </section>
+
+      <section className="curriculum-now" aria-labelledby="curriculum-now-heading">
+        <div className="section-heading section-heading--outside">
+          <div>
+            <p className="eyebrow">Truthful local record</p>
+            <h2 id="curriculum-now-heading">Current learning position</h2>
+          </div>
+          <span className="badge">Content {REBOOT_CONTENT_VERSION}</span>
+        </div>
+        <dl className="curriculum-now__facts">
+          <div><dt>Capability stage</dt><dd>{currentStage.id} - {currentStage.title}</dd></div>
+          <div><dt>Fast-track milestone</dt><dd>{milestone.id} - {milestone.name}</dd></div>
+          <div><dt>Rover release</dt><dd>{projectRelease.name}</dd></div>
+          <div><dt>Evidence this week</dt><dd>{evidenceThisWeek} recorded item{evidenceThisWeek === 1 ? "" : "s"}</dd></div>
+        </dl>
+        <div className="minimum-day">
+          <div>
+            <strong>Minimum viable day</strong>
+            <span>Recall for 3 min, run one 10 min smallest useful test, then record evidence for 2 min.</span>
+          </div>
+          <Link to={nextSession ? `/learn/reboot/sessions/${nextSession.id}` : "/learn/reboot"}>Open the next bounded session</Link>
+        </div>
+        {review.due && (
+          <div className="weekly-review-due" role="status">
+            <div><strong>Weekly review due</strong><span>{review.weekKey}, workbook template week {review.templateWeek}: {review.plannedBlocks} planned short blocks.</span></div>
+            <Link to="/tools/progress">Review planned versus completed</Link>
+          </div>
+        )}
       </section>
 
       <div className="home-question-grid">

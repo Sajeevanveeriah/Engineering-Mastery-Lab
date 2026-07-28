@@ -168,8 +168,35 @@ export function LearnHub({ initialFormat = "All" }: { initialFormat?: Format }) 
       <PageHeader
         eyebrow="Structured discovery"
         title="Learn"
-        description="Discover coherent pathways, focused laboratories, and evidence-led skills. Filters change discovery only - they never change your records."
+        description="Follow the complete engineering curriculum, use the accelerated Robotics and AI/ML Reboot, or discover focused pathways, laboratories and evidence-led skills."
       />
+
+      <section className="curriculum-entry-grid" aria-label="Curriculum entry points">
+        <Link to="/learn/roadmap">
+          <span className="badge">E0-E4</span>
+          <h2>Complete curriculum</h2>
+          <p>Twenty-five prerequisite-aware domains from engineering starter knowledge to R&D proof.</p>
+          <strong>Open roadmap <Icon name="arrow-right" size={16} /></strong>
+        </Link>
+        <Link to="/learn/reboot">
+          <span className="badge">S001-S110</span>
+          <h2>Robotics and AI/ML Reboot</h2>
+          <p>The authoritative 45 h 50 min fast-track, diagnostics and four rover releases.</p>
+          <strong>Open fast-track <Icon name="arrow-right" size={16} /></strong>
+        </Link>
+        <Link to="/learn/diagnostics">
+          <span className="badge">10 practical checks</span>
+          <h2>Diagnostics</h2>
+          <p>Use evidence to identify gaps. Passing can skip lessons, never proof sessions.</p>
+          <strong>Run diagnostics <Icon name="arrow-right" size={16} /></strong>
+        </Link>
+        <Link to="/learn/resources">
+          <span className="badge">64 sources</span>
+          <h2>Resource library</h2>
+          <p>Original provenance, authority labels and separate version-sensitive revalidation dates.</p>
+          <strong>Browse resources <Icon name="arrow-right" size={16} /></strong>
+        </Link>
+      </section>
 
       <section className="home-proof" aria-labelledby="mastery-overview-heading">
         <div>

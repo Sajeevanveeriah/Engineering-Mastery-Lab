@@ -4,7 +4,8 @@
 
 This guide covers implemented local migrations for:
 
-- browser progress version 1 or version 2 to version 3; and
+- browser progress version 1, version 2 or version 3 to version 4;
+- stable curriculum content aliases inside progress version 4; and
 - engineering project bundle version 1 to version 2.
 
 Project Pack version 1, engineering report version 1, sync record version 1,
@@ -32,7 +33,7 @@ Export a current backup before an intentional migration when the current state
 is valid. Do not edit a migration file to bypass a validation error. Repair the
 source or keep it unimported.
 
-## Progress version 1 to version 3
+## Progress version 1 to version 4
 
 ### Recognised version 1 fields
 
@@ -47,7 +48,7 @@ Each recognised field passes the current bounded validator.
 
 ### Deterministic additions
 
-Migration creates progress version 3 and:
+Migration creates progress version 4 and:
 
 - marks onboarding complete so an existing learner is not forced through new
   onboarding;
@@ -56,7 +57,9 @@ Migration creates progress version 3 and:
   projects, manual evidence, achievements and engineering workspaces empty;
 - starts accessibility preferences with reduced motion and high contrast false;
   and
-- retains the validated theme or uses light when missing.
+- retains an explicit validated Light or Dark theme, otherwise selects System;
+- starts `engineeringWorkspaces`, `curriculumRecords`, and `weeklyReviews` as
+  empty records.
 
 ### Unknown version 1 fields
 
@@ -70,7 +73,7 @@ configured limit.
 
 The migration does not interpret unknown values as new features.
 
-## Progress version 2 to version 3
+## Progress version 2 to version 4
 
 Version 2 declares all progress fields present before engineering workspace
 records:
@@ -88,41 +91,67 @@ Migration:
 1. rejects unsupported version 2 root fields;
 2. validates every declared value through the current validators;
 3. preserves validated version 2 content;
-4. writes `version: 3`; and
-5. adds an empty `engineeringWorkspaces` record.
+4. adds an empty `engineeringWorkspaces` record;
+5. applies the version 3 to version 4 additions; and
+6. writes `version: 4`.
 
 No version 2 learner, progress, project, evidence or preference field is
 dropped deliberately.
 
-## Progress version 3 import
+## Progress version 3 to version 4
 
-Version 3 import requires exactly the declared root fields. Missing optional
-sections receive their current empty defaults where the validator permits.
-Engineering workspace entries require:
+Version 3 import requires exactly the declared version 3 root fields and
+preserves all of them. Engineering workspace entries still require:
 
 - `schemaVersion: 1`;
 - bounded `projectId`;
 - bounded `bundleJson`; and
 - valid UTC `updatedAt`.
 
+The migration then:
+
+1. writes `version: 4`;
+2. maps an explicit version 3 Light or Dark theme to the same explicit
+   `themePreference`;
+3. selects System only when the old theme value is absent;
+4. starts `curriculumRecords` empty; and
+5. starts `weeklyReviews` empty.
+
 The progress validator bounds one embedded bundle string to 750,000 characters.
 The engineering workspace separately validates the bundle before using it.
+
+## Progress version 4 import
+
+Version 4 validation requires the declared root contract. Curriculum records
+validate completion state, blocker, confidence, actual minutes, notes,
+evidence references, attempt count, diagnostic score, gate result, completion
+timestamp and content version independently.
+
+Weekly reviews require an ISO week key, planned and completed block counts,
+evidence count, reflection and UTC timestamps.
+
+Stable content aliases are applied after complete validation. An alias moves a
+record only when its canonical target is absent or byte-equivalent. A
+different record already stored at the canonical id is a conflict and blocks
+the import. Mandatory milestone proof and release ids are checked after alias
+migration so an older id cannot bypass the proof rule.
 
 ## Browser storage fallback
 
 The loader checks:
 
 ```text
+engineering-mastery-lab/progress/v4
 engineering-mastery-lab/progress/v3
 engineering-mastery-lab/progress/v2
 engineering-mastery-lab/progress/v1
 ```
 
 The first present, bounded and valid value is returned. Invalid or unavailable
-browser storage falls back to a clean in-memory version 3 state. Loading an old
+browser storage falls back to a clean in-memory version 4 state. Loading an old
 key does not itself delete that key.
 
-Saving writes the version 3 key.
+Saving writes the version 4 key.
 
 ## Project bundle version 1 to version 2
 
@@ -253,7 +282,7 @@ For each implemented migration:
 Progress import or reset:
 
 1. Use the Settings in-session undo before reloading the application.
-2. If that value is no longer available, import the last valid version 3 backup.
+2. If that value is no longer available, import the last valid version 4 backup.
 3. Keep invalid or unsupported source files outside application state for
    review. Do not force-import them.
 

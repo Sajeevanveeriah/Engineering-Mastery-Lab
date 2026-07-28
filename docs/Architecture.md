@@ -20,15 +20,21 @@ provider boundaries and declarative entitlement metadata.
 Engineering Mastery Lab
   Today
   Learn
+    Complete E0-E4 curriculum
+    Accelerated reboot S001-S110
+    Practical diagnostics
+    Source inventory
     Pathways
     Laboratories
     Flagship engineering workflows
     Skills
     Bookmarks
   Build
+    Rover releases P1-P4
     Catalogue
     Detail, milestones, notes, evidence
   Analyse
+    Curriculum progress analysis
     Calculators
     Unit converter
     Materials reference
@@ -37,6 +43,7 @@ Engineering Mastery Lab
     Project Workbench
     Diagnostics
   Prove
+    Defensible rover capstone
     Evidence
     Skills
     Achievements
@@ -56,8 +63,10 @@ new hierarchy.
 
 | Area | Responsibility |
 |---|---|
-| `src/data/` | Declarative modules, skills, pathways, flagship workflows, projects, search items, plans, and entitlements |
-| `src/lib/storage.ts` | Progress schema version 3, deterministic version 1 and version 2 migration, import validation, engineering workspace records, and persistence |
+| `src/data/` | Versioned reboot curriculum, complete mastery curriculum, stable content metadata, retained modules, skills, pathways, flagship workflows, projects, search items, plans, and entitlements |
+| `src/lib/curriculum.ts` | Pure curriculum validation, dependency graph, diagnostic-skip, next-session, milestone, release, dimensional progress, and ISO-week review calculations |
+| `src/lib/theme.ts` | System, Light, and Dark preference resolution plus document theme metadata |
+| `src/lib/storage.ts` | Progress schema version 4, deterministic version 1, version 2, and version 3 migration, content-alias migration, import validation, engineering workspace records, curriculum records, weekly reviews, and persistence |
 | `src/lib/kernel/` | Pure engineering units, variables, datasets, scenarios, notebook, evidence graph, project bundle, and motor-sizing vertical slice |
 | `src/lib/interchange/` | Data-only Project Packs, deterministic engineering reports, canonical JSON, and provider-neutral adapter descriptors |
 | `src/lib/ecosystem/` | Local reference sync records, explicit conflict resolution, synthetic cohorts, privacy-safe aggregates, curated packs, and hosted-capability state |
@@ -98,15 +107,14 @@ Onboarding appears when `onboardingComplete` is false. The learner can:
 - skip without losing application access.
 
 `recommendPathway` applies deterministic goal, discipline, and experience
-rules. The profile is schema version 1 inside progress schema version 3. It can
+rules. The profile is schema version 1 inside progress schema version 4. It can
 be edited in Settings. It is not an account or sign-in flow.
 
-## Progress schema version 3
+## Progress schema version 4
 
-`ProgressState` version 3 preserves the version 2 learner and progress fields
-and adds bounded `engineeringWorkspaces` records. Each workspace record has
-schema version 1, a project identifier, validated project bundle JSON and a UTC
-update timestamp.
+`ProgressState` version 4 preserves every version 3 learner, project,
+engineering-workspace and progress field. It adds an explicit appearance
+preference, stable curriculum records and weekly reviews.
 
 The complete progress record contains:
 
@@ -118,23 +126,70 @@ The complete progress record contains:
 - manual evidence and evidence-based achievement identifiers;
 - theme and accessibility preferences;
 - validated local engineering workspace records; and
+- selected `system`, `light`, or `dark` theme preference;
+- curriculum records keyed by stable learning-object identifier;
+- weekly review records keyed by ISO calendar week; and
 - bounded `legacy` storage for unknown version 1 root fields.
 
-Load order is the version 3 key, then the version 2 key, then the version 1 key,
-then a clean local state. Version 1 and version 2 source values are not deleted
-during migration. Version 2 migration retains every validated version 2 field
-and starts `engineeringWorkspaces` as an empty record. Version 1 migration
-retains recognised fields, moves bounded unknown root fields into `legacy`,
-marks onboarding complete, and starts all newer collections from deterministic
-empty values.
+Load order is the version 4 key, then version 3, version 2, version 1, then a
+clean local state. Older source values are not deleted during migration.
+Version 3 content remains intact and receives System as the theme preference
+only when no explicit Light or Dark choice exists. Version 1 and version 2
+migration still retain their declared fields and deterministic defaults.
 
-Import accepts versions 1, 2 and 3. Validation bounds JSON character count,
+Import accepts versions 1, 2, 3 and 4. Validation bounds JSON character count,
 collection count, key length, string length, array length, legacy depth,
-timestamps, internal routes, and optional HTTP or HTTPS URLs. Unsafe keys such
-as `__proto__`, `prototype`, and `constructor` are rejected at every validated
-record boundary. Unknown version 2 and version 3 root fields are rejected.
+timestamps, internal routes, optional HTTP or HTTPS URLs, curriculum record
+fields and weekly-review values. Unsafe keys such as `__proto__`, `prototype`,
+and `constructor` are rejected at every validated record boundary. Unknown
+fields in declared current schemas are rejected.
 
-Settings owns export, import, reset, confirmation, and in-session undo.
+Settings owns export, validated preview, atomic in-session replacement, reset,
+confirmation, and exact byte-preserving in-session undo.
+
+## Curriculum architecture
+
+`src/data/rebootCurriculum.ts` is the reviewed canonical TypeScript extraction
+of the authoritative workbook. The production application does not parse
+XLSX. Stable identifiers, source provenance and content versions remain data,
+while navigation and persistence use the identifiers rather than array
+positions or visible labels.
+
+The accelerated curriculum contains:
+
+- sessions S001-S110;
+- milestones M0-M9;
+- practical diagnostics for every milestone;
+- rover releases P1-P4;
+- 64 source records;
+- technology lanes, cadence, weekly rhythm and twelve-week review templates;
+- optional resources that remain visibly optional; and
+- a generic local calendar-planning model with no copied private event values.
+
+`src/data/masteryCurriculum.ts` contains the five-stage E0-E4 prerequisite
+graph and 25 domain modules. Every module has a stable identifier and content
+version. `validateCurriculum` checks session identity and order, milestone
+counts, minute totals, referenced resources, prerequisite existence, cycles,
+reachability, worked-example recomputation and evidence structure.
+
+Diagnostic skipping is deliberately narrow. Scores 3 and 4 may satisfy an
+ordinary lesson session. Proof and release sessions are listed in a separate
+mandatory set and cannot be skipped. Completion, diagnostic evidence and
+mastery-gate passage remain distinct progress dimensions.
+
+The curriculum routes, including Today, are lazy-loaded. The initial router
+shell does not synchronously import the curriculum payloads. Shared mastery
+and session chunks load when a curriculum-aware route such as Today, a
+roadmap, or a module detail is opened.
+
+## Theme resolution
+
+The persisted preference is `system`, `light`, or `dark`. The resolved visual
+theme is always `light` or `dark`. A before-paint script reads the newest valid
+local preference, falls back through older explicit themes, resolves System
+through `prefers-color-scheme`, and sets the document attributes, CSS
+`color-scheme`, and theme-colour metadata before React mounts. Runtime
+operating-system changes are observed only while System is selected.
 
 ## Shared engineering kernel
 
@@ -272,11 +327,14 @@ See
 
 ## Lazy capability loading
 
-The flagship workflow page, Engineering Toolbox, engineering project
+The complete curriculum, accelerated reboot, session detail, module detail,
+curriculum diagnostics, resource inventory, rover release, progress analysis,
+capstone, flagship workflow page, Engineering Toolbox, engineering project
 workspace, CAD Studio, Project Workbench, and Diagnostics use React lazy
-routes. The initial Today route does not import their chunks. CAD
-Studio uses Three.js inside its isolated route chunk for bounded parametric 3D
-inspection. Its pure model layer owns validation, mass properties, and STL,
+routes. The router shell does not synchronously import these route chunks;
+opening Today loads the shared curriculum data needed for its live position.
+CAD Studio uses Three.js inside its isolated route chunk for bounded parametric
+3D inspection. Its pure model layer owns validation, mass properties, and STL,
 OpenSCAD, SVG, and JSON export preparation without moving Three.js into the
 initial application bundle.
 

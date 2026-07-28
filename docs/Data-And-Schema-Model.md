@@ -5,6 +5,10 @@
 This document describes the local data models implemented in:
 
 - `src/lib/storage.ts`
+- `src/data/rebootCurriculum.ts`
+- `src/data/masteryCurriculum.ts`
+- `src/data/curriculumMetadata.ts`
+- `src/lib/curriculum.ts`
 - `src/lib/kernel/`
 - `src/lib/interchange/`
 - `src/lib/ecosystem/`
@@ -20,7 +24,11 @@ authority.
 
 | Data contract | Current version | Migration behaviour | Persistence boundary |
 |---|---:|---|---|
-| Browser progress | 3 | Version 1 and version 2 import deterministically to version 3 | Browser or desktop-webview `localStorage` |
+| Browser progress | 4 | Versions 1, 2 and 3 import deterministically to version 4 | Browser or desktop-webview `localStorage` |
+| Accelerated reboot curriculum | `2026.07.26` | Canonical reviewed workbook extraction; no runtime XLSX migration | Versioned TypeScript content |
+| Complete mastery curriculum | `2026.07.28` | Stable content ids and explicit aliases | Versioned TypeScript content |
+| Curriculum learning record | 1 inside progress 4 | Aliases migrate only when unambiguous | Browser or desktop-webview `localStorage` |
+| Weekly review record | 1 inside progress 4 | Added empty during prior-progress migration | Browser or desktop-webview `localStorage` |
 | Local learner profile | 1 | Retained inside progress migration | Browser or desktop-webview `localStorage` |
 | Engineering workspace record | 1 | Added empty when progress version 1 or 2 migrates | Browser or desktop-webview `localStorage` |
 | Engineering project | 2 | Version 1 project migration exists through bundle import | Inside project bundles and workspace records |
@@ -43,9 +51,9 @@ authority.
 | Desktop workbench manifest | 1 | Unknown versions fail closed | Authorised desktop workspace |
 | Desktop latest-run receipt | 2 | Unknown versions fail closed | Authorised desktop workspace |
 
-## Browser progress version 3
+## Browser progress version 4
 
-`ProgressState` version 3 contains:
+`ProgressState` version 4 contains:
 
 - skill ratings, challenge results, reflections, artefact flags and sprint
   checklist state;
@@ -56,6 +64,9 @@ authority.
 - manual evidence and achievement identifiers;
 - theme and accessibility preferences;
 - engineering workspace records; and
+- selected theme preference (`system`, `light`, or `dark`);
+- curriculum learning records;
+- weekly review records; and
 - bounded legacy values migrated from unknown version 1 root fields.
 
 An engineering workspace record has:
@@ -74,14 +85,74 @@ authorised Tauri workspace root.
 Load order is:
 
 ```text
-progress/v3 -> progress/v2 -> progress/v1 -> clean version 3 state
+progress/v4 -> progress/v3 -> progress/v2 -> progress/v1 -> clean version 4 state
 ```
 
+Version 3 migration validates and retains every declared version 3 field.
 Version 2 migration validates and retains every declared version 2 field, then
 starts `engineeringWorkspaces` as an empty record. Version 1 migration retains
 recognised legacy fields, moves bounded unknown root fields into `legacy`,
 marks onboarding complete and starts newer collections from deterministic
-empty values.
+empty values. All prior migrations then add empty curriculum and weekly-review
+collections.
+
+An explicit old Light or Dark choice remains explicit. A missing new
+preference becomes System. System is a stored preference, not a third colour
+palette; runtime resolution produces Light or Dark.
+
+### Curriculum learning record
+
+Each record is keyed by a stable session or module identifier and retains:
+
+```text
+status: not-started | in-progress | done | diagnostic-skip
+blocker: string | null
+confidence: integer 1..5 | null
+actualMinutes: non-negative integer
+notes: bounded string
+evidenceReferences: bounded string[]
+attemptCount: non-negative integer
+diagnosticScore: integer 0..4 | null
+gateResult: not-assessed | passed | study-required
+completedAt: UTC ISO timestamp | null
+contentVersion: bounded version string
+```
+
+Completion and blocker are separate. Confidence is self-report and does not
+imply a passed gate. A diagnostic score of 3 or 4 can support
+`diagnostic-skip` only for an ordinary lesson session. The mandatory proof set
+blocks diagnostic skipping for milestone proof and release sessions.
+
+Content-id aliases are declared in `curriculumMetadata.ts`. A legacy id moves
+to its canonical id only when the target does not already contain a different
+record. Conflicting legacy and canonical records fail closed so that neither
+record is silently discarded.
+
+### Weekly review record
+
+Each weekly record is keyed by ISO calendar week as `YYYY-Www`. It retains the
+workbook-template planned blocks, completed blocks, evidence count, bounded
+reflection, and creation and update timestamps. The workbook's twelve-week
+template cycles independently of the ISO week number. UI calculations expose
+both values rather than labelling the template index as a calendar week.
+
+## Curriculum content contracts
+
+The accelerated curriculum contract contains exactly 110 ordered sessions,
+M0-M9, ten practical diagnostics, P1-P4, 64 resources, technology lanes,
+cadence, weekly rhythm and twelve weekly-review templates. Session references
+use stable ids. Optional MIG01, ADV01 and ADV02 resources remain optional.
+
+The complete curriculum contract contains stages E0-E4 and 25 domain modules.
+Every module contains prerequisites, outcomes, vocabulary, SI equations, a
+worked example with independent expected value, retrieval, a practical task,
+diagnostic guidance, evidence, a mastery gate, provenance, accessible text and
+an educational Stage 1 mapping.
+
+Executable validation checks exact S001-S110 ordering, the 2,750-minute total,
+milestone counts, duplicate or missing ids, resource references, prerequisite
+existence, graph cycles, reachability from entry modules, dimensional worked
+examples and the mandatory proof boundary.
 
 ## Engineering project version 2
 
