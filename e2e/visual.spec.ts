@@ -1,6 +1,12 @@
 import { expect, test, type Page } from "@playwright/test";
 import { emptyProgress, installProgress, seededProgress } from "./support";
 
+const visualTestTime = new Date("2026-07-01T02:00:00.000Z");
+
+test.beforeEach(async ({ page }) => {
+  await page.clock.setFixedTime(visualTestTime);
+});
+
 async function settleRouteEffects(page: Page): Promise<void> {
   await page.evaluate(() => new Promise<void>((resolve) => {
     requestAnimationFrame(() => requestAnimationFrame(() => resolve()));

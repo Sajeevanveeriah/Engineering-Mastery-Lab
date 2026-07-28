@@ -10,7 +10,7 @@ export default defineConfig({
   workers: 1,
   reporter: "line",
   outputDir: "test-results",
-  snapshotPathTemplate: "{testDir}/__snapshots__/{arg}{ext}",
+  snapshotPathTemplate: "{testDir}/__snapshots__/{platform}/{arg}{ext}",
   use: {
     baseURL: `http://127.0.0.1:${port}/Engineering-Mastery-Lab/`,
     trace: "retain-on-failure",
