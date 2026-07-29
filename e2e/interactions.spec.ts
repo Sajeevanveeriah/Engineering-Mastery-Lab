@@ -148,6 +148,29 @@ test("weekly review records save locally and survive reload", async ({ page }) =
   await expect(page.getByLabel("Short reflection")).toHaveValue("State estimation improved; actuator evidence remains next.");
 });
 
+test("session save confirmation survives the progress-state rerender", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("#/learn/reboot/sessions/S001");
+  await expect(page.getByRole("heading", { level: 1, name: "What a robot is" })).toBeVisible();
+  await page.evaluate(() => new Promise<void>((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  }));
+
+  const record = page.locator("aside.session-record");
+  await record.getByLabel("Notes").fill("Confirmation persistence regression.");
+  await record.getByRole("button", { name: "Save local record" }).click();
+
+  await expect.poll(() => page.evaluate(() => {
+    const raw = localStorage.getItem("engineering-mastery-lab/progress/v4");
+    const progress = raw ? JSON.parse(raw) as {
+      curriculumRecords?: Record<string, { notes?: string }>;
+    } : null;
+    return progress?.curriculumRecords?.S001?.notes;
+  })).toBe("Confirmation persistence regression.");
+
+  await expect(page.getByRole("status")).toHaveText("Local session record saved.");
+});
+
 test.describe("curriculum responsive width matrix", () => {
   for (const width of [320, 390, 768, 1024, 1440]) {
     test(`complete roadmap has no document overflow at ${width} CSS pixels`, async ({ page }) => {

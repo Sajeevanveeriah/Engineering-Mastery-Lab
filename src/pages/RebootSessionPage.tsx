@@ -41,8 +41,11 @@ export function RebootSessionPage() {
   useEffect(() => {
     setDraft(saved ?? blankRecord());
     setEvidenceText(saved?.evidenceReferences.join("\n") ?? "");
-    setMessage("");
   }, [saved, sessionId]);
+
+  useEffect(() => {
+    setMessage("");
+  }, [sessionId]);
 
   if (!session) return <NotFoundPage />;
   const milestone = rebootMilestones.find((candidate) => candidate.id === session.milestoneId)!;
