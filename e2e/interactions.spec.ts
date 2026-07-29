@@ -45,6 +45,29 @@ test("global search traps focus, closes with Escape and restores focus", async (
   await expect(trigger).toBeFocused();
 });
 
+test("mobile tab navigation keeps the focused tab fully visible", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("#/tools/calculators");
+  await expect(page.getByRole("heading", { level: 1, name: "Engineering Toolbox" })).toBeVisible();
+
+  const tabList = page.getByRole("tablist", { name: "Engineering toolbox sections" });
+  await expect.poll(() => tabList.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+
+  await tabList.getByRole("tab", { name: "Calculators" }).focus();
+  await page.keyboard.press("End");
+
+  const finalTab = tabList.getByRole("tab", { name: "All engineering tools" });
+  await expect(finalTab).toBeFocused();
+  await expect(finalTab).toHaveAttribute("aria-selected", "true");
+  await expect.poll(() => Promise.all([
+    tabList.evaluate((element) => element.getBoundingClientRect().toJSON()),
+    finalTab.evaluate((element) => element.getBoundingClientRect().toJSON())
+  ]).then(([listBounds, tabBounds]) => (
+    tabBounds.left >= listBounds.left - 1 && tabBounds.right <= listBounds.right + 1
+  ))).toBe(true);
+  expect(await documentOverflow(page)).toBeLessThanOrEqual(1);
+});
+
 test("mobile navigation traps focus, closes with Escape and restores focus", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("#/");

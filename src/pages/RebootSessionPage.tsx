@@ -96,7 +96,7 @@ export function RebootSessionPage() {
       />
 
       <div className="session-layout">
-        <main>
+        <div className="session-content">
           <section className="session-object" aria-labelledby="micro-lesson-heading">
             <p className="eyebrow">Up to {rebootCadence.microLessonMaximumMinutes} min</p>
             <h2 id="micro-lesson-heading">Micro-lesson</h2>
@@ -133,7 +133,7 @@ export function RebootSessionPage() {
               ))}
             </div>
           </section>
-        </main>
+        </div>
 
         <aside className="session-record" aria-labelledby="session-record-heading">
           <p className="eyebrow">Local progress v4</p>

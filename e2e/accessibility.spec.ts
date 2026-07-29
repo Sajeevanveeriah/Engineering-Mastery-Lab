@@ -34,17 +34,14 @@ const criticalRoutes = [
   "/settings"
 ];
 
-async function seriousOrCriticalViolations(page: Page) {
+async function axeViolations(page: Page) {
   await page.locator("main#main-content > .page").evaluate(async (element) => {
     await Promise.all(element.getAnimations().map((animation) => animation.finished.catch(() => undefined)));
   });
 
-  const results = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
-    .analyze();
+  const results = await new AxeBuilder({ page }).analyze();
 
   return results.violations
-    .filter((violation) => violation.impact === "serious" || violation.impact === "critical")
     .map((violation) => ({
       id: violation.id,
       impact: violation.impact,
@@ -61,23 +58,33 @@ async function seriousOrCriticalViolations(page: Page) {
     }));
 }
 
-test.describe("WCAG 2.2 AA automated support", () => {
+test.describe("automated accessibility support", () => {
   for (const route of criticalRoutes) {
-    test(`${route} has no serious or critical axe findings`, async ({ page }) => {
+    test(`${route} has no axe findings`, async ({ page }) => {
       await installProgress(page, route === "/portfolio" ? seededProgress : emptyProgress);
       await page.goto(`#${route}`);
       await expect(page.locator("main#main-content h1").first()).toBeVisible();
 
-      expect(await seriousOrCriticalViolations(page)).toEqual([]);
+      expect(await axeViolations(page)).toEqual([]);
     });
   }
 
-  test("new-user onboarding has no serious or critical axe findings", async ({ page }) => {
+  test("new-user onboarding has no axe findings", async ({ page }) => {
     await installProgress(page, { ...structuredClone(emptyProgress), onboardingComplete: false });
     await page.goto("#/");
     await expect(page.getByRole("dialog")).toBeVisible();
     await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("hidden");
 
-    expect(await seriousOrCriticalViolations(page)).toEqual([]);
+    expect(await axeViolations(page)).toEqual([]);
+  });
+
+  test("open mobile navigation has no axe findings", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await installProgress(page, emptyProgress);
+    await page.goto("#/");
+    await page.getByRole("button", { name: "Open navigation" }).click();
+    await expect(page.getByRole("navigation", { name: "Primary navigation" })).toBeVisible();
+
+    expect(await axeViolations(page)).toEqual([]);
   });
 });

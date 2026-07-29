@@ -71,7 +71,7 @@ export function MasteryModulePage() {
       <div className="learning-boundary" role="note"><strong>Educational mapping.</strong> {engineersAustraliaMappingNotice}</div>
 
       <div className="module-detail-layout">
-        <main>
+        <div className="module-detail-content">
           <section aria-labelledby="outcomes-heading">
             <p className="eyebrow">Measurable intent</p><h2 id="outcomes-heading">Learning outcomes</h2>
             <ul className="check-list">{module.outcomes.map((outcome) => <li key={outcome}>{outcome}</li>)}</ul>
@@ -127,7 +127,7 @@ export function MasteryModulePage() {
             <ul>{module.resources.map((resource) => <li key={resource.url}><a href={resource.url} target="_blank" rel="noopener noreferrer">{resource.label}</a> <span className="badge">{resource.authority}</span></li>)}</ul>
             <p><strong>Content basis:</strong> {module.provenance.join("; ")}.</p>
           </section>
-        </main>
+        </div>
 
         <aside className="session-record" aria-labelledby="module-record-heading">
           <p className="eyebrow">Local progress v4</p><h2 id="module-record-heading">Record module proof</h2>
