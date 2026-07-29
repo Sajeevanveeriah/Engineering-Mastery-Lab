@@ -350,7 +350,8 @@ select { min-height: 44px; }
   overscroll-behavior-inline: contain;
 }
 
-.flagship-page .table-scroll-hint {
+.flagship-page .table-scroll-hint,
+.settings-page .table-scroll-hint {
   display: none;
 }
 
@@ -375,8 +376,14 @@ select { min-height: 44px; }
   min-width: 34rem;
 }
 
+.settings-capability-table table {
+  min-width: 36rem;
+}
+
 .flagship-page th,
-.flagship-page td {
+.flagship-page td,
+.settings-capability-table th,
+.settings-capability-table td {
   overflow-wrap: normal;
   word-break: normal;
 }
@@ -467,6 +474,17 @@ select { min-height: 44px; }
   }
 
   .flagship-page .table-scroll-hint {
+    display: block;
+    margin: 0 0 0.55rem;
+    color: var(--text-dim);
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+}
+
+@media (max-width: 640px) {
+  .settings-page .table-scroll-hint {
     display: block;
     margin: 0 0 0.55rem;
     color: var(--text-dim);

@@ -149,9 +149,18 @@ export function Settings() {
         <section>
           <h2>Current data and hosted capability boundary</h2>
           <p>Progress, engineering project bundles, preferences, and profile data remain in this browser or desktop webview. No hosted service is connected and no telemetry is collected.</p>
-          <div className="table-wrap">
+          <p className="table-scroll-hint" id="settings-capabilities-scroll-hint">
+            Scroll horizontally when needed to view all columns. Keyboard users can focus the table region and use the Left and Right Arrow keys.
+          </p>
+          <div
+            className="table-wrap settings-capability-table"
+            role="region"
+            aria-labelledby="settings-capabilities-caption"
+            aria-describedby="settings-capabilities-scroll-hint"
+            tabIndex={0}
+          >
             <table>
-              <caption>Hosted capabilities in this build</caption>
+              <caption id="settings-capabilities-caption">Hosted capabilities in this build</caption>
               <thead><tr><th scope="col">Capability</th><th scope="col">State</th><th scope="col">Local behaviour</th></tr></thead>
               <tbody>
                 <tr><th scope="row">Identity</th><td>Unavailable</td><td>Guest or local profile only</td></tr>
