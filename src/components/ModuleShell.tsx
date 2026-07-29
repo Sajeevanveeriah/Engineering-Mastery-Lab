@@ -115,7 +115,12 @@ export function ModuleShell({ module, simulator }: { module: ModuleContent; simu
         {module.learn.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
       </section>
     ),
-    simulate: <section className="module-panel" aria-label={`${module.title} simulator`}>{simulator}</section>,
+    simulate: (
+      <section className="module-panel" aria-labelledby={`${module.id}-simulate-heading`}>
+        <h2 className="sr-only" id={`${module.id}-simulate-heading`}>Simulate {module.title}</h2>
+        {simulator}
+      </section>
+    ),
     challenge: (
       <section className="module-panel" aria-labelledby={`${module.id}-challenge-heading`}>
         <div className="module-section-intro"><p className="eyebrow">Verify before recording</p><h2 id={`${module.id}-challenge-heading`}>Engineering challenges</h2><p>Every pass criterion is visible before a completion record can be created.</p></div>

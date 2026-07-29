@@ -100,7 +100,7 @@ export function Layout() {
   );
   const [searchOpen, setSearchOpen] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
-  const railRef = useRef<HTMLElement>(null);
+  const railRef = useRef<HTMLDivElement>(null);
   const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null);
   const mobileMenuCloseRef = useRef<HTMLButtonElement>(null);
   const mobileMenuReturnFocusRef = useRef<HTMLElement | null>(null);
@@ -260,10 +260,12 @@ export function Layout() {
       data-route-family={currentFamily}
     >
       <a className="skip-link" href="#main-content">Skip to main content</a>
-      <header
+      <div
         id="primary-navigation-drawer"
         ref={railRef}
         className={`product-rail${mobileMenuOpen ? " product-rail--open" : ""}`}
+        role={drawerMode ? "region" : "banner"}
+        aria-label={drawerMode ? "Navigation drawer" : undefined}
         aria-hidden={drawerMode && !mobileMenuOpen ? true : undefined}
       >
         <div className="product-brand">
@@ -307,11 +309,15 @@ export function Layout() {
         <div className="product-rail__footer">
           <p className="local-mode"><span aria-hidden="true" /> Local open-source preview</p>
         </div>
-      </header>
+      </div>
       {mobileMenuOpen && <button className="product-rail-backdrop" type="button" aria-label="Close navigation" onClick={() => closeMobileMenu(true)} />}
 
       <div className="product-workspace">
-        <header className="product-topbar">
+        <div
+          className="product-topbar"
+          role={drawerMode ? "banner" : "region"}
+          aria-label={drawerMode ? undefined : "Current workspace context"}
+        >
           <div className="product-topbar__route">
             {drawerMode && (
               <button
@@ -333,7 +339,7 @@ export function Layout() {
             <div className="product-route-label"><span>Current workspace</span><strong>{currentTitle}</strong></div>
           </div>
           {contextLinks.length > 0 && (
-            <nav className="context-navigation" aria-label={`${currentFamily} sections`}>
+            <nav className="context-navigation" aria-label={`Context navigation for ${currentTitle}`}>
               {contextLinks.map(([route, label]) => (
                 <NavLink
                   key={route}
@@ -349,7 +355,7 @@ export function Layout() {
           <button className="icon-button product-topbar__mobile-search" type="button" aria-label="Open global search" onClick={() => setSearchOpen(true)}>
             <Icon name="search" />
           </button>
-        </header>
+        </div>
 
         <main id="main-content" ref={mainRef} tabIndex={-1}><Outlet /></main>
         <footer className="product-footer">

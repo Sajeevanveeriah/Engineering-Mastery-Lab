@@ -218,7 +218,9 @@ pre { max-width: 100%; overflow: auto; }
 .theme-toggle:hover { border-color: var(--border-strong); background: var(--bg-inset); }
 .storage-warning { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--warn); font-size: 0.72rem; font-weight: 700; }
 
-main { width: 100%; flex: 1; padding: clamp(1.15rem, 3vw, 2.4rem); outline: none; }
+main,
+.session-content,
+.module-detail-content { width: 100%; flex: 1; padding: clamp(1.15rem, 3vw, 2.4rem); outline: none; }
 .page { width: 100%; max-width: var(--content-max); margin: 0 auto; }
 .page--narrow { max-width: 840px; }
 
@@ -707,7 +709,9 @@ svg.plot { display: block; width: 100%; height: auto; border: 1px solid var(--bo
 }
 
 @media (max-width: 760px) {
-  main { padding: 1rem; }
+  main,
+  .session-content,
+  .module-detail-content { padding: 1rem; }
   .page-header { align-items: flex-start; flex-direction: column; gap: 0.9rem; }
   .page-header__actions { width: 100%; }
   .page-header__actions .btn,
@@ -745,7 +749,9 @@ svg.plot { display: block; width: 100%; height: auto; border: 1px solid var(--bo
   .workspace-topbar__context { display: none; }
   .theme-toggle span { display: none; }
   .theme-toggle { min-width: 38px; padding: 0.35rem; justify-content: center; }
-  main { padding: 0.85rem 0.75rem 1.2rem; }
+  main,
+  .session-content,
+  .module-detail-content { padding: 0.85rem 0.75rem 1.2rem; }
   .footer { padding-inline: 0.75rem; }
   .dashboard-metrics,
   .module-progress-grid,

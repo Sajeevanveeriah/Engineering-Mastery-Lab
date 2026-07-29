@@ -843,8 +843,8 @@ select { min-height: 44px; }
 .prerequisite-map,
 .resource-page > section,
 .analysis-progress-page > section,
-.module-detail-page main > section,
-.session-page main > section,
+.module-detail-page .module-detail-content > section,
+.session-page .session-content > section,
 .capstone-page > section,
 .release-detail-page > section {
   margin-block: 1.5rem;

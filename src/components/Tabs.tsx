@@ -39,7 +39,9 @@ export function Tabs({ tabs, initial, ariaLabel = "Sections" }: TabsProps) {
     const next = tabs[index];
     if (!next) return;
     setActive(next.id);
-    tabRefs.current[index]?.focus();
+    const nextTab = tabRefs.current[index];
+    nextTab?.focus();
+    nextTab?.scrollIntoView({ block: "nearest", inline: "nearest" });
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
