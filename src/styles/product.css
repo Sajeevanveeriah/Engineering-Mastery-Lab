@@ -1684,6 +1684,7 @@ select { min-height: 44px; }
 
 .page-header h1 {
   margin-bottom: 0.8rem;
+  overflow-wrap: anywhere;
   font-family: var(--font-editorial);
   font-size: clamp(2.6rem, 7vw, 6.4rem);
   font-weight: 690;
@@ -2575,6 +2576,10 @@ table {
 
   .page-header h1 {
     font-size: clamp(2.5rem, 14vw, 4.6rem);
+  }
+
+  .session-page .page-header h1 {
+    font-size: clamp(2.4rem, 12.25vw, 4.6rem);
   }
 
   .page-header__actions {
