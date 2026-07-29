@@ -26,14 +26,6 @@ jobs:
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
-      - name: Upload Playwright failure evidence
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: playwright-failure-${{ github.run_id }}-${{ github.run_attempt }}
-          path: test-results
-          if-no-files-found: warn
-          retention-days: 1
       - run: npm audit --omit=dev --audit-level=high
 
   rust:
