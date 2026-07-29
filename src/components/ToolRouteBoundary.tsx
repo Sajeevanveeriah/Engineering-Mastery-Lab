@@ -1,19 +1,16 @@
 import {
   Component,
-  lazy,
   Suspense,
   type ComponentType,
   type ErrorInfo,
   type LazyExoticComponent
 } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router";
 
 const isDevelopment = (import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV === true;
 
-export type ToolRouteLoader = () => Promise<{ default: ComponentType }>;
-
 interface BoundaryProps {
-  load: ToolRouteLoader;
+  component: LazyExoticComponent<ComponentType>;
   resetKey: string;
   toolName: string;
 }
@@ -21,7 +18,6 @@ interface BoundaryProps {
 interface BoundaryState {
   attempt: number;
   failed: boolean;
-  LazyRoute: LazyExoticComponent<ComponentType>;
   reloadRequired: boolean;
   resetKey: string;
 }
@@ -44,7 +40,6 @@ class ToolRouteErrorBoundary extends Component<BoundaryProps, BoundaryState> {
     this.state = {
       attempt: 0,
       failed: false,
-      LazyRoute: lazy(props.load),
       reloadRequired: false,
       resetKey: props.resetKey
     };
@@ -62,7 +57,6 @@ class ToolRouteErrorBoundary extends Component<BoundaryProps, BoundaryState> {
     return {
       attempt: state.attempt + 1,
       failed: false,
-      LazyRoute: lazy(props.load),
       reloadRequired: false,
       resetKey: props.resetKey
     };
@@ -82,14 +76,13 @@ class ToolRouteErrorBoundary extends Component<BoundaryProps, BoundaryState> {
     this.setState((state) => ({
       attempt: state.attempt + 1,
       failed: false,
-      LazyRoute: lazy(this.props.load),
       reloadRequired: false
     }));
   };
 
   render() {
     if (!this.state.failed) {
-      const LazyRoute = this.state.LazyRoute;
+      const LazyRoute = this.props.component;
       return (
         <Suspense
           fallback={(
@@ -125,15 +118,15 @@ class ToolRouteErrorBoundary extends Component<BoundaryProps, BoundaryState> {
 }
 
 interface ToolRouteBoundaryProps {
-  load: ToolRouteLoader;
+  component: LazyExoticComponent<ComponentType>;
   toolName: string;
 }
 
-export function ToolRouteBoundary({ load, toolName }: ToolRouteBoundaryProps) {
+export function ToolRouteBoundary({ component, toolName }: ToolRouteBoundaryProps) {
   const location = useLocation();
   const resetKey = `${location.pathname}|${location.search}|${location.hash}`;
 
   return (
-    <ToolRouteErrorBoundary load={load} resetKey={resetKey} toolName={toolName} />
+    <ToolRouteErrorBoundary component={component} resetKey={resetKey} toolName={toolName} />
   );
 }

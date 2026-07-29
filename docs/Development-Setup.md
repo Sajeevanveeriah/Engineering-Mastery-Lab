@@ -4,7 +4,7 @@
 
 | Requirement | Version | Purpose |
 |---|---|---|
-| Node.js | 20.19+ (22.13+ recommended) | Frontend build and tests |
+| Node.js | 22.22+ | Frontend build and tests |
 | Rust (stable) | 1.77+ | Desktop shell (`src-tauri`) |
 | MSVC Build Tools + Windows SDK | VS 2022 | Windows linking |
 | Xcode command-line tools | current | macOS linking |

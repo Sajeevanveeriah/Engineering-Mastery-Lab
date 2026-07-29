@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import { flangeHoleCentres, plateHoleCentres, type CadDesign } from "../lib/cad/model";
 
 interface CadDrawingProps {
@@ -14,7 +15,7 @@ function DimensionLine({ x1, y1, x2, y2, label }: { x1: number; y1: number; x2: 
 }
 
 export function CadDrawing({ design }: CadDrawingProps) {
-  let drawing: JSX.Element;
+  let drawing: ReactElement;
   if (design.partType === "plate") {
     const part = design.plate;
     const scale = Math.min(430 / part.width, 270 / part.height);

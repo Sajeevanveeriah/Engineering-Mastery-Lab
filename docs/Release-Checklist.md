@@ -3,7 +3,59 @@
 Use this checklist against the exact release working tree or commit. A result
 from an earlier source state is supporting evidence only.
 
-## Current curriculum integration checkpoint
+## Current redesign and dependency-remediation checkpoint
+
+The following checks were run on 2026-07-29 against the local
+`saj/complete-engineering-workbench` working tree based on redesign checkpoint
+commit `ea9ce7d3da924bd4b07389a396bd6f89765fa01e`. The working tree also contained
+the uncommitted dependency remediation described below. This is a pre-integration
+checkpoint: it must not be treated as evidence for the later candidate after
+current `origin/main` is integrated.
+
+| Gate | Result | Evidence scope |
+|---|---|---|
+| Dependency install | Passed | `npm ci` installed 195 packages and audited 196 packages from the lockfile |
+| Installed dependency tree | Passed | `npm ls --all` completed without an invalid dependency tree |
+| React Router remediation | Passed locally | React Router 8.3.0 with React and React DOM 19.2.7; application imports use `react-router` and no `react-router-dom` reference remains |
+| PostCSS remediation | Passed locally | The Vite dependency tree resolves PostCSS 8.5.24 |
+| Production dependency audit | Passed | `npm audit --omit=dev --audit-level=high` reported zero vulnerabilities |
+| Complete dependency audit | Passed | `npm audit --audit-level=high` reported zero vulnerabilities |
+| `npm run lint` | Passed with zero warnings | Complete repository lint scope |
+| `npm run typecheck` | Passed | Complete TypeScript source |
+| `npm test` | 43 files and 349 tests passed | Complete unit, migration, content, numeric, security and retained regression suites |
+| `npm run build` | Passed; 224 modules transformed | Production build; router 48.69 kB, main application 610.62 kB and CAD 613.92 kB before gzip |
+| `npm run test:e2e` | 353 of 353 tests passed | Production-build-backed Chromium suite |
+| Canonical route and reflow matrix | 260 of 260 tests passed | 49 canonical or not-found routes at 320, 390, 768, 1,024 and 1,440 CSS px, plus 15 legacy redirects |
+| Axe automated accessibility checks | 30 of 30 states passed | No serious or critical findings after waiting for route-entry animation completion |
+| Deterministic visual snapshots | 6 of 6 passed | Today, Learn, mobile shell, CAD, motor sizing and flagship workflow |
+| `npm run test:visual-review` | 66 of 66 captures passed and all 66 PNG states were inspected | Independent original-resolution review covered the complete named visual matrix |
+| `cargo fmt --check` | Passed | Current Rust source |
+| `cargo clippy --all-targets --all-features -- -D warnings` | Passed | All Rust targets and features |
+| `cargo test` | 49 tests passed | Native command, path, process and workspace boundaries |
+| Native authority diff | Passed | No file under `src-tauri` changed |
+| Lockfile licence metadata | Passed | 237 npm and 467 Rust entries were parsed; every entry declared licence metadata |
+| Diff, secret and text scans | Passed | `git diff --check`, changed-file U+2013/U+2014 scan and high-signal secret-pattern scan |
+
+The first complete accessibility run encountered one transient local
+`ERR_NO_BUFFER_SPACE` connection failure after 29 states had passed. The exact
+failed state then passed, and a fresh complete run passed all 30 states. No test
+or finding was skipped, suppressed or reclassified.
+
+The first complete visual review failed four desktop flagship states because the
+primary column ended substantially before the evidence rail. The Build and
+kernel section was moved into the primary reading column, and visible mobile
+scroll instructions were associated with every horizontally scrollable flagship
+table. The focused ten-state flagship review and a fresh complete 66-state review
+then passed, and every final PNG was inspected at original resolution. Only the
+intentional flagship states changed; all 56 non-flagship captures remained
+byte-for-byte identical to the pre-fix set.
+
+This checkpoint verifies the pre-integration tree only. It does not verify
+current `origin/main`, pull-request CI, a merged commit, GitHub Pages deployment,
+the live application, packaged desktop artefacts, real external engineering
+tools or manual assistive-technology use.
+
+## Historical curriculum integration checkpoint (2026-07-28)
 
 The following checks were run on 2026-07-28 against the unstaged and
 uncommitted curriculum integration on branch
@@ -416,7 +468,8 @@ browser or desktop webview, operating system and tested build.
       `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json`.
 - [x] Confirm the repository licence. The current source contains the MIT
       licence.
-- [ ] Refresh third-party licence evidence for the final lockfiles.
+- [x] Refresh third-party licence evidence for the current lockfiles. Regenerate
+      it if either lockfile changes before the final candidate.
 - [ ] Decide signing, notarisation, installer trust and update strategy.
 - [ ] Date the changelog and create a release commit only after every required
       gate is green.
@@ -426,6 +479,6 @@ browser or desktop webview, operating system and tested build.
 ## Release decision
 
 A reviewed branch may be described as a functional completion candidate only
-when its current-source gates are recorded below and pass. It must not be
-described as a production release while any applicable real-tool,
+when its current-source gates are recorded in this checklist and pass. It must
+not be described as a production release while any applicable real-tool,
 cross-platform, packaged-runtime or accessibility gate remains open.

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
-import { Link, NavLink, Outlet, useLocation, useMatch } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, useMatch } from "react-router";
 import { primaryDestinations } from "../data/displayLabels";
 import { Icon } from "./Icon";
 import { useProgress } from "./ProgressContext";
@@ -42,10 +42,49 @@ const routeTitles: Array<[string, string]> = [
   ["/", "Today"]
 ];
 
+const contextualNavigation = {
+  learn: [
+    ["/learn", "Discover"],
+    ["/learn/roadmap", "Curriculum"],
+    ["/learn/reboot", "Reboot"],
+    ["/learn/diagnostics", "Diagnostics"],
+    ["/learn/labs", "Laboratories"],
+    ["/learn/resources", "Resources"]
+  ],
+  build: [
+    ["/projects", "Projects"],
+    ["/projects/releases/P1", "P1"],
+    ["/projects/releases/P2", "P2"],
+    ["/projects/releases/P3", "P3"],
+    ["/projects/releases/P4", "P4"]
+  ],
+  analyse: [
+    ["/tools", "Toolbox"],
+    ["/tools/calculators", "Calculators"],
+    ["/tools/engineering", "Workspace"],
+    ["/tools/progress", "Progress"],
+    ["/tools/cad", "CAD Studio"],
+    ["/tools/workbench", "Workbench"]
+  ],
+  prove: [
+    ["/portfolio", "Evidence"],
+    ["/portfolio/capstone", "Capstone"]
+  ]
+} as const;
+
 function routeTitle(pathname: string): string {
   return routeTitles.find(([route]) => (
     route === "/" ? pathname === route : route.endsWith("/") ? pathname.startsWith(route) : pathname === route
   ))?.[1] ?? "Not Found";
+}
+
+function routeFamily(pathname: string): "today" | "learn" | "build" | "analyse" | "prove" | "secondary" {
+  if (pathname === "/") return "today";
+  if (pathname.startsWith("/learn")) return "learn";
+  if (pathname.startsWith("/projects")) return "build";
+  if (pathname.startsWith("/tools")) return "analyse";
+  if (pathname.startsWith("/portfolio")) return "prove";
+  return "secondary";
 }
 
 export function Layout() {
@@ -53,7 +92,6 @@ export function Layout() {
   const { dirty: workbenchDirty, unsavedSummary } = useWorkbenchSession();
   const location = useLocation();
   const laboratoryMatch = useMatch("/learn/labs/:labId");
-  const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileViewport, setMobileViewport] = useState(() =>
     typeof window !== "undefined"
@@ -69,8 +107,15 @@ export function Layout() {
   const restoreMobileFocusRef = useRef(false);
   const firstRoute = useRef(true);
   const currentTitle = routeTitle(location.pathname);
+  const currentFamily = routeFamily(location.pathname);
+  const contextLinks = currentFamily === "learn"
+    || currentFamily === "build"
+    || currentFamily === "analyse"
+    || currentFamily === "prove"
+    ? contextualNavigation[currentFamily]
+    : [];
   const shellMode = laboratoryMatch ? "focused" : "standard";
-  const drawerMode = mobileViewport || shellMode === "focused";
+  const drawerMode = mobileViewport;
 
   const closeMobileMenu = useCallback((restoreFocus = true) => {
     restoreMobileFocusRef.current = restoreFocus;
@@ -210,15 +255,15 @@ export function Layout() {
 
   return (
     <div
-      className={`product-shell${collapsed ? " product-shell--collapsed" : ""}${shellMode === "focused" ? " product-shell--focused" : ""}`}
+      className={`product-shell${shellMode === "focused" ? " product-shell--focused" : ""}`}
       data-shell-mode={shellMode}
+      data-route-family={currentFamily}
     >
       <a className="skip-link" href="#main-content">Skip to main content</a>
-      <aside
+      <header
         id="primary-navigation-drawer"
         ref={railRef}
         className={`product-rail${mobileMenuOpen ? " product-rail--open" : ""}`}
-        aria-label="Primary navigation"
         aria-hidden={drawerMode && !mobileMenuOpen ? true : undefined}
       >
         <div className="product-brand">
@@ -226,7 +271,9 @@ export function Layout() {
             <span className="product-brand__mark" aria-hidden="true">EM</span>
             <span className="product-brand__copy"><strong>Engineering Mastery Lab</strong><small>Learn. Build. Analyse. Prove.</small></span>
           </Link>
-          <button ref={mobileMenuCloseRef} className="icon-button product-rail__mobile-close" type="button" aria-label="Close navigation" onClick={() => closeMobileMenu(true)}><Icon name="close" /></button>
+          {drawerMode && (
+            <button ref={mobileMenuCloseRef} className="icon-button product-rail__mobile-close" type="button" aria-label="Close navigation" onClick={() => closeMobileMenu(true)}><Icon name="close" /></button>
+          )}
         </div>
         <nav className="primary-navigation" aria-label="Primary navigation">
           {primaryDestinations.map((item) => (
@@ -237,52 +284,71 @@ export function Layout() {
               className={({ isActive }) => `primary-navigation__item${isActive ? " active" : ""}`}
               onClick={(event) => navigateFromShell(event, item.route, true)}
               aria-label={item.label}
-              title={collapsed ? item.label : undefined}
             >
               <Icon name={item.icon} size={20} />
               <span>{item.label}</span>
             </NavLink>
           ))}
         </nav>
-        <div className="product-rail__footer">
-          <button className="rail-collapse" type="button" aria-label={collapsed ? "Expand navigation" : "Collapse navigation"} onClick={() => setCollapsed((value) => !value)}>
-            <Icon name="chevron" size={18} /><span>{collapsed ? "Expand" : "Collapse"}</span>
+        <div className="product-topbar__actions">
+          <button className="search-trigger" type="button" aria-label="Open global search" onClick={() => setSearchOpen(true)}>
+            <Icon name="search" size={18} /><span>Search</span><kbd>Ctrl K</kbd>
           </button>
+          <nav className="utility-navigation" aria-label="Product information">
+            <Link to="/pricing" onClick={(event) => navigateFromShell(event, "/pricing")}>Pricing</Link>
+            <Link to="/about" onClick={(event) => navigateFromShell(event, "/about")}>About</Link>
+          </nav>
+          {!persistenceAvailable && <span className="storage-warning" role="status"><Icon name="alert" size={16} /> Session only</span>}
+          <Link className="profile-trigger" to="/settings" aria-label="Open local profile and settings" onClick={(event) => navigateFromShell(event, "/settings", true)}>
+            <span aria-hidden="true">{progress.profile?.displayName?.slice(0, 1).toUpperCase() || "G"}</span>
+            <small>{progress.profile?.displayName || "Guest"}</small>
+          </Link>
+        </div>
+        <div className="product-rail__footer">
           <p className="local-mode"><span aria-hidden="true" /> Local open-source preview</p>
         </div>
-      </aside>
+      </header>
       {mobileMenuOpen && <button className="product-rail-backdrop" type="button" aria-label="Close navigation" onClick={() => closeMobileMenu(true)} />}
 
       <div className="product-workspace">
         <header className="product-topbar">
           <div className="product-topbar__route">
-            <button
-              ref={mobileMenuTriggerRef}
-              className="icon-button product-menu-button"
-              type="button"
-              aria-label="Open navigation"
-              aria-controls="primary-navigation-drawer"
-              aria-expanded={mobileMenuOpen}
-              onClick={() => setMobileMenuOpen(true)}
-            >
-              <Icon name="menu" />
-            </button>
-            <div><span>Engineering Mastery Lab</span><strong>{currentTitle}</strong></div>
-          </div>
-          <div className="product-topbar__actions">
-            <button className="search-trigger" type="button" aria-label="Open global search" onClick={() => setSearchOpen(true)}>
-              <Icon name="search" size={18} /><span>Search</span><kbd>Ctrl K</kbd>
-            </button>
-            <nav className="utility-navigation" aria-label="Product information">
-              <Link to="/pricing" onClick={(event) => navigateFromShell(event, "/pricing")}>Pricing</Link>
-              <Link to="/about" onClick={(event) => navigateFromShell(event, "/about")}>About</Link>
-            </nav>
-            {!persistenceAvailable && <span className="storage-warning" role="status"><Icon name="alert" size={16} /> Session only</span>}
-            <Link className="profile-trigger" to="/settings" aria-label="Open local profile and settings" onClick={(event) => navigateFromShell(event, "/settings")}>
-              <span aria-hidden="true">{progress.profile?.displayName?.slice(0, 1).toUpperCase() || "G"}</span>
-              <small>{progress.profile?.displayName || "Guest"}</small>
+            {drawerMode && (
+              <button
+                ref={mobileMenuTriggerRef}
+                className="icon-button product-menu-button"
+                type="button"
+                aria-label="Open navigation"
+                aria-controls="primary-navigation-drawer"
+                aria-expanded={mobileMenuOpen}
+                onClick={() => setMobileMenuOpen(true)}
+              >
+                <Icon name="menu" />
+              </button>
+            )}
+            <Link className="product-mobile-brand" to="/" aria-label="Engineering Mastery Lab: Today" onClick={(event) => navigateFromShell(event, "/")}>
+              <span className="product-brand__mark" aria-hidden="true">EM</span>
+              <strong>Mastery Lab</strong>
             </Link>
+            <div className="product-route-label"><span>Current workspace</span><strong>{currentTitle}</strong></div>
           </div>
+          {contextLinks.length > 0 && (
+            <nav className="context-navigation" aria-label={`${currentFamily} sections`}>
+              {contextLinks.map(([route, label]) => (
+                <NavLink
+                  key={route}
+                  to={route}
+                  end={route === `/${currentFamily === "build" ? "projects" : currentFamily === "analyse" ? "tools" : currentFamily === "prove" ? "portfolio" : "learn"}`}
+                  onClick={(event) => navigateFromShell(event, route)}
+                >
+                  {label}
+                </NavLink>
+              ))}
+            </nav>
+          )}
+          <button className="icon-button product-topbar__mobile-search" type="button" aria-label="Open global search" onClick={() => setSearchOpen(true)}>
+            <Icon name="search" />
+          </button>
         </header>
 
         <main id="main-content" ref={mainRef} tabIndex={-1}><Outlet /></main>

@@ -2,19 +2,19 @@
 
 ## Release classification
 
-Engineering Mastery Lab v0.2.0 is an uncommitted local implementation
-candidate on branch `saj/complete-engineering-workbench`. Project Workbench is
-one desktop capability inside the product. The current working tree is not a
-production release and is not cleared for public redistribution.
+Engineering Mastery Lab v0.2.0 is the source candidate for the web and desktop
+application. Project Workbench is one desktop capability inside the product.
+A repository checkout is not evidence of a production deployment: production
+status must be established from the merged default-branch SHA, successful CI
+and Pages workflows, and direct verification of the live application.
 
 ## Verification gaps
 
-- The complete current local TypeScript, unit, Chromium, visual and Rust matrix
-  is recorded in `Release-Checklist.md`. The production-only audit retains two
-  moderate React Router advisories. The complete audit retains those entries
-  plus five high PostCSS entries propagated through the development toolchain.
-  npm reports no fix for the listed vulnerable package paths. No dependency
-  change was authorised.
+- The complete dated TypeScript, unit, Chromium, visual, Rust and dependency
+  matrices are recorded in `Release-Checklist.md`. The 2026-07-29 dependency
+  remediation uses React Router 8.3.0 and PostCSS 8.5.24. Both the production
+  and complete npm audit commands reported zero vulnerabilities locally.
+  Final CI and deployment evidence must still be tied to the exact merged SHA.
 - The earlier Phase 1.1 through Phase 5 application checkpoint was built into
   fresh non-empty Windows x64 MSI and NSIS bundles and their SHA-256 hashes
   were recorded. Those binaries do not contain the later curriculum
@@ -230,8 +230,9 @@ production release and is not cleared for public redistribution.
   auto-update, code signing, notarisation, bundled ngspice or bundled KiCad.
 - There is no FEM, CFD, multibody solver, general CAD geometry kernel or
   production safety-controller integration.
-- The repository includes an MIT licence, but public release still requires a
-  refreshed third-party licence review and completion of the release gates.
+- The repository includes an MIT licence. The 2026-07-29 lockfile licence
+  metadata review is recorded in `Third-Party-Licences.md`; it is not legal
+  advice and must be regenerated after any dependency-tree change.
 
 ## Phase 5 local foundation boundaries
 

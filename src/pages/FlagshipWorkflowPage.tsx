@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router";
 import { Icon } from "../components/Icon";
 import { PageHeader } from "../components/PageHeader";
 import { useProgress } from "../components/ProgressContext";
@@ -147,10 +147,14 @@ export function FlagshipWorkflowPage() {
             <h3>Prerequisites</h3>
             <ul>{workflow.prerequisites.map((item) => <li key={item}>{item}</li>)}</ul>
             <h3>Measurable outcomes</h3>
+            <p className="table-scroll-hint" id="flagship-outcomes-scroll-hint">
+              Scroll horizontally to view all columns.
+            </p>
             <div
               className="table-wrap"
               role="region"
               aria-label="Measurable outcomes table"
+              aria-describedby="flagship-outcomes-scroll-hint"
               tabIndex={0}
             >
               <table>
@@ -185,10 +189,14 @@ export function FlagshipWorkflowPage() {
             <dl className="metric-grid">
               {fixture.metrics.map((metric) => <div key={metric.label}><dt>{metric.label}</dt><dd>{formatValue(metric.value)}{metric.unit && metric.unit !== "1" ? ` ${metric.unit}` : ""}</dd></div>)}
             </dl>
+            <p className="table-scroll-hint" id="flagship-fixture-scroll-hint">
+              Scroll horizontally to view all columns.
+            </p>
             <div
               className="table-wrap"
               role="region"
               aria-label="Deterministic fixture data table"
+              aria-describedby="flagship-fixture-scroll-hint"
               tabIndex={0}
             >
               <table>
@@ -197,14 +205,21 @@ export function FlagshipWorkflowPage() {
                 <tbody>{fixture.table.rows.map((row, rowIndex) => <tr key={`${workflow.id}-row-${rowIndex}`}>{row.map((value, columnIndex) => columnIndex === 0 ? <th scope="row" key={fixture.table.columns[columnIndex]}>{formatValue(value)}</th> : <td key={fixture.table.columns[columnIndex]}>{formatValue(value)}</td>)}</tr>)}</tbody>
               </table>
             </div>
-            {fixture.supportingTables.map((item) => (
+            {fixture.supportingTables.map((item, tableIndex) => (
               <section key={item.title}>
                 <h3>{item.title}</h3>
                 <p>{item.textAlternative}</p>
+                <p
+                  className="table-scroll-hint"
+                  id={`${workflow.domain}-supporting-table-${tableIndex}-scroll-hint`}
+                >
+                  Scroll horizontally to view all columns.
+                </p>
                 <div
                   className="table-wrap"
                   role="region"
                   aria-label={`${item.title} data table`}
+                  aria-describedby={`${workflow.domain}-supporting-table-${tableIndex}-scroll-hint`}
                   tabIndex={0}
                 >
                   <table>
@@ -237,13 +252,17 @@ export function FlagshipWorkflowPage() {
           <section aria-labelledby="flagship-equations">
             <p className="eyebrow">Models and limits</p>
             <h2 id="flagship-equations">Equations and SI variables</h2>
-            {workflow.equations.map((equation) => (
+            {workflow.equations.map((equation, equationIndex) => (
               <article className="card" key={equation.id}>
                 <h3>{equation.expression}</h3>
+                <p className="table-scroll-hint" id={`${workflow.domain}-equation-${equationIndex}-scroll-hint`}>
+                  Scroll horizontally to view all columns.
+                </p>
                 <div
                   className="table-wrap"
                   role="region"
                   aria-label={`Variables for ${equation.expression}`}
+                  aria-describedby={`${workflow.domain}-equation-${equationIndex}-scroll-hint`}
                   tabIndex={0}
                 >
                   <table>
@@ -256,29 +275,7 @@ export function FlagshipWorkflowPage() {
               </article>
             ))}
           </section>
-        </div>
 
-        <aside>
-          <section>
-            <p className="eyebrow">Known challenge</p>
-            <h2>Challenge and pass criteria</h2>
-            <p>{workflow.challenge.prompt}</p>
-            <h3>Constraints</h3>
-            <ul>{workflow.challenge.constraints.map((item) => <li key={item}>{item}</li>)}</ul>
-            <h3>Pass criteria</h3>
-            <ul>{workflow.challenge.knownPassCriteria.map((item) => <li key={item}>{item}</li>)}</ul>
-          </section>
-          <section>
-            <p className="eyebrow">Failure analysis</p>
-            <h2>Diagnose before claiming a result</h2>
-            {workflow.failureStates.map((failure) => (
-              <details key={failure.id}>
-                <summary><strong>{failure.condition}</strong></summary>
-                <p><strong>Diagnosis:</strong> {failure.diagnosis}</p>
-                <p><strong>Repair:</strong> {failure.repair}</p>
-              </details>
-            ))}
-          </section>
           <section>
             <p className="eyebrow">Build and kernel</p>
             <h2>Apply and retain evidence</h2>
@@ -347,6 +344,29 @@ export function FlagshipWorkflowPage() {
               <Link className="btn" to={`/projects/${workflow.linkedApplication.projectId}`}>Open Build brief</Link>
               <Link className="btn primary" to="/tools/engineering">Open engineering workspace</Link>
             </div>
+          </section>
+        </div>
+
+        <aside>
+          <section>
+            <p className="eyebrow">Known challenge</p>
+            <h2>Challenge and pass criteria</h2>
+            <p>{workflow.challenge.prompt}</p>
+            <h3>Constraints</h3>
+            <ul>{workflow.challenge.constraints.map((item) => <li key={item}>{item}</li>)}</ul>
+            <h3>Pass criteria</h3>
+            <ul>{workflow.challenge.knownPassCriteria.map((item) => <li key={item}>{item}</li>)}</ul>
+          </section>
+          <section>
+            <p className="eyebrow">Failure analysis</p>
+            <h2>Diagnose before claiming a result</h2>
+            {workflow.failureStates.map((failure) => (
+              <details key={failure.id}>
+                <summary><strong>{failure.condition}</strong></summary>
+                <p><strong>Diagnosis:</strong> {failure.diagnosis}</p>
+                <p><strong>Repair:</strong> {failure.repair}</p>
+              </details>
+            ))}
           </section>
           <section>
             <p className="eyebrow">Accessible alternatives</p>

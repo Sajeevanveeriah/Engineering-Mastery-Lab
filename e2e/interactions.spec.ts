@@ -17,6 +17,19 @@ test("skip navigation moves keyboard focus to the main landmark", async ({ page 
   await expect(page.locator("main#main-content")).toBeFocused();
 });
 
+test("primary navigation preserves the route-change focus contract", async ({ page }) => {
+  await page.goto("#/");
+  await expect(page.getByRole("heading", { level: 1, name: "Today" })).toBeVisible();
+
+  await page.getByRole("navigation", { name: "Primary navigation" })
+    .getByRole("link", { name: "Learn" })
+    .click();
+
+  await expect.poll(() => new URL(page.url()).hash).toBe("#/learn");
+  await expect(page.getByRole("heading", { level: 1, name: "Learn", exact: true })).toBeVisible();
+  await expect(page.locator("main#main-content")).toBeFocused();
+});
+
 test("global search traps focus, closes with Escape and restores focus", async ({ page }) => {
   await page.goto("#/");
   const trigger = page.getByRole("button", { name: "Open global search" });

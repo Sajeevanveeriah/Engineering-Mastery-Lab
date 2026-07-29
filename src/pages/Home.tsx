@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { Icon } from "../components/Icon";
 import { PageHeader } from "../components/PageHeader";
 import { useProgress } from "../components/ProgressContext";
@@ -23,6 +23,50 @@ const recentTypeLabels = {
   tool: "Tool",
   skill: "Skill"
 } as const;
+
+const productStory = [
+  {
+    id: "learn",
+    icon: "labs",
+    title: "Learn with a capability map",
+    description: "Navigate 25 mastery modules, 110 accelerated sessions, diagnostics, pathways, and laboratories without losing prerequisite truth.",
+    route: "/learn",
+    action: "Explore learning"
+  },
+  {
+    id: "build",
+    icon: "practice",
+    title: "Build engineering evidence",
+    description: "Turn structured knowledge into rover releases and serious project briefs with milestones, risks, validation, and local records.",
+    route: "/projects",
+    action: "Choose a project"
+  },
+  {
+    id: "analyse",
+    icon: "workbench",
+    title: "Analyse with bounded tools",
+    description: "Calculate, convert, model, inspect CAD, compare scenarios, and retain transparent assumptions without pretending to be certified software.",
+    route: "/tools",
+    action: "Open the toolbox"
+  },
+  {
+    id: "prove",
+    icon: "report",
+    title: "Prove what the record supports",
+    description: "Trace challenges, artefacts, reflections, skills, and project outcomes into portfolio-ready evidence that remains honest about its limits.",
+    route: "/portfolio",
+    action: "Review evidence"
+  }
+] as const;
+
+const capabilityShowcase = [
+  ["robotics", "Robotics and autonomy", "Motion, odometry, state estimation, sensor fusion, and failure-aware tracking.", "/learn/flagships/robotics-autonomy"],
+  ["embedded", "Embedded intelligence", "Sampling, quantisation, filtering, firmware timing, state logic, and fault handling.", "/learn/flagships/embedded-electronics-sensing"],
+  ["control", "Control systems", "Dynamic response, PID behaviour, saturation diagnosis, and evidence-led tuning.", "/learn/flagships/controls"],
+  ["mechanical", "Mechanical design", "Loads, torque, power, inertia, stress, deflection, tolerance, and model limits.", "/learn/flagships/mechanical-design-dynamics"],
+  ["cad", "CAD and physical definition", "Bounded parametric parts, dimensioned drawings, mass properties, and local exports.", "/tools/cad"],
+  ["ml", "Applied AI and ML", "Provenance-aware data splits, transparent baselines, held-out metrics, and residual analysis.", "/learn/flagships/applied-ai-ml"]
+] as const;
 
 export function Home() {
   const { progress } = useProgress();
@@ -94,9 +138,19 @@ export function Home() {
             <Link className="btn" to="/learn/roadmap">View complete roadmap</Link>
           </div>
         </div>
-        <div className="home-continue__metric">
-          <strong>{rebootSummary.mastery}%</strong>
-          <span>fast-track mastery gates passed</span>
+        <div className="home-continue__visual" aria-label={`${rebootSummary.mastery}% of fast-track mastery gates passed. Current stage ${currentStage.id}, milestone ${milestone.id}, release ${projectRelease.id}.`}>
+          <div className="home-continue__metric">
+            <Icon name="robotics" size={34} />
+            <strong>{rebootSummary.mastery}%</strong>
+            <span>mastery gates passed</span>
+          </div>
+          <span className="home-orbit home-orbit--one" aria-hidden="true" />
+          <span className="home-orbit home-orbit--two" aria-hidden="true" />
+          <dl>
+            <div><dt>Stage</dt><dd>{currentStage.id}</dd></div>
+            <div><dt>Milestone</dt><dd>{milestone.id}</dd></div>
+            <div><dt>Release</dt><dd>{projectRelease.id}</dd></div>
+          </dl>
         </div>
       </section>
 
@@ -127,6 +181,24 @@ export function Home() {
             <Link to="/tools/progress">Review planned versus completed</Link>
           </div>
         )}
+      </section>
+
+      <section className="home-story" aria-labelledby="product-story-heading">
+        <div className="home-section-intro">
+          <p className="eyebrow">One engineering practice</p>
+          <h2 id="product-story-heading">Move from understanding to defensible proof</h2>
+          <p>Each destination has a distinct job. Together they form a local, evidence-led engineering loop.</p>
+        </div>
+        <div className="home-story__grid">
+          {productStory.map((item, index) => (
+            <article className={`home-story-card home-story-card--${item.id}`} key={item.id}>
+              <div className="home-story-card__index"><span>0{index + 1}</span><Icon name={item.icon} size={22} /></div>
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+              <Link to={item.route}>{item.action} <Icon name="arrow-right" size={15} /></Link>
+            </article>
+          ))}
+        </div>
       </section>
 
       <div className="home-question-grid">
@@ -168,6 +240,23 @@ export function Home() {
         <Link className="btn" to="/portfolio">Open portfolio</Link>
       </section>
 
+      <section className="home-capabilities" aria-labelledby="capability-showcase-heading">
+        <div className="home-section-intro">
+          <p className="eyebrow">Connected disciplines</p>
+          <h2 id="capability-showcase-heading">Engineering capability, shown through real workflows</h2>
+          <p>Open the existing learning, analysis, and design surfaces behind each capability.</p>
+        </div>
+        <div className="home-capabilities__grid">
+          {capabilityShowcase.map(([icon, title, description, route]) => (
+            <Link to={route} className="home-capability" key={title}>
+              <span className="home-capability__icon"><Icon name={icon} size={22} /></span>
+              <span><strong>{title}</strong><small>{description}</small></span>
+              <Icon name="arrow-right" size={17} />
+            </Link>
+          ))}
+        </div>
+      </section>
+
       <section aria-labelledby="recent-work-heading">
         <div className="section-heading section-heading--outside"><div><p className="eyebrow">Where have I been?</p><h2 id="recent-work-heading">Recent work</h2></div><Link to="/learn">Discover learning</Link></div>
         {recentWork.length > 0 ? (
@@ -192,6 +281,19 @@ export function Home() {
             <Link className="btn" to="/learn">Discover learning</Link>
           </div>
         )}
+      </section>
+
+      <section className="home-closing" aria-labelledby="closing-continuation-heading">
+        <div>
+          <p className="eyebrow">{isNew ? "Start with one bounded action" : "Keep the evidence moving"}</p>
+          <h2 id="closing-continuation-heading">{isNew ? "Begin with the first accelerated session" : `Continue ${nextSession?.id ?? "your engineering record"}`}</h2>
+          <p>{isNew
+            ? "Learn one idea, complete one smallest useful test, and record one honest piece of evidence."
+            : "Your next action is based on the current local record. It does not overstate exposure, practice, evidence, or mastery."}</p>
+        </div>
+        <Link className="btn primary" to={nextSession ? `/learn/reboot/sessions/${nextSession.id}` : "/portfolio"}>
+          {nextSession ? `Open ${nextSession.id}` : "Review the portfolio"} <Icon name="arrow-right" size={17} />
+        </Link>
       </section>
     </section>
   );

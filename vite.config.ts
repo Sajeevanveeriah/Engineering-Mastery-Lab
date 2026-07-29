@@ -11,7 +11,14 @@ export default defineConfig({
   build: {
     // Three.js is isolated behind the lazy CAD route. Its minified route chunk
     // is intentionally larger than Vite's generic 500 kB warning threshold.
-    chunkSizeWarningLimit: 650
+    chunkSizeWarningLimit: 650,
+    rolldownOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("/node_modules/react-router/")) return "router";
+        }
+      }
+    }
   },
   test: {
     environment: "node",

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { pathways } from "../data/pathways";
 import type { ExperienceLevel, LearnerGoal, LocalLearnerProfile } from "../lib/storage";
 import { recommendPathway } from "../lib/recommendation";

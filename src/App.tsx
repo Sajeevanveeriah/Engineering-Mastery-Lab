@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
+import { HashRouter, Navigate, Route, Routes } from "react-router";
 import { Layout } from "./components/Layout";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { ToolRouteBoundary } from "./components/ToolRouteBoundary";
@@ -34,6 +34,12 @@ const loadWorkbenchPage = () => import("./pages/WorkbenchPage").then((module) =>
 const loadDiagnosticsPage = () => import("./pages/DiagnosticsPage").then((module) => ({ default: module.DiagnosticsPage }));
 const loadFlagshipWorkflowPage = () => import("./pages/FlagshipWorkflowPage").then((module) => ({ default: module.FlagshipWorkflowPage }));
 const loadEngineeringWorkspacePage = () => import("./pages/EngineeringWorkspacePage").then((module) => ({ default: module.EngineeringWorkspacePage }));
+const ToolboxRoute = lazy(loadToolboxPage);
+const CadStudioRoute = lazy(loadCadStudioPage);
+const WorkbenchRoute = lazy(loadWorkbenchPage);
+const DiagnosticsRoute = lazy(loadDiagnosticsPage);
+const FlagshipWorkflowRoute = lazy(loadFlagshipWorkflowPage);
+const EngineeringWorkspaceRoute = lazy(loadEngineeringWorkspacePage);
 const HomePage = lazy(() => import("./pages/Home").then((module) => ({ default: module.Home })));
 const CurriculumRoadmapPage = lazy(() => import("./pages/CurriculumRoadmap").then((module) => ({ default: module.CurriculumRoadmap })));
 const RebootRoadmapPage = lazy(() => import("./pages/RebootRoadmap").then((module) => ({ default: module.RebootRoadmap })));
@@ -81,7 +87,7 @@ export default function App() {
                   <Route path="/learn/pathways/:pathwayId" element={<PathwayDetail />} />
                   <Route
                     path="/learn/flagships/:flagshipId"
-                    element={<ToolRouteBoundary load={loadFlagshipWorkflowPage} toolName="Flagship engineering workflow" />}
+                    element={<ToolRouteBoundary component={FlagshipWorkflowRoute} toolName="Flagship engineering workflow" />}
                   />
                   <Route path="/learn/labs" element={<LearnHub initialFormat="Laboratory" />} />
                   {labRoutes.map(([id, element]) => <Route key={id} path={`/learn/labs/${id}`} element={element} />)}
@@ -93,26 +99,26 @@ export default function App() {
                   <Route path="/tools" element={<ToolsHub />} />
                   <Route
                     path="/tools/calculators"
-                    element={<ToolRouteBoundary load={loadToolboxPage} toolName="Engineering Calculators" />}
+                    element={<ToolRouteBoundary component={ToolboxRoute} toolName="Engineering Calculators" />}
                   />
                   <Route path="/tools/converter" element={<UnitConverter />} />
                   <Route path="/tools/materials" element={<MaterialsReference />} />
                   <Route path="/tools/progress" element={<ProgressAnalysisRoute />} />
                   <Route
                     path="/tools/engineering"
-                    element={<ToolRouteBoundary load={loadEngineeringWorkspacePage} toolName="Engineering project workspace" />}
+                    element={<ToolRouteBoundary component={EngineeringWorkspaceRoute} toolName="Engineering project workspace" />}
                   />
                   <Route
                     path="/tools/cad"
-                    element={<ToolRouteBoundary load={loadCadStudioPage} toolName="CAD Studio" />}
+                    element={<ToolRouteBoundary component={CadStudioRoute} toolName="CAD Studio" />}
                   />
                   <Route
                     path="/tools/workbench"
-                    element={<ToolRouteBoundary load={loadWorkbenchPage} toolName="Project Workbench" />}
+                    element={<ToolRouteBoundary component={WorkbenchRoute} toolName="Project Workbench" />}
                   />
                   <Route
                     path="/tools/diagnostics"
-                    element={<ToolRouteBoundary load={loadDiagnosticsPage} toolName="Desktop Diagnostics" />}
+                    element={<ToolRouteBoundary component={DiagnosticsRoute} toolName="Desktop Diagnostics" />}
                   />
                   <Route path="/portfolio" element={<Portfolio />} />
                   <Route path="/portfolio/capstone" element={<CapstoneEvidenceRoute />} />
