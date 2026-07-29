@@ -11,6 +11,9 @@ test("Today empty state remains visually stable", async ({ page }) => {
   await installProgress(page, emptyProgress);
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("#/");
+  await expect(page.getByRole("heading", { level: 1, name: "Today", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Begin with the first accelerated session", exact: true })).toBeVisible();
+  await settleRouteEffects(page);
 
   await expect(page).toHaveScreenshot("today-empty-light-desktop.png", {
     animations: "disabled",
@@ -22,6 +25,8 @@ test("Learn discovery remains visually stable in dark mode", async ({ page }) =>
   await installProgress(page, { ...structuredClone(seededProgress), theme: "dark" });
   await page.setViewportSize({ width: 1024, height: 900 });
   await page.goto("#/learn");
+  await expect(page.getByRole("heading", { level: 1, name: "Learn", exact: true })).toBeVisible();
+  await settleRouteEffects(page);
 
   await expect(page).toHaveScreenshot("learn-seeded-dark-desktop.png", {
     animations: "disabled",

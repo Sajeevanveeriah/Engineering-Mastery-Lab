@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router";
 import { PageHeader } from "../components/PageHeader";
 import { rebootProjectReleases } from "../data/rebootCurriculum";
 import { NotFoundPage } from "./NotFoundPage";
@@ -59,4 +59,3 @@ export function RoverReleasePage() {
     </section>
   );
 }
-

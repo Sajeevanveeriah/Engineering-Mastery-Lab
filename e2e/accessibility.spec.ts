@@ -35,6 +35,10 @@ const criticalRoutes = [
 ];
 
 async function seriousOrCriticalViolations(page: Page) {
+  await page.locator("main#main-content > .page").evaluate(async (element) => {
+    await Promise.all(element.getAnimations().map((animation) => animation.finished.catch(() => undefined)));
+  });
+
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();
@@ -45,7 +49,15 @@ async function seriousOrCriticalViolations(page: Page) {
       id: violation.id,
       impact: violation.impact,
       help: violation.help,
-      targets: violation.nodes.map((node) => node.target.join(" ")).sort()
+      targets: violation.nodes.map((node) => node.target.join(" ")).sort(),
+      details: violation.nodes.map((node) => ({
+        target: node.target.join(" "),
+        failureSummary: node.failureSummary,
+        checks: [...node.any, ...node.all, ...node.none].map((check) => ({
+          message: check.message,
+          data: check.data
+        }))
+      }))
     }));
 }
 

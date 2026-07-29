@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { Icon } from "../components/Icon";
 import { LinePlot } from "../components/LinePlot";
 import { PageHeader } from "../components/PageHeader";

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { PageHeader } from "../components/PageHeader";
 import { useProgress } from "../components/ProgressContext";
 import { masteryModules } from "../data/masteryCurriculum";
@@ -64,4 +64,3 @@ export function CapstoneEvidencePage() {
     </section>
   );
 }
-

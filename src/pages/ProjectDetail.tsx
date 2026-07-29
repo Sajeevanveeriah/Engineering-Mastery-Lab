@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router";
 import { Icon } from "../components/Icon";
 import { useProgress } from "../components/ProgressContext";
 import { bookmarkKey } from "../data/catalogue";

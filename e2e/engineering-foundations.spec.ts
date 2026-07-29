@@ -244,7 +244,16 @@ for (const workflow of flagshipWorkflows) {
     expect(await page.locator(".flagship-page th, .flagship-page td").evaluateAll((cells) =>
       cells.every((cell) => getComputedStyle(cell).overflowWrap !== "anywhere")
     )).toBe(true);
+    const primaryColumn = page.locator(".flagship-page > .detail-columns > div");
     const evidenceRail = page.locator(".flagship-page > .detail-columns > aside");
+    await expect(primaryColumn.getByRole("heading", { name: "Apply and retain evidence" })).toBeVisible();
+    await expect(evidenceRail.getByRole("heading", { name: "Apply and retain evidence" })).toHaveCount(0);
+    await expect(page.locator(".flagship-page .table-scroll-hint").first()).toBeHidden();
+    const columnHeights = await Promise.all([
+      primaryColumn.evaluate((element) => element.getBoundingClientRect().height),
+      evidenceRail.evaluate((element) => element.getBoundingClientRect().height)
+    ]);
+    expect(columnHeights[0]).toBeGreaterThanOrEqual(columnHeights[1] - 1);
     await expect.poll(() => evidenceRail.evaluate((element) =>
       element.scrollWidth <= element.clientWidth + 1
     )).toBe(true);
@@ -256,24 +265,43 @@ for (const workflow of flagshipWorkflows) {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`#${workflow.route}`);
 
-    await expect(page.getByRole("region", {
+    const kernelSnapshotRegion = page.getByRole("region", {
       name: "Validated kernel calculation snapshots"
-    })).toBeVisible();
-    await expect(page.getByRole("region", {
+    });
+    const kernelOutputRegion = page.getByRole("region", {
       name: "Kernel-compatible output records"
-    })).toBeVisible();
+    });
+    await expect(kernelSnapshotRegion).toBeVisible();
+    await expect(kernelOutputRegion).toBeVisible();
+    expect(await kernelSnapshotRegion.evaluate((element) =>
+      element.scrollWidth <= element.clientWidth + 1
+    )).toBe(true);
+    expect(await kernelOutputRegion.evaluate((element) =>
+      element.scrollWidth <= element.clientWidth + 1
+    )).toBe(true);
+    const tableRegions = page.locator(".flagship-page > .detail-columns > div .table-wrap");
+    const tableCount = await tableRegions.count();
+    expect(tableCount).toBeGreaterThan(0);
+    await expect(page.locator(".flagship-page .table-scroll-hint:visible")).toHaveCount(tableCount);
+    await expect(page.locator(".flagship-page .table-scroll-hint").first()).toHaveText(
+      "Scroll horizontally to view all columns."
+    );
+    expect(await tableRegions.evaluateAll((regions) => regions.every((region) => {
+      const hintId = region.getAttribute("aria-describedby");
+      const hint = hintId ? document.getElementById(hintId) : null;
+      return Boolean(hint)
+        && getComputedStyle(hint as HTMLElement).display !== "none"
+        && region.scrollWidth > region.clientWidth + 1;
+    }))).toBe(true);
+    await tableRegions.first().evaluate((element) => {
+      element.scrollLeft = element.scrollWidth;
+    });
+    expect(await tableRegions.first().evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
     const overflowState = await page.evaluate(() => ({
       documentWidth: document.documentElement.scrollWidth,
       viewportWidth: document.documentElement.clientWidth,
-      railWidth: document.querySelector<HTMLElement>(
-        ".flagship-page > .detail-columns > aside"
-      )?.clientWidth ?? 0,
-      railScrollWidth: document.querySelector<HTMLElement>(
-        ".flagship-page > .detail-columns > aside"
-      )?.scrollWidth ?? 0
     }));
     expect(overflowState.documentWidth).toBeLessThanOrEqual(overflowState.viewportWidth + 1);
-    expect(overflowState.railScrollWidth).toBeLessThanOrEqual(overflowState.railWidth + 1);
     expect(runtimeErrors).toEqual([]);
   });
 }

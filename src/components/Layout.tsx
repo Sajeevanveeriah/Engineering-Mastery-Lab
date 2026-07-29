@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
-import { Link, NavLink, Outlet, useLocation, useMatch } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, useMatch } from "react-router";
 import { primaryDestinations } from "../data/displayLabels";
 import { Icon } from "./Icon";
 import { useProgress } from "./ProgressContext";
@@ -115,7 +115,7 @@ export function Layout() {
     ? contextualNavigation[currentFamily]
     : [];
   const shellMode = laboratoryMatch ? "focused" : "standard";
-  const drawerMode = mobileViewport || shellMode === "focused";
+  const drawerMode = mobileViewport;
 
   const closeMobileMenu = useCallback((restoreFocus = true) => {
     restoreMobileFocusRef.current = restoreFocus;
@@ -271,7 +271,9 @@ export function Layout() {
             <span className="product-brand__mark" aria-hidden="true">EM</span>
             <span className="product-brand__copy"><strong>Engineering Mastery Lab</strong><small>Learn. Build. Analyse. Prove.</small></span>
           </Link>
-          <button ref={mobileMenuCloseRef} className="icon-button product-rail__mobile-close" type="button" aria-label="Close navigation" onClick={() => closeMobileMenu(true)}><Icon name="close" /></button>
+          {drawerMode && (
+            <button ref={mobileMenuCloseRef} className="icon-button product-rail__mobile-close" type="button" aria-label="Close navigation" onClick={() => closeMobileMenu(true)}><Icon name="close" /></button>
+          )}
         </div>
         <nav className="primary-navigation" aria-label="Primary navigation">
           {primaryDestinations.map((item) => (
@@ -311,17 +313,19 @@ export function Layout() {
       <div className="product-workspace">
         <header className="product-topbar">
           <div className="product-topbar__route">
-            <button
-              ref={mobileMenuTriggerRef}
-              className="icon-button product-menu-button"
-              type="button"
-              aria-label="Open navigation"
-              aria-controls="primary-navigation-drawer"
-              aria-expanded={mobileMenuOpen}
-              onClick={() => setMobileMenuOpen(true)}
-            >
-              <Icon name="menu" />
-            </button>
+            {drawerMode && (
+              <button
+                ref={mobileMenuTriggerRef}
+                className="icon-button product-menu-button"
+                type="button"
+                aria-label="Open navigation"
+                aria-controls="primary-navigation-drawer"
+                aria-expanded={mobileMenuOpen}
+                onClick={() => setMobileMenuOpen(true)}
+              >
+                <Icon name="menu" />
+              </button>
+            )}
             <Link className="product-mobile-brand" to="/" aria-label="Engineering Mastery Lab: Today" onClick={(event) => navigateFromShell(event, "/")}>
               <span className="product-brand__mark" aria-hidden="true">EM</span>
               <strong>Mastery Lab</strong>

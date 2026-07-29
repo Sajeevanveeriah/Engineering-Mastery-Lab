@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { PageHeader } from "../components/PageHeader";
 import { useProgress } from "../components/ProgressContext";
 import {
@@ -96,4 +96,3 @@ export function CurriculumRoadmap() {
     </section>
   );
 }
-

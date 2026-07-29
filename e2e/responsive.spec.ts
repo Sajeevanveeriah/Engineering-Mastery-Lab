@@ -29,11 +29,17 @@ test("laboratory routes use focused shell mode without changing catalogue mode",
 
   await page.goto("#/learn/labs/pid?stage=learn");
   await expect(page.locator(".product-shell")).toHaveAttribute("data-shell-mode", "focused");
-  await expect(page.getByRole("navigation", { name: "Primary navigation" })).toHaveCount(0);
+  await expect(page.getByRole("navigation", { name: "Primary navigation" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open navigation" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Close navigation" })).toHaveCount(0);
 
+  await page.setViewportSize({ width: 390, height: 900 });
   const menuTrigger = page.getByRole("button", { name: "Open navigation" });
+  await expect(menuTrigger).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Primary navigation" })).toHaveCount(0);
   await menuTrigger.click();
   await expect(page.getByRole("navigation", { name: "Primary navigation" })).toBeVisible();
+  await expect(page.locator("#primary-navigation-drawer").getByRole("button", { name: "Close navigation" })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(menuTrigger).toBeFocused();
 });

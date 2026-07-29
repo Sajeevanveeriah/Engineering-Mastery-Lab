@@ -61,23 +61,32 @@ const canonicalRoutes = [
   "/route-that-does-not-exist"
 ];
 
-test.describe("canonical route smoke at 320 CSS px", () => {
-  for (const route of canonicalRoutes) {
-    test(`${route} keeps the application usable without horizontal overflow`, async ({ page }) => {
-      await page.setViewportSize({ width: 320, height: 800 });
-      await installProgress(page, emptyProgress);
-      const runtimeErrors = monitorRuntimeErrors(page);
+const canonicalRouteWidths = [320, 390, 768, 1024, 1440] as const;
 
-      await page.goto(`#${route}`);
+test.describe("canonical route and viewport matrix", () => {
+  for (const width of canonicalRouteWidths) {
+    for (const route of canonicalRoutes) {
+      test(`${route} stays usable without horizontal overflow at ${width} CSS px`, async ({ page }) => {
+        await page.setViewportSize({ width, height: 900 });
+        await installProgress(page, emptyProgress);
+        const runtimeErrors = monitorRuntimeErrors(page);
 
-      await expect(page.locator("main#main-content")).toBeVisible();
-      await expect(page.locator("main#main-content h1").first()).toBeVisible();
-      await expect(page).toHaveTitle(/\S+ \| Engineering Mastery Lab/);
-      await expect(page.getByRole("navigation", { name: "Primary mobile navigation" })).toBeVisible();
-      expect(await documentOverflow(page), `document overflow on ${route}`).toBeLessThanOrEqual(1);
-      expect(runtimeErrors, `runtime errors on ${route}`).toEqual([]);
-      await expect(page.getByRole("heading", { name: "This screen could not be rendered" })).toHaveCount(0);
-    });
+        await page.goto(`#${route}`);
+
+        await expect(page.locator("main#main-content")).toBeVisible();
+        await expect(page.locator("main#main-content h1").first()).toBeVisible();
+        await expect(page).toHaveTitle(/\S+ \| Engineering Mastery Lab/);
+        if (laboratoryRoutes.includes(route)) {
+          await expect(page.locator(".product-shell")).toHaveAttribute("data-shell-mode", "focused");
+        }
+        await expect(page.getByRole("navigation", {
+          name: width <= 900 ? "Primary mobile navigation" : "Primary navigation"
+        })).toBeVisible();
+        expect(await documentOverflow(page), `document overflow on ${route} at ${width} CSS px`).toBeLessThanOrEqual(1);
+        expect(runtimeErrors, `runtime errors on ${route} at ${width} CSS px`).toEqual([]);
+        await expect(page.getByRole("heading", { name: "This screen could not be rendered" })).toHaveCount(0);
+      });
+    }
   }
 });
 
@@ -110,4 +119,31 @@ test.describe("legacy redirects", () => {
       expect(runtimeErrors).toEqual([]);
     });
   }
+});
+
+test("legacy redirects replace their browser-history entry", async ({ page }) => {
+  await installProgress(page, emptyProgress);
+  await page.goto("#/learn");
+  await expect(page.getByRole("heading", { level: 1, name: "Learn", exact: true })).toBeVisible();
+
+  await page.evaluate(() => {
+    window.location.hash = "#/labs";
+  });
+  await expect.poll(() => new URL(page.url()).hash).toBe("#/learn/labs");
+  await expect(page.getByRole("heading", { level: 1, name: "Learn", exact: true })).toBeVisible();
+
+  await page.goBack();
+  await expect.poll(() => new URL(page.url()).hash).toBe("#/learn");
+  await expect(page.getByRole("heading", { level: 1, name: "Learn", exact: true })).toBeVisible();
+});
+
+test("HashRouter deep links survive a full document reload", async ({ page }) => {
+  await installProgress(page, emptyProgress);
+  await page.goto("#/tools/calculators");
+  await expect(page.getByRole("heading", { level: 1, name: "Engineering Toolbox" })).toBeVisible();
+
+  await page.reload();
+
+  await expect.poll(() => new URL(page.url()).hash).toBe("#/tools/calculators");
+  await expect(page.getByRole("heading", { level: 1, name: "Engineering Toolbox" })).toBeVisible();
 });

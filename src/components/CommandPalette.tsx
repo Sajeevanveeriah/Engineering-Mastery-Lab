@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { searchCommandCatalogue } from "../data/catalogue";
 import { Icon } from "./Icon";
 

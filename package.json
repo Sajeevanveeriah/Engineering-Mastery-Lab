@@ -4,6 +4,9 @@
   "version": "0.2.0",
   "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=22.22.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
@@ -20,9 +23,9 @@
   },
   "dependencies": {
     "@tauri-apps/api": "^2.11.1",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.28.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-router": "^8.3.0",
     "three": "^0.185.1"
   },
   "devDependencies": {
@@ -31,8 +34,8 @@
     "@playwright/test": "^1.62.0",
     "@tauri-apps/cli": "^2.11.4",
     "@types/node": "^26.1.1",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
     "@types/three": "^0.185.1",
     "@vitejs/plugin-react": "^6.0.3",
     "eslint": "^10.8.0",

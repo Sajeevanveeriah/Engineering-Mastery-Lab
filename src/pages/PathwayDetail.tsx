@@ -1,4 +1,4 @@
-import { Navigate, Link, useParams } from "react-router-dom";
+import { Navigate, Link, useParams } from "react-router";
 import { Icon } from "../components/Icon";
 import { useProgress } from "../components/ProgressContext";
 import { bookmarkKey } from "../data/catalogue";

@@ -350,6 +350,10 @@ select { min-height: 44px; }
   overscroll-behavior-inline: contain;
 }
 
+.flagship-page .table-scroll-hint {
+  display: none;
+}
+
 .engineering-workspace-page > section,
 .engineering-workspace-page .detail-columns > *,
 .flagship-page .detail-columns > *,
@@ -387,6 +391,7 @@ select { min-height: 44px; }
 
 .flagship-record-list {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
   gap: 0.75rem;
 }
 
@@ -459,6 +464,15 @@ select { min-height: 44px; }
 @media (max-width: 700px) {
   .engineering-workspace-page .inline-form {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .flagship-page .table-scroll-hint {
+    display: block;
+    margin: 0 0 0.55rem;
+    color: var(--text-dim);
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.35;
   }
 }
 

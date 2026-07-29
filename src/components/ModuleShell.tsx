@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router";
 import type { ModuleContent } from "../data/modules";
 import { projects } from "../data/projects";
 import { skillDomains } from "../data/skills";
