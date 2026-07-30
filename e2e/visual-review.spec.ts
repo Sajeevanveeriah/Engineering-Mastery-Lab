@@ -110,6 +110,12 @@ const reviewStates: VisualState[] = [
   },
   { name: "today-empty", route: "/" },
   { name: "today-seeded", route: "/", progress: seededProgress },
+  {
+    name: "today-mobile",
+    route: "/",
+    progress: seededProgress,
+    viewport: { width: 390, height: 844 }
+  },
   { name: "today-curriculum-in-progress", route: "/", progress: todayInProgress },
   { name: "today-milestone-complete", route: "/", progress: completedM0 },
   { name: "complete-curriculum-roadmap", route: "/learn/roadmap", viewport: { width: 1440, height: 1100 } },
@@ -338,7 +344,8 @@ const reviewStates: VisualState[] = [
       await expect(canvas).toBeVisible();
       await canvas.evaluate(async (element) => {
         const dataUrl = await new Promise<string>((resolve) => {
-          requestAnimationFrame(() => requestAnimationFrame(() => resolve(element.toDataURL("image/png"))));
+          document.dispatchEvent(new Event("visibilitychange"));
+          requestAnimationFrame(() => resolve(element.toDataURL("image/png")));
         });
         const framebuffer = document.createElement("img");
         framebuffer.src = dataUrl;

@@ -1,4 +1,5 @@
-import { Link } from "react-router";
+import { useEffect, type MouseEvent } from "react";
+import { Link, useLocation } from "react-router";
 import { PageHeader } from "../components/PageHeader";
 import { useProgress } from "../components/ProgressContext";
 import {
@@ -9,8 +10,35 @@ import {
 } from "../data/masteryCurriculum";
 import { stageProgress } from "../lib/curriculum";
 
+function scrollToStage(stageId: string) {
+  const stage = document.getElementById(stageId);
+  if (!stage) return;
+
+  const reduceMotion = document.documentElement.dataset.motion === "reduced"
+    || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  stage.focus({ preventScroll: true });
+  stage.scrollIntoView({
+    behavior: reduceMotion ? "auto" : "smooth",
+    block: "start"
+  });
+}
+
+function jumpToStage(event: MouseEvent<HTMLAnchorElement>, stageId: string) {
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  scrollToStage(stageId);
+}
+
 export function CurriculumRoadmap() {
   const { progress } = useProgress();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!location.hash.startsWith("#stage-")) return;
+    const stageId = location.hash.slice(1);
+    const frame = requestAnimationFrame(() => scrollToStage(stageId));
+    return () => cancelAnimationFrame(frame);
+  }, [location.hash]);
 
   return (
     <section className="page curriculum-page">
@@ -26,7 +54,18 @@ export function CurriculumRoadmap() {
       </div>
 
       <nav className="roadmap-jump" aria-label="Capability stage shortcuts">
-        {capabilityStages.map((stage) => <a key={stage.id} href={`#stage-${stage.id}`}>{stage.id}</a>)}
+        {capabilityStages.map((stage) => {
+          const stageId = `stage-${stage.id}`;
+          return (
+            <a
+              key={stage.id}
+              href={`#/learn/roadmap#${stageId}`}
+              onClick={(event) => jumpToStage(event, stageId)}
+            >
+              {stage.id}
+            </a>
+          );
+        })}
       </nav>
 
       <div className="capability-roadmap">
@@ -34,7 +73,13 @@ export function CurriculumRoadmap() {
           const modules = masteryModules.filter((module) => module.stageId === stage.id);
           const summary = stageProgress(progress, stage.id);
           return (
-            <section id={`stage-${stage.id}`} className="capability-stage" key={stage.id} aria-labelledby={`stage-${stage.id}-heading`}>
+            <section
+              id={`stage-${stage.id}`}
+              className="capability-stage"
+              key={stage.id}
+              aria-labelledby={`stage-${stage.id}-heading`}
+              tabIndex={-1}
+            >
               <header>
                 <div>
                   <p className="eyebrow">{stage.id}</p>

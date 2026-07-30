@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router";
 import { Icon } from "../components/Icon";
 import { PageHeader } from "../components/PageHeader";
 import { useProgress } from "../components/ProgressContext";
@@ -16,15 +16,33 @@ type PriorityFilter = "all" | SkillDomain["priority"];
 
 export function SkillsMatrix() {
   const { progress, update } = useProgress();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedDomainId = searchParams.get("domain");
+  const selectedDomain = skillDomains.find((domain) => domain.id === requestedDomainId) ?? null;
+  const selectedDomainId = selectedDomain?.id ?? null;
+  const initialExpandedDomain = selectedDomainId ?? skillDomains[0]?.id;
   const [query, setQuery] = useState("");
   const [priority, setPriority] = useState<PriorityFilter>("all");
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set([skillDomains[0]?.id]));
+  const [expanded, setExpanded] = useState<Set<string>>(
+    () => initialExpandedDomain ? new Set([initialExpandedDomain]) : new Set()
+  );
   const summary = overallProgress(progress);
   const scoreMap = useMemo(() => new Map(domainScores(progress).map((score) => [score.domainId, score])), [progress]);
+
+  useEffect(() => {
+    if (!selectedDomainId) return;
+    setExpanded((current) => {
+      if (current.has(selectedDomainId)) return current;
+      const next = new Set(current);
+      next.add(selectedDomainId);
+      return next;
+    });
+  }, [selectedDomainId]);
 
   const visibleDomains = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return skillDomains.filter((domain) => {
+      if (selectedDomainId && domain.id !== selectedDomainId) return false;
       if (priority !== "all" && domain.priority !== priority) return false;
       if (!needle) return true;
       const searchable = [
@@ -34,7 +52,19 @@ export function SkillsMatrix() {
       ].join(" ").toLowerCase();
       return searchable.includes(needle);
     });
-  }, [priority, query]);
+  }, [priority, query, selectedDomainId]);
+
+  const clearDomainFilter = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete("domain");
+    setSearchParams(next, { replace: true });
+  };
+
+  const clearFilters = () => {
+    setQuery("");
+    setPriority("all");
+    clearDomainFilter();
+  };
 
   const setRating = (id: string, level: number) => update((state) => ({
     ...state,
@@ -84,13 +114,17 @@ export function SkillsMatrix() {
           </select>
         </div>
         <div className="toolbar-actions">
+          {selectedDomain && <button className="btn btn--quiet" type="button" onClick={clearDomainFilter}>Clear domain filter</button>}
           <button className="btn btn--quiet" type="button" onClick={() => setExpanded(new Set(visibleDomains.map((domain) => domain.id)))}>Expand shown</button>
           <button className="btn btn--quiet" type="button" onClick={() => setExpanded(new Set())}>Collapse all</button>
         </div>
       </div>
 
       <div className="matrix-summary" aria-live="polite">
-        <span>Showing {visibleDomains.length} of {skillDomains.length} domains</span>
+        <span>
+          Showing {visibleDomains.length} of {skillDomains.length} domains
+          {selectedDomain && <> for <strong>{selectedDomain.name}</strong></>}
+        </span>
         <span>Changes save automatically in this browser</span>
       </div>
 
@@ -183,7 +217,7 @@ export function SkillsMatrix() {
           <Icon name="search" size={30} />
           <h2>No matching skills</h2>
           <p className="muted">Change the search or priority filter to show more domains.</p>
-          <button className="btn" type="button" onClick={() => { setQuery(""); setPriority("all"); }}>Clear filters</button>
+          <button className="btn" type="button" onClick={clearFilters}>Clear filters</button>
         </div>
       )}
     </section>

@@ -489,7 +489,9 @@ describe("versioned project packs", () => {
     duplicateVariable.content.project.variables.push(
       structuredClone(duplicateVariable.content.project.variables[0])
     );
-    expect(() => createProjectPack(duplicateVariable)).toThrow(/duplicate id shaft-speed/);
+    expect(() => createProjectPack(duplicateVariable)).toThrow(
+      /duplicate id "shaft-speed" was found in variables/
+    );
 
     const first = pack();
     const alternativeSource = source({

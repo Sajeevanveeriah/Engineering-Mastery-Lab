@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 import { Link, NavLink, Outlet, useLocation, useMatch } from "react-router";
 import { primaryDestinations } from "../data/displayLabels";
+import { getRouteInterfaceMode } from "../lib/routeInterfaceMode";
 import { Icon } from "./Icon";
 import { useProgress } from "./ProgressContext";
 import { useWorkbenchSession } from "./WorkbenchContext";
@@ -80,10 +81,11 @@ function routeTitle(pathname: string): string {
 
 function routeFamily(pathname: string): "today" | "learn" | "build" | "analyse" | "prove" | "secondary" {
   if (pathname === "/") return "today";
-  if (pathname.startsWith("/learn")) return "learn";
-  if (pathname.startsWith("/projects")) return "build";
-  if (pathname.startsWith("/tools")) return "analyse";
-  if (pathname.startsWith("/portfolio")) return "prove";
+  const matchesRouteRoot = (root: string) => pathname === root || pathname.startsWith(`${root}/`);
+  if (matchesRouteRoot("/learn")) return "learn";
+  if (matchesRouteRoot("/projects")) return "build";
+  if (matchesRouteRoot("/tools")) return "analyse";
+  if (matchesRouteRoot("/portfolio")) return "prove";
   return "secondary";
 }
 
@@ -108,6 +110,7 @@ export function Layout() {
   const firstRoute = useRef(true);
   const currentTitle = routeTitle(location.pathname);
   const currentFamily = routeFamily(location.pathname);
+  const interfaceMode = getRouteInterfaceMode(location.pathname);
   const contextLinks = currentFamily === "learn"
     || currentFamily === "build"
     || currentFamily === "analyse"
@@ -258,6 +261,7 @@ export function Layout() {
       className={`product-shell${shellMode === "focused" ? " product-shell--focused" : ""}`}
       data-shell-mode={shellMode}
       data-route-family={currentFamily}
+      data-interface-mode={interfaceMode}
     >
       <a className="skip-link" href="#main-content">Skip to main content</a>
       <div

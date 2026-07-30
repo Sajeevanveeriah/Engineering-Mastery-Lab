@@ -1,4 +1,5 @@
-import { Link } from "react-router";
+import { useEffect, type MouseEvent } from "react";
+import { Link, useLocation } from "react-router";
 import { PageHeader } from "../components/PageHeader";
 import { useProgress } from "../components/ProgressContext";
 import {
@@ -10,8 +11,35 @@ import {
 } from "../data/rebootCurriculum";
 import { progressDimensions } from "../lib/curriculum";
 
+function scrollToMilestone(milestoneId: string) {
+  const milestone = document.getElementById(milestoneId);
+  if (!milestone) return;
+
+  const reduceMotion = document.documentElement.dataset.motion === "reduced"
+    || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  milestone.focus({ preventScroll: true });
+  milestone.scrollIntoView({
+    behavior: reduceMotion ? "auto" : "smooth",
+    block: "start"
+  });
+}
+
+function jumpToMilestone(event: MouseEvent<HTMLAnchorElement>, milestoneId: string) {
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  scrollToMilestone(milestoneId);
+}
+
 export function RebootRoadmap() {
   const { progress } = useProgress();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!location.hash.startsWith("#milestone-")) return;
+    const milestoneId = location.hash.slice(1);
+    const frame = requestAnimationFrame(() => scrollToMilestone(milestoneId));
+    return () => cancelAnimationFrame(frame);
+  }, [location.hash]);
 
   return (
     <section className="page reboot-page">
@@ -30,7 +58,18 @@ export function RebootRoadmap() {
       </div>
 
       <nav className="roadmap-jump" aria-label="Milestone shortcuts">
-        {rebootMilestones.map((milestone) => <a key={milestone.id} href={`#milestone-${milestone.id}`}>{milestone.id}</a>)}
+        {rebootMilestones.map((milestone) => {
+          const milestoneId = `milestone-${milestone.id}`;
+          return (
+            <a
+              key={milestone.id}
+              href={`#/learn/reboot#${milestoneId}`}
+              onClick={(event) => jumpToMilestone(event, milestoneId)}
+            >
+              {milestone.id}
+            </a>
+          );
+        })}
       </nav>
 
       <div className="milestone-roadmap">
@@ -38,7 +77,13 @@ export function RebootRoadmap() {
           const sessions = rebootSessions.filter((session) => session.milestoneId === milestone.id);
           const dimensions = progressDimensions(sessions.map((session) => session.id), progress.curriculumRecords);
           return (
-            <section id={`milestone-${milestone.id}`} className="milestone-section" key={milestone.id} aria-labelledby={`${milestone.id}-heading`}>
+            <section
+              id={`milestone-${milestone.id}`}
+              className="milestone-section"
+              key={milestone.id}
+              aria-labelledby={`${milestone.id}-heading`}
+              tabIndex={-1}
+            >
               <header>
                 <div>
                   <p className="eyebrow">{milestone.id} - {milestone.coreBlocks} blocks</p>
