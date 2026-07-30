@@ -1,8 +1,14 @@
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
+import { Equation, InlineMath } from "../components/AcademyMath";
 import { Icon } from "../components/Icon";
 import { PageHeader } from "../components/PageHeader";
 import { useProgress } from "../components/ProgressContext";
+import {
+  engineeringUnitMathExpressions,
+  flagshipMathExpressions,
+  flagshipVariableMathExpressions
+} from "../data/mathExpressions";
 import {
   createFlagshipKernelPackage,
   flagshipWorkflowSpecifications,
@@ -254,20 +260,61 @@ export function FlagshipWorkflowPage() {
             <h2 id="flagship-equations">Equations and SI variables</h2>
             {workflow.equations.map((equation, equationIndex) => (
               <article className="card" key={equation.id}>
-                <h3>{equation.expression}</h3>
+                <h3>Model equation {equationIndex + 1}</h3>
+                <Equation
+                  expression={
+                    flagshipMathExpressions[
+                      equation.id as keyof typeof flagshipMathExpressions
+                    ]
+                  }
+                  fallbackText={equation.expression}
+                  label={`${workflow.title}, model equation ${equationIndex + 1}`}
+                />
                 <p className="table-scroll-hint" id={`${workflow.domain}-equation-${equationIndex}-scroll-hint`}>
                   Scroll horizontally to view all columns.
                 </p>
                 <div
                   className="table-wrap"
                   role="region"
-                  aria-label={`Variables for ${equation.expression}`}
+                  aria-label={`Variables for model equation ${equationIndex + 1}`}
                   aria-describedby={`${workflow.domain}-equation-${equationIndex}-scroll-hint`}
                   tabIndex={0}
                 >
                   <table>
                     <thead><tr><th scope="col">Symbol</th><th scope="col">Quantity</th><th scope="col">SI unit</th></tr></thead>
-                    <tbody>{equation.variables.map((variable) => <tr key={`${equation.id}-${variable.symbol}`}><th scope="row">{variable.symbol}</th><td>{variable.quantity}</td><td>{variable.siUnit}</td></tr>)}</tbody>
+                    <tbody>
+                      {equation.variables.map((variable) => {
+                        const symbolExpression = flagshipVariableMathExpressions[
+                          variable.symbol as keyof typeof flagshipVariableMathExpressions
+                        ];
+                        const unitExpression = engineeringUnitMathExpressions[
+                          variable.siUnit as keyof typeof engineeringUnitMathExpressions
+                        ];
+                        return (
+                          <tr key={`${equation.id}-${variable.symbol}`}>
+                            <th scope="row">
+                              <InlineMath
+                                expression={symbolExpression}
+                                fallbackText={variable.symbol}
+                                label={symbolExpression?.screenReaderText ?? `Variable ${variable.quantity}`}
+                              />
+                            </th>
+                            <td>{variable.quantity}</td>
+                            <td>
+                              {unitExpression
+                                ? (
+                                    <InlineMath
+                                      expression={unitExpression}
+                                      fallbackText={variable.siUnit}
+                                      label={unitExpression.screenReaderText}
+                                    />
+                                  )
+                                : variable.siUnit}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
                   </table>
                 </div>
                 <p><strong>Assumptions:</strong> {equation.assumptions.join("; ")}</p>

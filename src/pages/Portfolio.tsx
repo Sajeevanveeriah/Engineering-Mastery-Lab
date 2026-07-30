@@ -317,7 +317,7 @@ export function Portfolio() {
         type: "Artefact",
         complete: true,
         stateLabel: "Validated local bundle retained",
-        provenance: `Local progress schema version 4 record saved ${new Date(workspace.updatedAt).toLocaleDateString("en-AU")}. The integrity digest detects corruption but is not authentication or independent engineering validation.`,
+        provenance: `Local progress schema version 5 record saved ${new Date(workspace.updatedAt).toLocaleDateString("en-AU")}. The integrity digest detects corruption but is not authentication or independent engineering validation.`,
         linkedSkillIds: presentation.linkedSkillIds
       });
     }

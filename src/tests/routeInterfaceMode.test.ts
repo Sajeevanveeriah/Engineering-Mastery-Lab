@@ -34,6 +34,13 @@ describe("route interface mode", () => {
     "/learn/labs/robotics",
     "/learn/flagships/robotics-autonomy",
     "/learn/diagnostics",
+    "/learn/courses",
+    "/learn/courses/ACADEMY-E0",
+    "/learn/courses/ACADEMY-E0/units/EML-E0-D01",
+    "/learn/courses/ACADEMY-E0/units/EML-E0-D01/lessons/EML-E0-D01-L01",
+    "/learn/courses/ACADEMY-E0/units/EML-E0-D01/assessments/quiz",
+    "/learn/courses/ACADEMY-E0/challenge",
+    "/learn/review",
     "/learn/reboot/sessions/S001",
     "/learn/modules/EML-E3-D18",
     "/learn/skills",
@@ -57,6 +64,8 @@ describe("route interface mode", () => {
     "/settings-preview",
     "/learn/laboratories",
     "/learn/resources-preview",
+    "/learn/courses-preview",
+    "/learn/reviewer",
     "/cadence",
     "/skills-preview"
   ])("does not treat the partial segment %s as a workspace route", (pathname) => {

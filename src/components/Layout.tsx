@@ -7,8 +7,11 @@ import { useProgress } from "./ProgressContext";
 import { useWorkbenchSession } from "./WorkbenchContext";
 import { CommandPalette } from "./CommandPalette";
 import { Onboarding } from "./Onboarding";
+import { AcademyHandoffBanner } from "./academy/AcademyHandoffBanner";
 
 const routeTitles: Array<[string, string]> = [
+  ["/learn/review", "Learn: Academy Review"],
+  ["/learn/courses", "Learn: Engineering Academy"],
   ["/learn/reboot/sessions/", "Learn: Reboot Session"],
   ["/learn/modules/", "Learn: Curriculum Module"],
   ["/learn/roadmap", "Learn: Complete Curriculum"],
@@ -45,12 +48,12 @@ const routeTitles: Array<[string, string]> = [
 
 const contextualNavigation = {
   learn: [
-    ["/learn", "Discover"],
-    ["/learn/roadmap", "Curriculum"],
-    ["/learn/reboot", "Reboot"],
+    ["/learn/courses", "Academy"],
+    ["/learn/review", "Review"],
+    ["/learn/roadmap", "E0-E4 map"],
+    ["/learn/reboot", "S001-S110"],
     ["/learn/diagnostics", "Diagnostics"],
-    ["/learn/labs", "Laboratories"],
-    ["/learn/resources", "Resources"]
+    ["/learn/labs", "Laboratories"]
   ],
   build: [
     ["/projects", "Projects"],
@@ -74,6 +77,21 @@ const contextualNavigation = {
 } as const;
 
 function routeTitle(pathname: string): string {
+  if (/^\/learn\/courses\/[^/]+\/units\/[^/]+\/lessons\/[^/]+$/.test(pathname)) {
+    return "Learn: Academy Lesson";
+  }
+  if (/^\/learn\/courses\/[^/]+\/units\/[^/]+\/assessments\/(?:quiz|test)$/.test(pathname)) {
+    return "Learn: Academy Assessment";
+  }
+  if (/^\/learn\/courses\/[^/]+\/challenge$/.test(pathname)) {
+    return "Learn: Academy Challenge";
+  }
+  if (/^\/learn\/courses\/[^/]+\/units\/[^/]+$/.test(pathname)) {
+    return "Learn: Academy Unit";
+  }
+  if (/^\/learn\/courses\/[^/]+$/.test(pathname)) {
+    return "Learn: Academy Course";
+  }
   return routeTitles.find(([route]) => (
     route === "/" ? pathname === route : route.endsWith("/") ? pathname.startsWith(route) : pathname === route
   ))?.[1] ?? "Not Found";
@@ -90,7 +108,11 @@ function routeFamily(pathname: string): "today" | "learn" | "build" | "analyse" 
 }
 
 export function Layout() {
-  const { progress, persistenceAvailable } = useProgress();
+  const {
+    progress,
+    persistenceAvailable,
+    progressRecoveryRequired
+  } = useProgress();
   const { dirty: workbenchDirty, unsavedSummary } = useWorkbenchSession();
   const location = useLocation();
   const laboratoryMatch = useMatch("/learn/labs/:labId");
@@ -304,7 +326,24 @@ export function Layout() {
             <Link to="/pricing" onClick={(event) => navigateFromShell(event, "/pricing")}>Pricing</Link>
             <Link to="/about" onClick={(event) => navigateFromShell(event, "/about")}>About</Link>
           </nav>
-          {!persistenceAvailable && <span className="storage-warning" role="status"><Icon name="alert" size={16} /> Session only</span>}
+          {progressRecoveryRequired
+            ? (
+                <span className="storage-warning" role="status">
+                  <Icon name="alert" size={16} />
+                  <Link
+                    to="/settings"
+                    aria-label="Progress recovery required. Open Settings."
+                    onClick={(event) => navigateFromShell(event, "/settings", true)}
+                  >
+                    Recovery needed
+                  </Link>
+                </span>
+              )
+            : !persistenceAvailable && (
+                <span className="storage-warning" role="status">
+                  <Icon name="alert" size={16} /> Session only
+                </span>
+              )}
           <Link className="profile-trigger" to="/settings" aria-label="Open local profile and settings" onClick={(event) => navigateFromShell(event, "/settings", true)}>
             <span aria-hidden="true">{progress.profile?.displayName?.slice(0, 1).toUpperCase() || "G"}</span>
             <small>{progress.profile?.displayName || "Guest"}</small>
@@ -361,7 +400,10 @@ export function Layout() {
           </button>
         </div>
 
-        <main id="main-content" ref={mainRef} tabIndex={-1}><Outlet /></main>
+        <main id="main-content" ref={mainRef} tabIndex={-1}>
+          <AcademyHandoffBanner />
+          <Outlet />
+        </main>
         <footer className="product-footer">
           <span>Engineering Mastery Lab</span>
           <span>Local learning workspace. Validate real-world engineering decisions independently.</span>

@@ -1,8 +1,13 @@
 import { useMemo, useState } from "react";
+import { Equation } from "../components/AcademyMath";
 import { ModuleShell } from "../components/ModuleShell";
 import { Slider } from "../components/Slider";
 import { LinePlot } from "../components/LinePlot";
 import { Tabs } from "../components/Tabs";
+import {
+  buildEmbeddedByteMathExpression,
+  labMathExpressions
+} from "../data/mathExpressions";
 import { moduleById } from "../data/modules";
 import {
   trafficLightFsm,
@@ -91,7 +96,7 @@ function DebounceTool() {
           { name: "Debounced", color: "var(--chart-1)", points: clean.map((p) => ({ x: p.t, y: p.out })) }
         ]}
       />
-      <p className="small muted">Raw trace offset +0.25 for visibility. One press should yield exactly one debounced edge.</p>
+      <p className="small muted">The raw trace is shifted upward by 0.25 for visibility. One press should yield exactly one debounced edge.</p>
     </div>
   );
 }
@@ -105,9 +110,14 @@ function LatencyTool() {
   return (
     <div className="card">
       <h3 style={{ marginTop: 0 }}>Interrupt vs polling latency</h3>
+      <Equation
+        expression={labMathExpressions["embedded-latency"]}
+        fallbackText={labMathExpressions["embedded-latency"].plainText}
+        label="Worst-case polling and interrupt latency"
+      />
       <Slider label="Poll period" value={pollMs} min={0.1} max={50} step={0.1} unit="ms" onChange={setPollMs} />
       <Slider label="Handler execution time" value={handlerUs} min={10} max={5000} step={10} unit="µs" onChange={setHandlerUs} />
-      <Slider label="ISR entry overhead" value={isrUs} min={1} max={50} step={1} unit="µs" onChange={setIsrUs} />
+      <Slider label="Interrupt entry overhead" value={isrUs} min={1} max={50} step={1} unit="µs" onChange={setIsrUs} />
       <table>
         <thead><tr><th>Approach</th><th>Worst-case latency</th><th>Average latency</th></tr></thead>
         <tbody>
@@ -116,7 +126,7 @@ function LatencyTool() {
         </tbody>
       </table>
       <p className="small muted">
-        Polling worst case = one full poll period + handler time (event arrives just after a check). Interrupts trade
+        The polling worst case occurs when an event arrives just after a check, so the event waits one full polling period before the handler runs. Interrupts trade
         deterministic latency for concurrency complexity: shared data, re-entrancy and priority management.
       </p>
     </div>
@@ -132,6 +142,10 @@ function BusTool() {
     { x: i, y: b.bit },
     { x: i + 1, y: b.bit }
   ]);
+  const byteExpression = useMemo(
+    () => buildEmbeddedByteMathExpression(byte),
+    [byte]
+  );
   return (
     <div className="card">
       <h3 style={{ marginTop: 0 }}>Serial bus frame: {kind}</h3>
@@ -143,7 +157,11 @@ function BusTool() {
         ))}
       </p>
       <Slider label="Data byte" value={byte} min={0} max={255} step={1} onChange={setByte} />
-      <p className="small muted">Byte = 0x{byte.toString(16).padStart(2, "0").toUpperCase()} = 0b{byte.toString(2).padStart(8, "0")}</p>
+      <Equation
+        expression={byteExpression}
+        fallbackText={byteExpression.plainText}
+        label="Data byte in hexadecimal and binary"
+      />
       <LinePlot
         title={`${kind} conceptual frame`}
         xLabel="bit slots"

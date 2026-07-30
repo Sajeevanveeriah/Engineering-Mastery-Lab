@@ -5,28 +5,6 @@ import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { ToolRouteBoundary } from "./components/ToolRouteBoundary";
 import { WorkbenchProvider } from "./components/WorkbenchContext";
 import { ProgressProvider } from "./components/ProgressContext";
-import { LearnHub } from "./pages/LearnHub";
-import { PathwayDetail } from "./pages/PathwayDetail";
-import { Bookmarks } from "./pages/Bookmarks";
-import { SkillsMatrix } from "./pages/SkillsMatrix";
-import { PidLab } from "./pages/PidLab";
-import { ElectricalLab } from "./pages/ElectricalLab";
-import { EmbeddedLab } from "./pages/EmbeddedLab";
-import { PlcLab } from "./pages/PlcLab";
-import { RoboticsLab } from "./pages/RoboticsLab";
-import { MlLab } from "./pages/MlLab";
-import { MechanicalLab } from "./pages/MechanicalLab";
-import { PracticeLab } from "./pages/PracticeLab";
-import { Projects } from "./pages/Projects";
-import { ProjectDetail } from "./pages/ProjectDetail";
-import { ToolsHub } from "./pages/ToolsHub";
-import { UnitConverter } from "./pages/UnitConverter";
-import { MaterialsReference } from "./pages/MaterialsReference";
-import { Portfolio } from "./pages/Portfolio";
-import { Pricing } from "./pages/Pricing";
-import { Settings } from "./pages/Settings";
-import { About } from "./pages/About";
-import { NotFoundPage } from "./pages/NotFoundPage";
 
 const loadToolboxPage = () => import("./pages/ToolboxPage").then((module) => ({ default: module.ToolboxPage }));
 const loadCadStudioPage = () => import("./pages/CadStudioPage").then((module) => ({ default: module.CadStudioPage }));
@@ -40,11 +18,39 @@ const WorkbenchRoute = lazy(loadWorkbenchPage);
 const DiagnosticsRoute = lazy(loadDiagnosticsPage);
 const FlagshipWorkflowRoute = lazy(loadFlagshipWorkflowPage);
 const EngineeringWorkspaceRoute = lazy(loadEngineeringWorkspacePage);
+const LearnHub = lazy(() => import("./pages/LearnHub").then((module) => ({ default: module.LearnHub })));
+const PathwayDetail = lazy(() => import("./pages/PathwayDetail").then((module) => ({ default: module.PathwayDetail })));
+const Bookmarks = lazy(() => import("./pages/Bookmarks").then((module) => ({ default: module.Bookmarks })));
+const SkillsMatrix = lazy(() => import("./pages/SkillsMatrix").then((module) => ({ default: module.SkillsMatrix })));
+const PidLab = lazy(() => import("./pages/PidLab").then((module) => ({ default: module.PidLab })));
+const ElectricalLab = lazy(() => import("./pages/ElectricalLab").then((module) => ({ default: module.ElectricalLab })));
+const EmbeddedLab = lazy(() => import("./pages/EmbeddedLab").then((module) => ({ default: module.EmbeddedLab })));
+const PlcLab = lazy(() => import("./pages/PlcLab").then((module) => ({ default: module.PlcLab })));
+const RoboticsLab = lazy(() => import("./pages/RoboticsLab").then((module) => ({ default: module.RoboticsLab })));
+const MlLab = lazy(() => import("./pages/MlLab").then((module) => ({ default: module.MlLab })));
+const MechanicalLab = lazy(() => import("./pages/MechanicalLab").then((module) => ({ default: module.MechanicalLab })));
+const PracticeLab = lazy(() => import("./pages/PracticeLab").then((module) => ({ default: module.PracticeLab })));
+const Projects = lazy(() => import("./pages/Projects").then((module) => ({ default: module.Projects })));
+const ProjectDetail = lazy(() => import("./pages/ProjectDetail").then((module) => ({ default: module.ProjectDetail })));
+const ToolsHub = lazy(() => import("./pages/ToolsHub").then((module) => ({ default: module.ToolsHub })));
+const UnitConverter = lazy(() => import("./pages/UnitConverter").then((module) => ({ default: module.UnitConverter })));
+const MaterialsReference = lazy(() => import("./pages/MaterialsReference").then((module) => ({ default: module.MaterialsReference })));
+const Portfolio = lazy(() => import("./pages/Portfolio").then((module) => ({ default: module.Portfolio })));
+const Pricing = lazy(() => import("./pages/Pricing").then((module) => ({ default: module.Pricing })));
+const Settings = lazy(() => import("./pages/Settings").then((module) => ({ default: module.Settings })));
+const About = lazy(() => import("./pages/About").then((module) => ({ default: module.About })));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage").then((module) => ({ default: module.NotFoundPage })));
 const HomePage = lazy(() => import("./pages/Home").then((module) => ({ default: module.Home })));
 const CurriculumRoadmapPage = lazy(() => import("./pages/CurriculumRoadmap").then((module) => ({ default: module.CurriculumRoadmap })));
 const RebootRoadmapPage = lazy(() => import("./pages/RebootRoadmap").then((module) => ({ default: module.RebootRoadmap })));
 const RebootSessionRoute = lazy(() => import("./pages/RebootSessionPage").then((module) => ({ default: module.RebootSessionPage })));
 const MasteryModuleRoute = lazy(() => import("./pages/MasteryModulePage").then((module) => ({ default: module.MasteryModulePage })));
+const AcademyCatalogueRoute = lazy(() => import("./pages/AcademyCataloguePage").then((module) => ({ default: module.AcademyCataloguePage })));
+const AcademyCourseRoute = lazy(() => import("./pages/AcademyCoursePage").then((module) => ({ default: module.AcademyCoursePage })));
+const AcademyUnitRoute = lazy(() => import("./pages/AcademyUnitPage").then((module) => ({ default: module.AcademyUnitPage })));
+const AcademyLessonRoute = lazy(() => import("./pages/AcademyLessonPage").then((module) => ({ default: module.AcademyLessonPage })));
+const AcademyAssessmentRoute = lazy(() => import("./pages/AcademyAssessmentPage").then((module) => ({ default: module.AcademyAssessmentPage })));
+const AcademyReviewRoute = lazy(() => import("./pages/AcademyReviewPage").then((module) => ({ default: module.AcademyReviewPage })));
 const CurriculumDiagnosticsRoute = lazy(() => import("./pages/CurriculumDiagnosticsPage").then((module) => ({ default: module.CurriculumDiagnosticsPage })));
 const CurriculumResourcesRoute = lazy(() => import("./pages/CurriculumResourcesPage").then((module) => ({ default: module.CurriculumResourcesPage })));
 const ProgressAnalysisRoute = lazy(() => import("./pages/ProgressAnalysisPage").then((module) => ({ default: module.ProgressAnalysisPage })));
@@ -81,6 +87,19 @@ export default function App() {
                   <Route path="/learn/reboot" element={<RebootRoadmapPage />} />
                   <Route path="/learn/reboot/sessions/:sessionId" element={<RebootSessionRoute />} />
                   <Route path="/learn/modules/:moduleId" element={<MasteryModuleRoute />} />
+                  <Route path="/learn/courses" element={<AcademyCatalogueRoute />} />
+                  <Route path="/learn/courses/:courseId" element={<AcademyCourseRoute />} />
+                  <Route path="/learn/courses/:courseId/units/:unitId" element={<AcademyUnitRoute />} />
+                  <Route path="/learn/courses/:courseId/units/:unitId/lessons/:lessonId" element={<AcademyLessonRoute />} />
+                  <Route
+                    path="/learn/courses/:courseId/units/:unitId/assessments/:assessmentKind"
+                    element={<AcademyAssessmentRoute scope="unit" />}
+                  />
+                  <Route
+                    path="/learn/courses/:courseId/challenge"
+                    element={<AcademyAssessmentRoute scope="course" />}
+                  />
+                  <Route path="/learn/review" element={<AcademyReviewRoute />} />
                   <Route path="/learn/diagnostics" element={<CurriculumDiagnosticsRoute />} />
                   <Route path="/learn/resources" element={<CurriculumResourcesRoute />} />
                   <Route path="/learn/pathways" element={<LearnHub initialFormat="Pathway" />} />

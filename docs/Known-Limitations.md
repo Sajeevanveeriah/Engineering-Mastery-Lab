@@ -26,10 +26,12 @@ and Pages workflows, and direct verification of the live application.
 - ngspice and KiCad were not installed on the development host used for the
   completion checks. Their parsers and adapter workflows are fixture-tested,
   but a real-tool end-to-end run remains required.
-- The current-source browser matrix includes Chromium automation, axe checks,
-  reflow, forced colours, deterministic snapshots and 66 named visual-review
-  states. Firefox, WebKit, Safari, NVDA, JAWS and VoiceOver remain unverified.
-  No formal WCAG conformance claim is made.
+- The dated browser matrices include Chromium automation, axe checks, reflow,
+  forced colours and deterministic visual captures. A capture command is not
+  itself a visual pass, and current-tree evidence must identify the exact
+  browsers, viewports and screenshots actually inspected. Firefox, WebKit,
+  Safari, NVDA, JAWS and VoiceOver remain unverified. No formal WCAG
+  conformance claim is made.
 - The earlier packaged Tauri webview startup was smoke-tested, but the later
   curriculum integration was not repackaged or launched. No current
   interaction test exercises a complete webview-to-IPC adapter workflow. Rust
@@ -46,9 +48,11 @@ and Pages workflows, and direct verification of the live application.
 - Desktop workbench manifest schema version 1 and receipt schema version 2 are
   supported. Newer, missing or malformed versions are rejected; these desktop
   files have no migration framework.
-- Browser progress schema version 4 can import deterministic version 1,
-  version 2 and version 3 backups. It does not import an unsupported future
-  progress version.
+- Browser progress schema version 5 can import deterministic version 1,
+  version 2, version 3 and version 4 backups. Earlier versions receive an empty
+  Academy state; migration does not invent Academy completion, assessment,
+  mastery, review or laboratory evidence. It does not import an unsupported
+  future progress version.
 - Engineering project schema version 2 and project bundle schema version 2 are
   current. Bundle version 1 has a deterministic migration path. There is no
   general project migration registry.
@@ -202,9 +206,59 @@ and Pages workflows, and direct verification of the live application.
 - External-resource access can change after the recorded date. An official
   label does not guarantee availability, free access, current compatibility or
   endorsement.
+- The Academy source registry contains 65 exact, unit-relevant HTTPS records
+  revalidated on 2026-07-30. That live check establishes only that each
+  declared URL returned a successful HTTPS response at that time; it does not
+  prove future availability, content stability or legal permission to copy.
+- Autodesk, ASME, ISA, OPC Foundation, OMG and Engineers Australia records are
+  link-out-only pointers. The application must not frame, reproduce or present
+  their material as bundled Academy content. ST source links are deliberately
+  excluded because the reviewed ST terms do not permit deep-linking or framing
+  without permission.
+- OpenStax links remain optional source pointers. Its current
+  CC BY-NC-SA 4.0 attribution requirements, third-party exclusions and stated
+  AI-ingestion restrictions still apply to any downstream reuse.
+- The Academy teaches through complete native lessons. Source links and
+  optional videos provide provenance or supplementary context, but the
+  application cannot guarantee that an external provider will remain
+  available, embeddable or unchanged after its recorded validation date.
+- Loading optional video creates a request to YouTube and exposes the normal
+  network metadata of that request, including the learner's IP address, to the
+  provider. The privacy-enhanced origin, sandbox, no-autoplay setting and
+  click-to-load gate reduce unnecessary contact; they do not make third-party
+  playback anonymous.
+- Four reviewed MIT OpenCourseWare videos are currently registered in four
+  lesson placements. They are not downloaded for offline use. Captions,
+  attribution, a reviewed native summary fallback and complete written teaching are
+  retained, and no assessment requires provider playback.
+- Web offline support is established only after a production build is served
+  over HTTP or HTTPS and the service worker successfully installs its complete
+  same-origin manifest. A first visit, blocked service worker, interrupted
+  installation, cleared site data or newly changed build can still require a
+  network connection. External media and source pages are not cached.
+- Tauri deliberately does not register the web service worker. Desktop offline
+  learning depends on the packaged local frontend assets, not on the browser
+  cache. A source checkout without a current package is not desktop-offline
+  evidence.
+- KaTeX renders reviewed notation with MathML and a plain-text fallback. It is
+  not a computer algebra system, unit solver or proof of a formula's physical
+  validity. Arbitrary learner-authored TeX is not an Academy input.
+- The mastery thresholds and 7, 14, 30, 60 and 120 day review intervals are
+  explicit configurable product heuristics. They are not a validated
+  cognitive model, medical claim or guarantee of durable retention.
+- Recommendation ranking is deterministic for its validated input and records
+  human-readable reason codes. It is not an adaptive machine-learning model,
+  does not use telemetry and cannot infer unrecorded knowledge or circumstances.
 - Completion, diagnostic score, confidence, evidence reference and
   mastery-gate result are learner-controlled local records. The application
   does not authenticate evidence or independently observe task performance.
+- Academy laboratory returns require an observed result, criterion comparison
+  and retained evidence reference, but these are still learner-entered local
+  records. Opening a lab records unfinished work and does not award completion
+  or mastery.
+- The assessed diagnostic samples reviewed Academy questions and can recommend
+  study or record a diagnostic result. It does not award applied evidence,
+  course challenge completion or professional proof.
 - Diagnostic scores of 3 or 4 can skip ordinary lesson sessions but cannot
   skip proof or release sessions. This rule prevents a software shortcut; it
   does not prove that a diagnostic was performed honestly.
@@ -215,7 +269,7 @@ and Pages workflows, and direct verification of the live application.
   or schedule notifications.
 - P1-P4 are local learning releases, not deployed robot releases. Hardware
   purchasing, deployment and safety acceptance remain outside the product.
-- The resource inventory can become visually long because all 64 source
+- The resource inventory can become visually long because all 65 source
   records remain inspectable. Search and track filters reduce the set, but
   there is no server-side pagination.
 

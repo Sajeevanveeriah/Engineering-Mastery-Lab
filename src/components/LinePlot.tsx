@@ -115,7 +115,8 @@ interface LinePlotProps {
 export function LinePlot({ series, width = 640, height = 280, xLabel, yLabel, yMin, yMax, title }: LinePlotProps) {
   const titleId = useId().replace(/:/g, "");
   const descriptionId = useId().replace(/:/g, "");
-  const pad = { l: 48, r: 12, t: 14, b: 30 };
+  const pad = { l: yLabel ? 66 : 48, r: 12, t: 36, b: 30 };
+  const legendY = 16;
   const plotData = prepareFinitePlotData(series);
   const chartTitle = title ?? "Line plot";
   if (!plotData) {
@@ -187,7 +188,15 @@ export function LinePlot({ series, width = 640, height = 280, xLabel, yLabel, yM
         return (
           <g key={`y${i}`}>
             <line x1={pad.l} x2={width - pad.r} y1={sy(yv)} y2={sy(yv)} stroke="currentColor" opacity={0.12} />
-            <text x={pad.l - 6} y={sy(yv) + 4} textAnchor="end" fontSize={10} fill="currentColor" opacity={0.6}>
+            <text
+              className="plot__tick plot__tick--y"
+              x={pad.l - 6}
+              y={sy(yv) + 4}
+              textAnchor="end"
+              fontSize={10}
+              fill="currentColor"
+              opacity={0.6}
+            >
               {fmt(yv)}
             </text>
           </g>
@@ -196,7 +205,16 @@ export function LinePlot({ series, width = 640, height = 280, xLabel, yLabel, yM
       {Array.from({ length: ticksX + 1 }, (_, i) => {
         const xv = x0 + ((x1 - x0) * i) / ticksX;
         return (
-          <text key={`x${i}`} x={sx(xv)} y={height - pad.b + 16} textAnchor="middle" fontSize={10} fill="currentColor" opacity={0.6}>
+          <text
+            className="plot__tick plot__tick--x"
+            key={`x${i}`}
+            x={sx(xv)}
+            y={height - pad.b + 16}
+            textAnchor="middle"
+            fontSize={10}
+            fill="currentColor"
+            opacity={0.6}
+          >
             {fmt(xv)}
           </text>
         );
@@ -219,32 +237,49 @@ export function LinePlot({ series, width = 640, height = 280, xLabel, yLabel, yM
         )
       )}
       {plotSeries.map((s, i) => (
-        <g key={`leg-${s.name}`}>
+        <g className="plot__legend" key={`leg-${s.name}`}>
           {s.kind === "scatter" ? (
-            <circle cx={pad.l + 14 + i * 110} cy={pad.t + 1.5} r={3} fill={s.color} />
+            <circle cx={pad.l + 14 + i * 110} cy={legendY - 1.5} r={3} fill={s.color} />
           ) : (
             <line
               x1={pad.l + 8 + i * 110}
               x2={pad.l + 20 + i * 110}
-              y1={pad.t + 1.5}
-              y2={pad.t + 1.5}
+              y1={legendY - 1.5}
+              y2={legendY - 1.5}
               stroke={s.color}
               strokeWidth={3}
               strokeDasharray={s.dashed ? "4 3" : undefined}
             />
           )}
-          <text x={pad.l + 24 + i * 110} y={pad.t + 5} fontSize={10} fill="currentColor" opacity={0.8}>
+          <text x={pad.l + 24 + i * 110} y={legendY + 2} fontSize={10} fill="currentColor" opacity={0.8}>
             {s.name}
           </text>
         </g>
       ))}
       {xLabel && (
-        <text x={(pad.l + width - pad.r) / 2} y={height - 4} textAnchor="middle" fontSize={10} fill="currentColor" opacity={0.6}>
+        <text
+          className="plot__axis-label plot__axis-label--x"
+          x={(pad.l + width - pad.r) / 2}
+          y={height - 4}
+          textAnchor="middle"
+          fontSize={10}
+          fill="currentColor"
+          opacity={0.6}
+        >
           {xLabel}
         </text>
       )}
       {yLabel && (
-        <text x={12} y={pad.t + 8} fontSize={10} fill="currentColor" opacity={0.6}>
+        <text
+          className="plot__axis-label plot__axis-label--y"
+          x={16}
+          y={(pad.t + height - pad.b) / 2}
+          textAnchor="middle"
+          fontSize={10}
+          fill="currentColor"
+          opacity={0.6}
+          transform={`rotate(-90 16 ${(pad.t + height - pad.b) / 2})`}
+        >
           {yLabel}
         </text>
       )}

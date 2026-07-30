@@ -1,8 +1,10 @@
 import { useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { Link } from "react-router";
+import { Equation } from "../components/AcademyMath";
 import { Icon } from "../components/Icon";
 import { PageHeader } from "../components/PageHeader";
 import { useProgress } from "../components/ProgressContext";
+import { workspaceMathExpressions } from "../data/mathExpressions";
 import {
   calculateMotorSizing,
   calculateMotorSizingProjectScenario,
@@ -538,7 +540,12 @@ export function EngineeringWorkspacePage() {
         <section aria-labelledby="motor-sizing-heading">
           <p className="eyebrow">Required vertical slice</p>
           <h2 id="motor-sizing-heading">Continuous and peak motor requirements</h2>
-          <p>The kernel uses <code>omega = 2 * pi * rpm / 60</code> and <code>P = torque * omega</code> in SI. Gearing, drivetrain efficiency, acceleration torque, load inertia, duty cycle, and safety factor remain explicit inputs or assumptions.</p>
+          <p>The kernel uses the reviewed SI relationships shown below. Gearing, drivetrain efficiency, acceleration torque, load inertia, duty cycle and safety factor remain explicit inputs or assumptions.</p>
+          <Equation
+            expression={workspaceMathExpressions["motor-sizing-power"]}
+            fallbackText={workspaceMathExpressions["motor-sizing-power"].plainText}
+            label="Motor angular-speed and mechanical-power relationships"
+          />
           <div className="table-wrap">
             <table>
               <caption>Baseline motor-sizing result</caption>
@@ -701,7 +708,7 @@ export function EngineeringWorkspacePage() {
               <button type="button" onClick={() => window.print()}>Print report view</button>
             </div>
             <details>
-              <summary>Preview complete Markdown report</summary>
+              <summary>Preview complete Markdown report source</summary>
               <pre className="report-preview">{engineeringReports.markdown}</pre>
             </details>
           </section>

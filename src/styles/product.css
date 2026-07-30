@@ -1015,10 +1015,23 @@ select { min-height: 44px; }
   font-family: var(--font-mono);
 }
 
-.equation-panel article > code {
-  display: block;
+.equation-panel article > .academy-math--equation .katex {
   font-size: clamp(1rem, 2vw, 1.35rem);
   font-weight: 750;
+}
+
+.equation-panel .academy-math__dimensional-check {
+  margin-top: 0.8rem;
+  padding-top: 0.2rem;
+  border-top: 1px solid var(--border);
+}
+
+.worked-example > .academy-math--derivation {
+  margin-block: 0.8rem;
+}
+
+.flagship-page .card > .academy-math--equation {
+  margin-block: 0.75rem 1rem;
 }
 
 .equation-panel dl {

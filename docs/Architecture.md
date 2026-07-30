@@ -20,7 +20,12 @@ provider boundaries and declarative entitlement metadata.
 Engineering Mastery Lab
   Today
   Learn
-    Complete E0-E4 curriculum
+    Self-contained Engineering Academy
+      Courses E0-E4
+      Units and complete native lessons
+      Unit quizzes and tests
+      Course challenges
+      Mastery review queue
     Accelerated reboot S001-S110
     Practical diagnostics
     Source inventory
@@ -63,10 +68,13 @@ new hierarchy.
 
 | Area | Responsibility |
 |---|---|
-| `src/data/` | Versioned reboot curriculum, complete mastery curriculum, stable content metadata, retained modules, skills, pathways, flagship workflows, projects, search items, plans, and entitlements |
+| `src/data/academy/` | Versioned Academy course, unit, lesson, skill, assessment, coverage, source, route and S001-S110 mapping manifests |
+| `src/data/academyMedia.ts` | Reviewed optional-media registry, lesson placement map and privacy-enhanced embed URL construction |
+| `src/data/` | Versioned reboot curriculum, retained mastery modules, stable content metadata, skills, pathways, flagship workflows, projects, search items, plans, and entitlements |
+| `src/lib/academy/` | Academy curriculum loading and validation, assessment grading, mastery, review, deterministic recommendations, laboratory handoff validation and web offline registration |
 | `src/lib/curriculum.ts` | Pure curriculum validation, dependency graph, diagnostic-skip, next-session, milestone, release, dimensional progress, and ISO-week review calculations |
 | `src/lib/theme.ts` | System, Light, and Dark preference resolution plus document theme metadata |
-| `src/lib/storage.ts` | Progress schema version 4, deterministic version 1, version 2, and version 3 migration, content-alias migration, import validation, engineering workspace records, curriculum records, weekly reviews, and persistence |
+| `src/lib/storage.ts` | Progress schema version 5, deterministic version 1 through version 4 migration, content-alias migration, bounded Academy records, import validation, engineering workspace records, curriculum records, weekly reviews, and persistence |
 | `src/lib/kernel/` | Pure engineering units, variables, datasets, scenarios, notebook, evidence graph, project bundle, and motor-sizing vertical slice |
 | `src/lib/interchange/` | Data-only Project Packs, deterministic engineering reports, canonical JSON, and provider-neutral adapter descriptors |
 | `src/lib/ecosystem/` | Local reference sync records, explicit conflict resolution, synthetic cohorts, privacy-safe aggregates, curated packs, and hosted-capability state |
@@ -77,8 +85,8 @@ new hierarchy.
 | `src/lib/workspace/` | Existing manifest schema, workspace operations, and input hashing |
 | `src/lib/report/` | Existing run receipt and Markdown evidence reporting |
 | `src/lib/platform/` | The only frontend seam for local filesystem and process capability |
-| `src/components/` | Product shell, command palette, onboarding, lab journey, plots, and workspace editors |
-| `src/pages/` | Today, Learn, Build, Analyse, Prove, commercial information, settings, labs, and desktop workflows |
+| `src/components/` | Product shell, command palette, onboarding, Academy lesson blocks, accessible mathematics, click-to-load media, lab journey, plots, and workspace editors |
+| `src/pages/` | Today, Academy catalogue, course, unit, lesson, assessment and review pages, retained Learn surfaces, Build, Analyse, Prove, settings, labs, and desktop workflows |
 | `src/styles/` | Legacy feature styles plus product tokens and coherent product layout or component styles |
 | `src/tests/` | Simulation, migration, catalogue, provider, storage, adapter, workspace, receipt, report, and workflow tests |
 
@@ -107,13 +115,13 @@ Onboarding appears when `onboardingComplete` is false. The learner can:
 - skip without losing application access.
 
 `recommendPathway` applies deterministic goal, discipline, and experience
-rules. The profile is schema version 1 inside progress schema version 4. It can
+rules. The profile is schema version 1 inside progress schema version 5. It can
 be edited in Settings. It is not an account or sign-in flow.
 
-## Progress schema version 4
+## Progress schema version 5
 
-`ProgressState` version 4 preserves every version 3 learner, project,
-engineering-workspace and progress field. It adds an explicit appearance
+`ProgressState` version 5 preserves the complete version 4 contract and adds a
+bounded `academy` state. Version 4 already introduced the explicit appearance
 preference, stable curriculum records and weekly reviews.
 
 The complete progress record contains:
@@ -125,29 +133,190 @@ The complete progress record contains:
 - project state, milestones, evidence, and notes;
 - manual evidence and evidence-based achievement identifiers;
 - theme and accessibility preferences;
-- validated local engineering workspace records; and
+- validated local engineering workspace records;
 - selected `system`, `light`, or `dark` theme preference;
 - curriculum records keyed by stable learning-object identifier;
-- weekly review records keyed by ISO calendar week; and
+- weekly review records keyed by ISO calendar week;
+- Academy lesson records with exact course, unit and lesson identity, last
+  block, normalised scroll position, video positions, notes, bookmark and
+  completion requirements;
+- bounded assessment histories, skill mastery evidence and transition history;
+- unfinished laboratory handoffs, deterministic recommendation receipts,
+  scheduled review state and one exact lesson resume cursor; and
 - bounded `legacy` storage for unknown version 1 root fields.
 
-Load order is the version 4 key, then version 3, version 2, version 1, then a
-clean local state. Older source values are not deleted during migration.
-Version 3 content remains intact and receives System as the theme preference
-only when no explicit Light or Dark choice exists. Version 1 and version 2
-migration still retain their declared fields and deterministic defaults.
+Load order is the version 5 key, then version 4, version 3, version 2, version
+1, then a clean version 5 state. Older source values are not deleted during
+migration. A validated version 4 record is retained exactly and receives an
+empty Academy state; no mastery, assessment or completion evidence is invented.
+Earlier migrations retain their declared fields and deterministic defaults
+before the same version 4 to version 5 upgrade is applied.
 
-Import accepts versions 1, 2, 3 and 4. Validation bounds JSON character count,
-collection count, key length, string length, array length, legacy depth,
+Import accepts versions 1, 2, 3, 4 and 5. Validation bounds JSON character
+count, collection count, key length, string length, array length, legacy depth,
 timestamps, internal routes, optional HTTP or HTTPS URLs, curriculum record
-fields and weekly-review values. Unsafe keys such as `__proto__`, `prototype`,
-and `constructor` are rejected at every validated record boundary. Unknown
-fields in declared current schemas are rejected.
+fields, weekly-review values and every Academy collection. Academy validators
+also enforce canonical identifiers and routes, chronological histories,
+derived lesson completion, legal mastery and review transitions, and
+cross-record resume identity. Unsafe keys such as `__proto__`, `prototype`, and
+`constructor` are rejected at every validated record boundary. Unknown fields
+in declared current schemas are rejected.
 
 Settings owns export, validated preview, atomic in-session replacement, reset,
 confirmation, and exact byte-preserving in-session undo.
 
-## Curriculum architecture
+## Self-contained Academy architecture
+
+The Academy is an internal teaching system. External resources are provenance
+or optional lesson media, not the lesson itself.
+
+```text
+catalogue and coverage manifests
+  -> lazy E0-E4 stage payloads
+  -> course -> unit -> lesson
+  -> native teaching blocks and guided questions
+  -> persisted attempts and completion requirements
+  -> mastery evidence -> review due state
+  -> reasoned next-activity recommendation
+  -> exact lesson, block and scroll resumption
+
+lesson laboratory callout
+  -> validated internal tool or lab route
+  -> structured observed result, criterion comparison and evidence reference
+  -> retained applied evidence
+  -> return to the exact lesson block
+```
+
+The first chain is the native learning loop. The second is the bounded
+laboratory handoff loop. Opening a lab records unfinished work but does not
+award completion or mastery. Applied evidence is accepted only through the
+validated return contract.
+
+### Academy content and manifest boundaries
+
+`src/data/academy/catalogue.ts` defines the five ordered courses, 25 retained
+units, their prerequisite skill graph, assessment specifications, source
+references and required internal routes. Every unit has seven stable lesson
+identifiers. The course and unit manifests preserve the existing E0-E4 module
+identities.
+
+`src/data/academy/stages/E0.ts` through `E4.ts` are lazy stage payloads. Together
+they supply 175 `Lesson` records. A lesson is complete native instruction:
+objectives, prerequisites, teaching blocks, formulae, worked examples,
+questions, retrieval prompts, optional media references, laboratory routing,
+summary, sources and previous or next identity.
+
+`src/data/academy/lessonTeachingProfilesV2/units` supplies one independently
+lazy teaching-profile module for each unit. Every module expands seven compact,
+lesson-specific authoring plans through the frozen V2 validator before export.
+The production lesson route loads only the selected unit profile, then renders
+first-principles teaching, bounded terminology, a conceptual model, a worked
+case and counterexample, a failure boundary, a misconception clinic, a typed
+explorer and four base/retry assessment families. Relevant formulae,
+derivations, verified worked examples, diagrams, optional media and laboratory
+handoffs from the retained lesson record are interleaved before or after the
+V2 assessment rather than discarded.
+
+`src/data/academy/manifests.ts` composes the executable catalogue and exports:
+
+| Manifest | Contract |
+|---|---|
+| Course and unit catalogues | Ordered E0-E4 ownership, prerequisites and stable ids |
+| Skills and assessments | Skill graph, unit quiz, unit test and course challenge identity |
+| Mandatory coverage | Requirement to lesson, skill, assessment and applied-route mapping |
+| S001-S110 mappings | Ordered internal lesson, assessment, review-skill and applied-route bridges |
+| Sources and media | Provenance, licence, validation date, optional-media metadata and lesson placement |
+| Required routes | Laboratories, flagships, pathways and rover-release reachability |
+
+Formula and skill-assessment manifests are derived from loaded lessons rather
+than being hand-declared as passing. `validateAcademyCurriculum` checks course,
+unit, lesson, prerequisite, question, formula, source, media, coverage,
+assessment, route and S001-S110 references before the corpus is treated as
+valid.
+
+### Assessment, mastery, review and recommendation
+
+The assessment engine grades nine explicit question contracts: single choice,
+multiple selection, numeric, ordering, matching, short response, diagram, code
+analysis and deterministic seeded calculation. Numeric grading converts only
+declared compatible units and applies the authored absolute and relative
+tolerances. Displayed code is analysed as text and is never executed.
+Progressive hints and worked solutions are separate states, and persisted
+attempt records retain response summary, score, hints, feedback, reveal state
+and timestamps.
+
+The V2 lesson assessment uses stable question identities for its base and
+changed-condition variants. The page stores every hint, explicit solution
+reveal, retry disclosure and attempt in progress schema version 5. Reopening a
+lesson restores revealed support, retry state, best score and a bounded,
+learner-visible attempt-history table. Historical cursors for retired generic
+intro, definition, example, visual, concept, misconception, check and practice
+blocks resolve to the closest equivalent V2 section; still-present block ids
+resume exactly.
+
+The route validates every event against the open lesson's canonical assessment
+and question identities before writing. An event-derived receipt makes repeated
+delivery idempotent across interaction state, assessment history, question
+history and mastery evidence. Best-score hydration reads the bounded attempt
+history, so a later lower attempt cannot erase an earlier higher result after a
+reload.
+
+Lesson completion is derived from all three stored requirements: knowledge
+checks passed, practice completed and applied evidence satisfied. A visit,
+video playback or laboratory open cannot independently mark a lesson complete.
+Course and unit progress is derived from lesson records rather than stored as
+an independent completion flag. Course availability and completion also use
+prerequisite-course and course-challenge results. Unit assessment histories
+remain separate evidence.
+
+`src/lib/academy/mastery.ts` evaluates evidence deterministically. The default
+policy uses a 60 percent recent guided-practice threshold over the latest three
+records, two independent scored activities at 80 percent for proficiency, and
+a 90 percent delayed review plus required applied evidence for mastery.
+Proficient review intervals are 7, 14 and 30 days; mastered intervals are 14,
+30, 60 and 120 days. These values are an explicit configurable product
+heuristic, not a scientifically perfect memory model. A due review retains the
+underlying achieved state, and a decline requires current evidence and a
+recorded reason.
+
+`src/lib/academy/recommendation.ts` ranks eligible lesson, assessment, review
+and unfinished-laboratory candidates from prerequisite gaps, recent incorrect
+responses, optional low-confidence correct responses, due reviews, unfinished
+labs, current mastery and course position. Stable ordering resolves ties. The
+Today integration records an algorithm version, deterministic input
+fingerprint, selected ids and reason codes when a recommendation is accepted;
+it does not silently redirect the learner.
+
+### Mathematics, media and offline boundaries
+
+Reviewed formula mappings carry LaTeX, authoritative plain text and spoken
+wording. KaTeX runs with MathML output, strict errors, trust disabled and
+bounded expansion and output. Trust-requiring TeX commands are prohibited. A
+missing or mismatched reviewed mapping falls back to visible plain text.
+KaTeX is a presentation layer, not a symbolic algebra or engineering
+verification engine.
+
+Optional reviewed MIT OpenCourseWare videos are registered separately from
+lessons. No player or provider request exists until the learner selects the
+load control. Permitted playback uses `youtube-nocookie.com`, captions,
+attribution, a sandboxed frame, exact-origin messaging and a stored bounded
+resume position. Every placement has native teaching and an offline fallback;
+provider media is never an assessment dependency. The player is withheld when
+the rendered layout cannot provide the provider's 200 by 200 pixel minimum.
+Live metadata validation is intentionally reported separately from browser and
+desktop playback verification.
+
+The production web build writes a content-derived, same-origin offline
+manifest after Vite emits the application. Its service worker caches only
+exact reviewed-manifest assets in its current versioned cache, rejects ranges,
+unsafe paths and resolved paths outside the application scope, and never
+caches arbitrary same-origin GET or navigation URLs. Offline navigation falls
+back only to the canonical cached `index.html`; unrelated cache namespaces are
+not searched. Older Academy caches are removed after a new version activates.
+Registration is limited to production HTTP or HTTPS and is skipped inside
+Tauri. The desktop package uses its bundled local assets instead.
+
+## Retained curriculum bridges
 
 `src/data/rebootCurriculum.ts` is the reviewed canonical TypeScript extraction
 of the authoritative workbook. The production application does not parse
@@ -166,10 +335,11 @@ The accelerated curriculum contains:
 - optional resources that remain visibly optional; and
 - a generic local calendar-planning model with no copied private event values.
 
-`src/data/masteryCurriculum.ts` contains the five-stage E0-E4 prerequisite
-graph and 25 domain modules. Every module has a stable identifier and content
-version. `validateCurriculum` checks session identity and order, milestone
-counts, minute totals, referenced resources, prerequisite existence, cycles,
+`src/data/masteryCurriculum.ts` retains the five-stage E0-E4 prerequisite graph
+and 25 legacy domain modules. Those module routes and the S001-S110 reboot
+routes bridge into the Academy manifests without being deleted. The retained
+`validateCurriculum` checks session identity and order, milestone counts,
+minute totals, referenced resources, prerequisite existence, cycles,
 reachability, worked-example recomputation and evidence structure.
 
 Diagnostic skipping is deliberately narrow. Scores 3 and 4 may satisfy an
@@ -177,10 +347,9 @@ ordinary lesson session. Proof and release sessions are listed in a separate
 mandatory set and cannot be skipped. Completion, diagnostic evidence and
 mastery-gate passage remain distinct progress dimensions.
 
-The curriculum routes, including Today, are lazy-loaded. The initial router
-shell does not synchronously import the curriculum payloads. Shared mastery
-and session chunks load when a curriculum-aware route such as Today, a
-roadmap, or a module detail is opened.
+Academy and retained curriculum routes are lazy-loaded. The initial router shell
+does not synchronously import the E0-E4 stage payloads. A lesson loads only its
+owning stage; a full Academy validation explicitly loads all stages.
 
 ## Theme resolution
 
@@ -332,7 +501,8 @@ curriculum diagnostics, resource inventory, rover release, progress analysis,
 capstone, flagship workflow page, Engineering Toolbox, engineering project
 workspace, CAD Studio, Project Workbench, and Diagnostics use React lazy
 routes. The router shell does not synchronously import these route chunks;
-opening Today loads the shared curriculum data needed for its live position.
+opening Today loads the data needed for its live position and Academy
+recommendations.
 CAD Studio uses Three.js inside its isolated route chunk for bounded parametric
 3D inspection. Its pure model layer owns validation, mass properties, and STL,
 OpenSCAD, SVG, and JSON export preparation without moving Three.js into the

@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { Equation } from "../components/AcademyMath";
 import { ModuleShell } from "../components/ModuleShell";
 import { Tabs } from "../components/Tabs";
 import { Icon } from "../components/Icon";
+import { labMathExpressions } from "../data/mathExpressions";
 import { moduleById } from "../data/modules";
 
 interface ColumnDef {
@@ -45,7 +47,7 @@ function TableBuilder({
   extra
 }: {
   title: string;
-  description: string;
+  description: React.ReactNode;
   storageKey: string;
   columns: ColumnDef[];
   seed: Row[];
@@ -85,7 +87,7 @@ function TableBuilder({
   return (
     <div className="card">
       <h3 style={{ marginTop: 0 }}>{title}</h3>
-      <p className="small muted">{description}</p>
+      <div className="small muted">{description}</div>
       {!persistenceAvailable && <p className="inline-message inline-message--neutral" role="status"><Icon name="alert" size={16} /> Browser storage is unavailable. This table will last for the current session only; export JSON before closing the app.</p>}
       <div className="table-scroll" tabIndex={0} aria-label={`${title} editable table`}>
         <table>
@@ -140,10 +142,10 @@ function FmeaExtra(rows: Row[]) {
     .map((r) => ({ item: r.item || "(unnamed)", rpn: Number(r.severity || 0) * Number(r.occurrence || 0) * Number(r.detection || 0) }))
     .filter((r) => r.rpn > 0)
     .sort((a, b) => b.rpn - a.rpn);
-  if (ranked.length === 0) return <p className="small muted">Score S, O and D (1-10) to compute RPN rankings.</p>;
+  if (ranked.length === 0) return <p className="small muted">Score severity, occurrence and detection from 1 to 10 to compute risk-priority rankings.</p>;
   return (
     <p className="small">
-      <strong>RPN ranking:</strong> {ranked.map((r) => `${r.item} (${r.rpn})`).join(" · ")} - act on the highest first.
+      <strong>RPN ranking:</strong> {ranked.map((r) => `${r.item} (${r.rpn})`).join("; ")} - act on the highest first.
     </p>
   );
 }
@@ -187,15 +189,24 @@ function Simulator() {
           content: (
             <TableBuilder
               title="FMEA builder"
-              description="Failure Modes and Effects Analysis. RPN = Severity × Occurrence × Detection (each 1-10; for Detection, 10 = hardest to detect)."
+              description={(
+                <>
+                  <p>Failure Modes and Effects Analysis scores severity, occurrence and detection from 1 to 10. A detection score of 10 means the failure is hardest to detect.</p>
+                  <Equation
+                    expression={labMathExpressions["practice-rpn"]}
+                    fallbackText={labMathExpressions["practice-rpn"].plainText}
+                    label="FMEA risk-priority number"
+                  />
+                </>
+              )}
               storageKey="engineering-mastery-lab/artefacts/fmea"
               columns={[
                 { key: "item", label: "Item / function" },
                 { key: "mode", label: "Failure mode" },
                 { key: "effect", label: "Effect" },
-                { key: "severity", label: "S", kind: "select", options: scores, width: "4rem" },
-                { key: "occurrence", label: "O", kind: "select", options: scores, width: "4rem" },
-                { key: "detection", label: "D", kind: "select", options: scores, width: "4rem" },
+                { key: "severity", label: "Severity", kind: "select", options: scores, width: "6rem" },
+                { key: "occurrence", label: "Occurrence", kind: "select", options: scores, width: "7rem" },
+                { key: "detection", label: "Detection", kind: "select", options: scores, width: "6rem" },
                 { key: "mitigation", label: "Mitigation action" }
               ]}
               seed={[{ item: "Fill valve", mode: "Stuck open", effect: "Tank overfill", severity: "8", occurrence: "3", detection: "4", mitigation: "High-high level trip closes valve (latched)" }]}

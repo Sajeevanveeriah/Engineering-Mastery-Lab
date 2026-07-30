@@ -4,8 +4,8 @@
 
 This guide covers implemented local migrations for:
 
-- browser progress version 1, version 2 or version 3 to version 4;
-- stable curriculum content aliases inside progress version 4; and
+- browser progress version 1, version 2, version 3 or version 4 to version 5;
+- stable curriculum content aliases retained inside progress version 5; and
 - engineering project bundle version 1 to version 2.
 
 Project Pack version 1, engineering report version 1, sync record version 1,
@@ -33,7 +33,7 @@ Export a current backup before an intentional migration when the current state
 is valid. Do not edit a migration file to bypass a validation error. Repair the
 source or keep it unimported.
 
-## Progress version 1 to version 4
+## Progress version 1 to version 5
 
 ### Recognised version 1 fields
 
@@ -48,18 +48,21 @@ Each recognised field passes the current bounded validator.
 
 ### Deterministic additions
 
-Migration creates progress version 4 and:
+Migration creates progress version 5 and:
 
 - marks onboarding complete so an existing learner is not forced through new
   onboarding;
 - starts profile as null;
 - starts pathways, laboratory positions, bookmarks, recent items, Build
   projects, manual evidence, achievements and engineering workspaces empty;
-- starts accessibility preferences with reduced motion and high contrast false;
-  and
+- starts accessibility preferences with reduced motion and high contrast
+  false;
 - retains an explicit validated Light or Dark theme, otherwise selects System;
 - starts `engineeringWorkspaces`, `curriculumRecords`, and `weeklyReviews` as
-  empty records.
+  empty records; and
+- starts the complete `academy` object with empty lesson, assessment, skill,
+  unfinished-lab, recommendation and review collections plus a null resume
+  cursor.
 
 ### Unknown version 1 fields
 
@@ -73,7 +76,7 @@ configured limit.
 
 The migration does not interpret unknown values as new features.
 
-## Progress version 2 to version 4
+## Progress version 2 to version 5
 
 Version 2 declares all progress fields present before engineering workspace
 records:
@@ -92,13 +95,14 @@ Migration:
 2. validates every declared value through the current validators;
 3. preserves validated version 2 content;
 4. adds an empty `engineeringWorkspaces` record;
-5. applies the version 3 to version 4 additions; and
-6. writes `version: 4`.
+5. applies the version 3 and version 4 additions;
+6. adds the empty Academy state; and
+7. writes `version: 5`.
 
 No version 2 learner, progress, project, evidence or preference field is
 dropped deliberately.
 
-## Progress version 3 to version 4
+## Progress version 3 to version 5
 
 Version 3 import requires exactly the declared version 3 root fields and
 preserves all of them. Engineering workspace entries still require:
@@ -110,17 +114,19 @@ preserves all of them. Engineering workspace entries still require:
 
 The migration then:
 
-1. writes `version: 4`;
+1. constructs a validated intermediate version 4 record;
 2. maps an explicit version 3 Light or Dark theme to the same explicit
    `themePreference`;
 3. selects System only when the old theme value is absent;
-4. starts `curriculumRecords` empty; and
-5. starts `weeklyReviews` empty.
+4. starts `curriculumRecords` empty;
+5. starts `weeklyReviews` empty;
+6. adds the empty Academy state; and
+7. writes `version: 5`.
 
 The progress validator bounds one embedded bundle string to 750,000 characters.
 The engineering workspace separately validates the bundle before using it.
 
-## Progress version 4 import
+## Progress version 4 to version 5
 
 Version 4 validation requires the declared root contract. Curriculum records
 validate completion state, blocker, confidence, actual minutes, notes,
@@ -130,28 +136,77 @@ timestamp and content version independently.
 Weekly reviews require an ISO week key, planned and completed block counts,
 evidence count, reflection and UTC timestamps.
 
-Stable content aliases are applied after complete validation. An alias moves a
-record only when its canonical target is absent or byte-equivalent. A
-different record already stored at the canonical id is a conflict and blocks
-the import. Mandatory milestone proof and release ids are checked after alias
-migration so an older id cannot bypass the proof rule.
+Stable content aliases are applied while validated curriculum records are
+assembled. An alias moves a record only when its canonical target is absent or
+byte-equivalent. A different record already stored at the canonical id is a
+conflict and blocks the import. Mandatory milestone proof and release ids are
+checked against the canonical id so an older id cannot bypass the proof rule.
+
+After exact version 4 validation and content-alias canonicalisation, the
+migration:
+
+1. preserves every declared version 4 field;
+2. writes `version: 5`;
+3. permits the added `course`, `unit`, `lesson` and `review` recent-item types
+   for future version 5 writes; and
+4. adds the deterministic empty Academy state:
+
+```text
+lessonRecords: {}
+assessmentAttempts: {}
+questionAttempts: {}
+questionInteractions: {}
+skillRecords: {}
+unfinishedLabs: {}
+recommendationReceipts: []
+reviewStates: {}
+resumeCursor: null
+```
+
+The migration does not infer Academy completion, attempts, mastery, review or
+laboratory evidence from legacy curriculum records. Those records remain
+available under `curriculumRecords` and can continue to represent the retained
+E0-E4 and S001-S110 routes.
+
+## Native progress version 5 import
+
+Version 5 requires every version 4 root field plus `academy`. The current
+validator rejects missing or unknown root and Academy fields. Academy
+validation enforces:
+
+- safe canonical string identity, exact course, unit and lesson patterns, and
+  matching record keys;
+- bounded collections and strings;
+- chronological lesson, attempt, evidence, transition and receipt histories;
+- stable question-interaction context with bounded progressive-hint state;
+- lesson completion derived from knowledge checks, practice and applied
+  evidence;
+- legal mastery and review transitions;
+- response scores from 0 through 100;
+- recommendation selections drawn from their recorded candidates; and
+- a resume cursor that matches an existing lesson and its last block.
+
+Native version 5 import also runs the retained curriculum-content alias
+canonicalisation. Unsupported future versions fail closed.
 
 ## Browser storage fallback
 
 The loader checks:
 
 ```text
+engineering-mastery-lab/progress/v5
 engineering-mastery-lab/progress/v4
 engineering-mastery-lab/progress/v3
 engineering-mastery-lab/progress/v2
 engineering-mastery-lab/progress/v1
 ```
 
-The first present, bounded and valid value is returned. Invalid or unavailable
-browser storage falls back to a clean in-memory version 4 state. Loading an old
-key does not itself delete that key.
+The first present, bounded and valid value is returned. A malformed newer key
+does not block a valid older key. If no key is valid, browser storage falls
+back to a clean in-memory version 5 state. Loading an old key does not itself
+delete or rewrite that key.
 
-Saving writes the version 4 key.
+Saving validates the complete current state and writes only the version 5 key.
 
 ## Project bundle version 1 to version 2
 
@@ -282,7 +337,9 @@ For each implemented migration:
 Progress import or reset:
 
 1. Use the Settings in-session undo before reloading the application.
-2. If that value is no longer available, import the last valid version 4 backup.
+2. If that value is no longer available, import the last valid version 5
+   backup. A valid version 1 through version 4 backup remains importable and
+   receives an empty Academy state.
 3. Keep invalid or unsupported source files outside application state for
    review. Do not force-import them.
 

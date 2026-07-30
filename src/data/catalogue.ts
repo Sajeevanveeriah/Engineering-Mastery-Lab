@@ -4,6 +4,7 @@ import { projects } from "./projects";
 import { skillDomains } from "./skills";
 import { displayDiscipline, primaryDestinations } from "./displayLabels";
 import { flagshipCatalogue } from "./engineeringExperiences";
+import { academyCourses, academyUnits } from "./academy/catalogue";
 
 export type SearchableType =
   | "Destination"
@@ -223,6 +224,46 @@ export const commandCatalogue: SearchableCatalogueItem[] = [
     discipline: "Primary navigation",
     route: destination.route,
     keywords: [...destination.keywords],
+    capability: "Web and Desktop"
+  })),
+  {
+    id: "academy-catalogue",
+    title: "Engineering Academy",
+    description: "Five self-contained beginner courses with 175 native lessons, practice, laboratories, assessments, mastery and review.",
+    type: "Curriculum",
+    discipline: "Cross-discipline",
+    route: "/learn/courses",
+    keywords: ["academy", "courses", "units", "lessons", "beginner", "practice", "mastery"],
+    capability: "Web and Desktop"
+  },
+  {
+    id: "academy-review",
+    title: "Academy review queue",
+    description: "Complete due retrieval practice and maintain earned mastery using local evidence.",
+    type: "Curriculum",
+    discipline: "Cross-discipline",
+    route: "/learn/review",
+    keywords: ["academy", "review", "retrieval", "spaced practice", "mastery"],
+    capability: "Web and Desktop"
+  },
+  ...academyCourses.map((course): SearchableCatalogueItem => ({
+    id: `academy-course-${course.id}`,
+    title: course.title,
+    description: course.description,
+    type: "Curriculum",
+    discipline: `${course.stage} Academy course`,
+    route: `/learn/courses/${course.id}`,
+    keywords: [course.id, course.stage, "course", ...course.outcomes],
+    capability: "Web and Desktop"
+  })),
+  ...academyUnits.map((unit): SearchableCatalogueItem => ({
+    id: `academy-unit-${unit.id}`,
+    title: unit.title,
+    description: unit.description,
+    type: "Curriculum",
+    discipline: unit.courseId,
+    route: `/learn/courses/${unit.courseId}/units/${unit.id}`,
+    keywords: [unit.id, unit.legacyModuleId, "unit", "lessons", "quiz", "test"],
     capability: "Web and Desktop"
   })),
   {

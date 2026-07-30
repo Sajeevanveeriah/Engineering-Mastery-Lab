@@ -94,7 +94,87 @@ async function captureState(page: Page, testInfo: TestInfo, state: VisualState):
   await page.evaluate(() => {
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
   });
+  if (state.preserveScroll) {
+    const horizontalState = await page.evaluate(() => {
+      const top = window.scrollY;
+      window.scrollTo({ left: 0, top, behavior: "instant" });
+      return {
+        clientWidth: document.documentElement.clientWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        scrollX: window.scrollX
+      };
+    });
+    expect(horizontalState.scrollX, `${state.name} horizontal scroll position`).toBe(0);
+    expect(
+      horizontalState.scrollWidth,
+      `${state.name} page-level horizontal overflow`
+    ).toBe(horizontalState.clientWidth);
+  }
+  if ((state.fullPage ?? true) && !state.preserveScroll) {
+    await page.evaluate(async () => {
+      const step = Math.max(240, Math.floor(window.innerHeight * 0.8));
+      for (let position = 0; position < document.documentElement.scrollHeight; position += step) {
+        window.scrollTo(0, position);
+        await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      }
+      await Promise.all(
+        Array.from(document.images)
+          .filter((image) => image.currentSrc.startsWith(window.location.origin))
+          .map(async (image) => {
+            try {
+              await image.decode();
+            } catch {
+              // A visible native fallback or broken-image state remains reviewable.
+            }
+          })
+      );
+    });
+  }
   if (!state.preserveScroll) await page.evaluate(() => window.scrollTo(0, 0));
+  if ((state.fullPage ?? true) && (state.viewport?.width ?? 1440) <= 900) {
+    await page.addStyleTag({
+      content: `
+        .mobile-bottom-navigation { display: none !important; }
+        .product-shell, .product-shell--focused { padding-bottom: 0 !important; }
+      `
+    });
+  }
+  if (state.fullPage ?? true) {
+    const documentSize = await page.evaluate(() => ({
+      width: Math.max(document.documentElement.clientWidth, document.documentElement.scrollWidth),
+      height: document.documentElement.scrollHeight
+    }));
+    if (documentSize.height > 15_000) {
+      const captureHeight = 4_000;
+      const segmentOverlap = 500;
+      await page.setViewportSize({
+        width: state.viewport?.width ?? 1440,
+        height: captureHeight
+      });
+      const segmentedDocumentHeight = await page.evaluate(() =>
+        document.documentElement.scrollHeight);
+      const finalTop = Math.max(0, segmentedDocumentHeight - captureHeight);
+      const positions: number[] = [];
+      for (let top = 0; top < finalTop; top += captureHeight - segmentOverlap) {
+        positions.push(top);
+      }
+      if (positions.at(-1) !== finalTop) positions.push(finalTop);
+
+      for (const [index, top] of positions.entries()) {
+        await page.evaluate((position) => {
+          window.scrollTo(0, position);
+          return new Promise<void>((resolve) =>
+            requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+        }, top);
+        await page.screenshot({
+          path: testInfo.outputPath(`${state.name}-part-${String(index + 1).padStart(2, "0")}.png`),
+          animations: "disabled",
+          fullPage: false
+        });
+      }
+      return;
+    }
+  }
   await page.screenshot({
     path: testInfo.outputPath(`${state.name}.png`),
     animations: "disabled",
@@ -118,6 +198,90 @@ const reviewStates: VisualState[] = [
   },
   { name: "today-curriculum-in-progress", route: "/", progress: todayInProgress },
   { name: "today-milestone-complete", route: "/", progress: completedM0 },
+  { name: "academy-catalogue", route: "/learn/courses", viewport: { width: 1440, height: 1100 } },
+  {
+    name: "academy-catalogue-mobile",
+    route: "/learn/courses",
+    viewport: { width: 390, height: 844 }
+  },
+  {
+    name: "academy-course",
+    route: "/learn/courses/ACADEMY-E0",
+    viewport: { width: 1440, height: 1100 }
+  },
+  {
+    name: "academy-unit",
+    route: "/learn/courses/ACADEMY-E0/units/EML-E0-D01",
+    viewport: { width: 1440, height: 1100 }
+  },
+  {
+    name: "academy-lesson",
+    route: "/learn/courses/ACADEMY-E0/units/EML-E0-D01/lessons/EML-E0-D01-L01",
+    viewport: { width: 1440, height: 1100 }
+  },
+  {
+    name: "academy-lesson-mobile",
+    route: "/learn/courses/ACADEMY-E0/units/EML-E0-D01/lessons/EML-E0-D01-L01",
+    viewport: { width: 390, height: 844 }
+  },
+  {
+    name: "academy-lesson-mobile-outline",
+    route: "/learn/courses/ACADEMY-E0/units/EML-E0-D01/lessons/EML-E0-D01-L01",
+    viewport: { width: 390, height: 844 },
+    fullPage: false,
+    afterNavigate: async (page) => {
+      await page.getByRole("button", {
+        name: "Open lesson outline and completion gates"
+      }).click();
+      await expect(page.getByRole("dialog", {
+        name: "Outline and completion gates"
+      })).toBeVisible();
+    }
+  },
+  {
+    name: "academy-lesson-sources-open",
+    route: "/learn/courses/ACADEMY-E0/units/EML-E0-D01/lessons/EML-E0-D01-L01",
+    viewport: { width: 1440, height: 1100 },
+    afterNavigate: async (page) => {
+      await page.getByText("Sources and attribution", { exact: true }).click();
+      await expect(page.getByRole("heading", {
+        name: "Reviewed sources and further context"
+      })).toBeVisible();
+    }
+  },
+  {
+    name: "academy-lesson-optional-media",
+    route: "/learn/courses/ACADEMY-E1/units/EML-E1-D04/lessons/EML-E1-D04-L01",
+    viewport: { width: 1440, height: 1100 },
+    afterNavigate: async (page) => {
+      await expect(page.getByRole("button", { name: "Load optional video" })).toBeVisible();
+    }
+  },
+  {
+    name: "academy-lesson-rover-image",
+    route: "/learn/courses/ACADEMY-E3/units/EML-E3-D17/lessons/EML-E3-D17-L01",
+    viewport: { width: 1440, height: 1100 },
+    afterNavigate: async (page) => {
+      await expect(page.locator(".academy-lesson-image img")).toBeVisible();
+    }
+  },
+  {
+    name: "academy-laboratory-handoff",
+    route: "/learn/courses/ACADEMY-E0/units/EML-E0-D01/lessons/EML-E0-D01-L01",
+    viewport: { width: 1440, height: 1100 },
+    afterNavigate: async (page) => {
+      await page.getByRole("link", { name: "Open the laboratory" }).click();
+      await expect(page.getByRole("heading", {
+        name: "Carry the lesson task into this workspace"
+      })).toBeVisible();
+    }
+  },
+  {
+    name: "academy-unit-quiz",
+    route: "/learn/courses/ACADEMY-E0/units/EML-E0-D01/assessments/quiz",
+    viewport: { width: 1440, height: 1100 }
+  },
+  { name: "academy-review-empty", route: "/learn/review", viewport: { width: 1440, height: 1100 } },
   { name: "complete-curriculum-roadmap", route: "/learn/roadmap", viewport: { width: 1440, height: 1100 } },
   {
     name: "reboot-roadmap-m0",
@@ -147,6 +311,17 @@ const reviewStates: VisualState[] = [
   { name: "reboot-session-s110", route: "/learn/reboot/sessions/S110", viewport: { width: 1440, height: 1100 } },
   { name: "diagnostic-pass", route: "/learn/diagnostics", progress: diagnosticPass },
   { name: "diagnostic-study-required", route: "/learn/diagnostics", progress: diagnosticStudyRequired },
+  {
+    name: "diagnostic-assessed-workspace",
+    route: "/learn/diagnostics",
+    viewport: { width: 1440, height: 1100 },
+    afterNavigate: async (page) => {
+      await page.getByRole("button", { name: "Start assessed diagnostic" }).first().click();
+      await expect(page.getByRole("region", {
+        name: "M0 knowledge diagnostic"
+      }).locator(".academy-question")).toHaveCount(4);
+    }
+  },
   { name: "worked-maths-module", route: "/learn/modules/EML-E1-D04", viewport: { width: 1440, height: 1100 } },
   { name: "circuit-module", route: "/learn/modules/EML-E2-D11", viewport: { width: 1440, height: 1100 } },
   { name: "robotics-simulation-module", route: "/learn/modules/EML-E3-D18", viewport: { width: 1440, height: 1100 } },
@@ -338,7 +513,6 @@ const reviewStates: VisualState[] = [
     name: "cad-webgl",
     route: "/tools/cad",
     viewport: { width: 1440, height: 1100 },
-    fullPage: false,
     afterNavigate: async (page) => {
       const canvas = page.locator("canvas[data-cad-preview]");
       await expect(canvas).toBeVisible();

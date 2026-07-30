@@ -150,20 +150,20 @@ test("evidence lineage presents a complete accessible graph alternative", async 
   expect(runtimeErrors).toEqual([]);
 });
 
-test("saved engineering workspace migrates local progress to version 4 and appears in Prove", async ({ page }) => {
+test("saved engineering workspace persists in progress version 5 and appears in Prove", async ({ page }) => {
   const runtimeErrors = monitorRuntimeErrors(page);
   await page.goto("#/tools/engineering");
   await page.getByRole("button", { name: "Save local record" }).click();
 
   await expect(page.getByRole("status")).toContainText("Validated project bundle saved locally and linked to Prove");
   const stored = await page.evaluate(() => {
-    const text = localStorage.getItem("engineering-mastery-lab/progress/v4");
+    const text = localStorage.getItem("engineering-mastery-lab/progress/v5");
     return text ? JSON.parse(text) as {
       version?: number;
       engineeringWorkspaces?: Record<string, { projectId?: string; schemaVersion?: number }>;
     } : null;
   });
-  expect(stored?.version).toBe(4);
+  expect(stored?.version).toBe(5);
   expect(stored?.engineeringWorkspaces?.["motor-sizing-study"]).toMatchObject({
     projectId: "motor-sizing-study",
     schemaVersion: 1
@@ -317,7 +317,7 @@ test("robotics flagship retains both canonical evidence and kernel records in Pr
   await expect(page.getByRole("button", { name: "Kernel record saved" })).toBeDisabled();
 
   const stored = await page.evaluate(() => {
-    const text = localStorage.getItem("engineering-mastery-lab/progress/v4");
+    const text = localStorage.getItem("engineering-mastery-lab/progress/v5");
     return text ? JSON.parse(text) as {
       manualEvidence?: Array<{ id?: string; linkedSkills?: string[] }>;
       engineeringWorkspaces?: Record<string, { projectId?: string }>;
