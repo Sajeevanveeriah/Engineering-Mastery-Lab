@@ -22,7 +22,14 @@ const sprintItems = [
 ] as const;
 
 export function Settings() {
-  const { progress, update, replace, resolvedTheme } = useProgress();
+  const {
+    progress,
+    update,
+    replaceAndResolveRecovery,
+    progressRecoveryBytes,
+    progressRecoveryRequired,
+    resolvedTheme
+  } = useProgress();
   const fileRef = useRef<HTMLInputElement>(null);
   const [editingProfile, setEditingProfile] = useState(false);
   const [message, setMessage] = useState<{ kind: "success" | "error" | "neutral"; text: string } | null>(null);
@@ -41,7 +48,24 @@ export function Settings() {
     link.download = `${date}-Engineering-Mastery-Lab-Progress-Rev00.json`;
     link.click();
     URL.revokeObjectURL(url);
-    setMessage({ kind: "success", text: "Version 4 progress backup exported." });
+    setMessage({ kind: "success", text: "Version 5 progress backup exported." });
+  };
+  const exportInvalidProgress = () => {
+    if (progressRecoveryBytes === null) return;
+    const url = URL.createObjectURL(new Blob(
+      [progressRecoveryBytes],
+      { type: "application/json" }
+    ));
+    const link = document.createElement("a");
+    link.href = url;
+    const date = new Date().toISOString().slice(0, 10).replaceAll("-", "");
+    link.download = `${date}-Engineering-Mastery-Lab-Invalid-Progress-v5-Rev00.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setMessage({
+      kind: "success",
+      text: "The original bounded invalid version 5 bytes were exported without alteration."
+    });
   };
   const importBackup = async (file: File) => {
     try {
@@ -65,21 +89,36 @@ export function Settings() {
   };
   const applyPendingImport = () => {
     if (!pendingImport) return;
-    setRollbackBytes(exportProgress(progress));
-    replace(pendingImport.state);
+    const previousBytes = exportProgress(progress);
+    if (!replaceAndResolveRecovery(pendingImport.state)) {
+      setMessage({
+        kind: "error",
+        text: "The validated import could not be saved. Existing local bytes were kept unchanged."
+      });
+      return;
+    }
+    setRollbackBytes(previousBytes);
     setPendingImport(null);
     setMessage({ kind: "success", text: "Progress imported and validated. Exact in-session undo remains available." });
   };
   const reset = () => {
     if (!window.confirm("Reset learning, pathway, project, evidence, bookmark, and planner records? Your local profile and display preferences will be kept, and an in-session undo will be available.")) return;
-    setRollbackBytes(exportProgress(progress));
-    replace({
+    const previousBytes = exportProgress(progress);
+    const saved = replaceAndResolveRecovery({
       ...structuredClone(emptyProgress),
       profile: progress.profile,
       onboardingComplete: true,
       themePreference: progress.themePreference,
       accessibility: progress.accessibility
     });
+    if (!saved) {
+      setMessage({
+        kind: "error",
+        text: "Progress could not be reset because browser storage is unavailable. Existing local bytes were kept unchanged."
+      });
+      return;
+    }
+    setRollbackBytes(previousBytes);
     setMessage({ kind: "success", text: "Local learning records were reset. Profile and display preferences were kept. Undo is available in this session." });
   };
 
@@ -113,7 +152,18 @@ export function Settings() {
         <section><div className="section-heading"><div><p className="eyebrow">Optional planner</p><h2>Weekly sprint</h2></div><button type="button" onClick={() => update((state) => ({ ...state, sprintChecklist: {} }))}>Clear planner</button></div><ul className="checklist checklist--spacious">{sprintItems.map(([id, label]) => <li key={id}><input id={id} type="checkbox" checked={Boolean(progress.sprintChecklist[id])} onChange={() => update((state) => ({ ...state, sprintChecklist: { ...state.sprintChecklist, [id]: !state.sprintChecklist[id] } }))} /><label htmlFor={id}>{label}</label></li>)}</ul></section>
         <section>
           <h2>Backup, restore, and reset</h2>
-          <p>Exports use progress schema version 4. Valid version 1, 2 and 3 backups migrate deterministically during import.</p>
+          {progressRecoveryRequired && (
+            <div className="inline-message inline-message--error" role="alert">
+              <p><strong>Progress recovery is required.</strong> The current version 5 record did not pass validation, so its original bytes remain untouched.</p>
+              <p>A validated historical copy is open for this session only. Import a validated backup or explicitly reset learning records to replace the invalid version 5 record. Until then, new changes are not written to local storage.</p>
+              {progressRecoveryBytes !== null && (
+                <button type="button" onClick={exportInvalidProgress}>
+                  <Icon name="download" size={17} /> Export original invalid bytes
+                </button>
+              )}
+            </div>
+          )}
+          <p>Exports use progress schema version 5. Valid version 1, 2, 3 and 4 backups migrate deterministically during import.</p>
           <div className="button-row">
             <button className="primary" type="button" onClick={exportBackup}><Icon name="download" size={17} /> Export JSON</button>
             <button type="button" onClick={() => fileRef.current?.click()}><Icon name="upload" size={17} /> Import JSON</button>
@@ -140,7 +190,13 @@ export function Settings() {
           {message && <p className={`inline-message inline-message--${message.kind}`} role={message.kind === "error" ? "alert" : "status"}>{message.text}</p>}
           {rollbackBytes && (
             <button type="button" onClick={() => {
-              replace(importProgress(rollbackBytes));
+              if (!replaceAndResolveRecovery(importProgress(rollbackBytes))) {
+                setMessage({
+                  kind: "error",
+                  text: "The previous state could not be restored because browser storage is unavailable."
+                });
+                return;
+              }
               setRollbackBytes(null);
               setMessage({ kind: "success", text: "The exact previous exported state was restored." });
             }}>Undo last import or reset</button>

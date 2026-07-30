@@ -138,6 +138,19 @@ describe("flagship workflow specifications", () => {
     expect(() => runFlagshipFixtureSummary("unknown")).toThrow(/Unknown flagship workflow/);
   });
 
+  it("keeps model-card limits visibly separated in the rendered table data", () => {
+    const summary = runFlagshipFixtureSummary(
+      "flagship-applied-ml-baselines-and-limits"
+    );
+    const limits = summary.supportingTables
+      .find((section) => section.title === "Leakage, imbalance, and model-card limits")
+      ?.table.rows.find((row) => row[0] === "out of scope")?.[1];
+
+    expect(limits).toBe(
+      "Safety-critical decisions; Autonomous maintenance or control actions; Claims of production readiness or certification"
+    );
+  });
+
   it("creates a deterministic validated kernel project and bundle for every flagship", () => {
     const inputCounts = {
       controls: 4,

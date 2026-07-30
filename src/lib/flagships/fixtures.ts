@@ -512,8 +512,8 @@ function mlFixture(workflowId: string, title: string): FlagshipFixtureSummary {
             ["imbalance diagnostic", imbalance?.message ?? "No warning"],
             ["intended use", modelCard.intendedUse],
             ["data scope", modelCard.dataScope],
-            ["limitations", modelCard.limitations.join(" ")],
-            ["out of scope", modelCard.outOfScope.join(" ")]
+            ["limitations", modelCard.limitations.join("; ")],
+            ["out of scope", modelCard.outOfScope.join("; ")]
           ]
         },
         textAlternative: "The deliberately target-like feature triggers a retained leakage warning, the imbalanced label fixture triggers a warning, and the model card bounds all claims to local educational comparison."

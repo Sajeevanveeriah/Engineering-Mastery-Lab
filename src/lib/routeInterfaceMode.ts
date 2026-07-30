@@ -8,6 +8,8 @@ const workspaceRouteRoots = [
   "/learn/labs",
   "/learn/flagships",
   "/learn/diagnostics",
+  "/learn/courses",
+  "/learn/review",
   "/learn/reboot/sessions",
   "/learn/modules",
   "/learn/skills",

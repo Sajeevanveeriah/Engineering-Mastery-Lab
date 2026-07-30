@@ -166,23 +166,29 @@ export function LearnHub({ initialFormat = "All" }: { initialFormat?: Format }) 
   return (
     <section className="page catalogue-page">
       <PageHeader
-        eyebrow="Structured discovery"
+        eyebrow="Self-contained engineering learning"
         title="Learn"
-        description="Follow the complete engineering curriculum, use the accelerated Robotics and AI/ML Reboot, or discover focused pathways, laboratories and evidence-led skills."
+        description="Learn inside the app through complete courses, native lessons, guided practice, laboratories, assessments, mastery and review. Pathways and legacy maps remain available as supporting views."
       />
 
       <section className="curriculum-entry-grid" aria-label="Curriculum entry points">
+        <Link to="/learn/courses">
+          <span className="badge">175 complete lessons</span>
+          <h2>Engineering Academy</h2>
+          <p>Start from genuine beginner explanations, then work through mathematics, examples, hints, solutions, laboratories and mastery checks without leaving the app.</p>
+          <strong>Enter the Academy <Icon name="arrow-right" size={16} /></strong>
+        </Link>
         <Link to="/learn/roadmap">
           <span className="badge">E0-E4</span>
-          <h2>Complete curriculum</h2>
-          <p>Twenty-five prerequisite-aware domains from engineering starter knowledge to R&D proof.</p>
-          <strong>Open roadmap <Icon name="arrow-right" size={16} /></strong>
+          <h2>Legacy curriculum map</h2>
+          <p>Inspect the original 25 prerequisite-aware modules and follow each one into its full internal Academy unit.</p>
+          <strong>View E0-E4 mapping <Icon name="arrow-right" size={16} /></strong>
         </Link>
         <Link to="/learn/reboot">
           <span className="badge">S001-S110</span>
-          <h2>Robotics and AI/ML Reboot</h2>
-          <p>The authoritative 45 h 50 min fast-track, diagnostics and four rover releases.</p>
-          <strong>Open fast-track <Icon name="arrow-right" size={16} /></strong>
+          <h2>Legacy accelerated sequence</h2>
+          <p>The 110 bounded sessions and four rover releases are preserved, with each session mapped into complete internal lessons and assessments.</p>
+          <strong>View S001-S110 mapping <Icon name="arrow-right" size={16} /></strong>
         </Link>
         <Link to="/learn/diagnostics">
           <span className="badge">10 practical checks</span>
@@ -192,9 +198,9 @@ export function LearnHub({ initialFormat = "All" }: { initialFormat?: Format }) 
         </Link>
         <Link to="/learn/resources">
           <span className="badge">64 sources</span>
-          <h2>Resource library</h2>
-          <p>Original provenance, authority labels and separate version-sensitive revalidation dates.</p>
-          <strong>Browse resources <Icon name="arrow-right" size={16} /></strong>
+          <h2>Supplementary source library</h2>
+          <p>Optional provenance and further reading. These sources support the native teaching but are not a substitute for it.</p>
+          <strong>Browse optional sources <Icon name="arrow-right" size={16} /></strong>
         </Link>
       </section>
 

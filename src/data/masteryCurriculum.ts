@@ -143,7 +143,7 @@ export const masteryModules: MasteryModule[] = [
       answer: 100,
       unit: "min",
       rounding: "Exact integer minutes",
-      check: { operation: "product", inputs: [4, 25], expected: 100, tolerance: 0, independentMethod: "Repeated addition: 25 + 25 + 25 + 25 = 100 min." }
+      check: { operation: "product", inputs: [4, 25], expected: 100, tolerance: 0, independentMethod: "Four groups of 25 minutes total 100 minutes." }
     },
     retrievalTask: "Without notes, name the four parts of a falsifiable engineering question.",
     practicalTask: "Take one rover observation and write a question, hypothesis, measurable requirement, smallest test and disconfirming result.",
@@ -186,7 +186,7 @@ export const masteryModules: MasteryModule[] = [
       answer: 0.02,
       unit: "mm",
       rounding: "Two decimal places, matching the stated readings",
-      check: { operation: "subtract", inputs: [10.02, 10], expected: 0.02, tolerance: 1e-12, independentMethod: "Convert to micrometres: 10020 - 10000 = 20 micrometres = 0.02 mm." }
+      check: { operation: "subtract", inputs: [10.02, 10], expected: 0.02, tolerance: 1e-12, independentMethod: "The difference is 20 micrometres, which is 0.02 mm." }
     },
     retrievalTask: "Explain why a display resolution of 0.01 mm is not an uncertainty claim of plus or minus 0.01 mm.",
     practicalTask: "Measure one dimension five times, retain raw values, identify the method and report range, resolution and limitations.",
@@ -411,7 +411,7 @@ export const masteryModules: MasteryModule[] = [
       answer: 3200,
       unit: "B",
       rounding: "Exact byte count",
-      check: { operation: "product", inputs: [100, 8, 4], expected: 3200, tolerance: 0, independentMethod: "One frame is 8 x 4 = 32 B; 100 frames total 3200 B." }
+      check: { operation: "product", inputs: [100, 8, 4], expected: 3200, tolerance: 0, independentMethod: "Eight channels at 4 bytes each make a 32-byte frame, so 100 frames contain 3200 bytes." }
     },
     retrievalTask: "Explain the difference between a unit test, an integration test and an acceptance test.",
     practicalTask: "Implement and test a ring buffer with capacity, empty, full and wrap-around cases, then expose it through a small CMake target.",
@@ -495,12 +495,12 @@ export const masteryModules: MasteryModule[] = [
       dimensionalCheck: "Pa = N/m^2"
     }],
     workedExample: {
-      prompt: "Find stress from 1200 N over 0.0002 m^2.",
+      prompt: "A load of 1200 N acts over an area of 0.0002 square metres. Find the stress.",
       substitution: "1200 N / 0.0002 m^2",
       answer: 6000000,
       unit: "Pa",
       rounding: "Two significant figures: 6.0 MPa",
-      check: { operation: "quotient", inputs: [1200, 0.0002], expected: 6000000, tolerance: 1e-6, independentMethod: "0.0002 m^2 x 6,000,000 Pa reconciles to 1200 N." }
+      check: { operation: "quotient", inputs: [1200, 0.0002], expected: 6000000, tolerance: 1e-6, independentMethod: "A stress of 6,000,000 Pa across 0.0002 square metres recovers the 1200 N load." }
     },
     retrievalTask: "Draw a load path through a wheel, axle, bearing, housing and chassis.",
     practicalTask: "Size one rover bracket for stress and deflection, then identify vibration, joint and manufacturing limitations.",
@@ -543,7 +543,7 @@ export const masteryModules: MasteryModule[] = [
       answer: 0.92,
       unit: "1",
       rounding: "0.92, equivalent to 92 percent",
-      check: { operation: "quotient", inputs: [92, 100], expected: 0.92, tolerance: 0, independentMethod: "Eight failures from 100 imply 100 percent - 8 percent = 92 percent." }
+      check: { operation: "quotient", inputs: [92, 100], expected: 0.92, tolerance: 0, independentMethod: "Eight failures among 100 parts leave a 92% first-pass yield." }
     },
     retrievalTask: "Name one manufacturing, assembly, inspection, maintenance and end-of-life question for a rover chassis.",
     practicalTask: "Review a small assembly for process choice, tool access, mistake-proofing, inspection and replaceable wear parts.",
@@ -717,7 +717,7 @@ export const masteryModules: MasteryModule[] = [
       answer: 0.00016,
       unit: "s",
       rounding: "0.00016 s, equivalent to 0.16 ms",
-      check: { operation: "quotient", inputs: [80, 500000], expected: 0.00016, tolerance: 1e-15, independentMethod: "500000 bit/s is 500 bit/ms; 80/500 = 0.16 ms." }
+      check: { operation: "quotient", inputs: [80, 500000], expected: 0.00016, tolerance: 1e-15, independentMethod: "At 500 bits per millisecond, 80 bits take 0.16 ms." }
     },
     retrievalTask: "Name four protocol fields or behaviours that let a receiver reject stale or malformed data.",
     practicalTask: "Design and test a versioned sensor frame with length, sequence, timestamp, CRC, timeout and recovery behaviour.",
@@ -797,7 +797,7 @@ export const masteryModules: MasteryModule[] = [
       dimensionalCheck: "command = (command/error-unit) x error-unit"
     }],
     workedExample: {
-      prompt: "With Kp = 2.5 and error = 0.4 rad, find proportional command.",
+      prompt: "The proportional gain is 2.5 and the error is 0.4 rad. Find the proportional command.",
       substitution: "2.5 command/rad x 0.4 rad",
       answer: 1,
       unit: "command",
@@ -888,7 +888,7 @@ export const masteryModules: MasteryModule[] = [
       answer: 0.018,
       unit: "s",
       rounding: "Three decimal places",
-      check: { operation: "maximum", inputs: [0.012, 0.018, 0.015], expected: 0.018, tolerance: 0, independentMethod: "Ordering the values gives 0.012 < 0.015 < 0.018 s." }
+      check: { operation: "maximum", inputs: [0.012, 0.018, 0.015], expected: 0.018, tolerance: 0, independentMethod: "In ascending order the observations are 0.012 s, 0.015 s and 0.018 s, so the last value is the maximum." }
     },
     retrievalTask: "Explain why a TF frame name, timestamp and parent-child direction all matter.",
     practicalTask: "Build a simulated rover package with URDF/Xacro, ros2_control, launch tests, a bagged mission and diagnostic status.",
@@ -929,7 +929,7 @@ export const masteryModules: MasteryModule[] = [
       dimensionalCheck: "m^2 = m^2 + m^2"
     }],
     workedExample: {
-      prompt: "Independent position errors have variances 0.04 m^2 and 0.09 m^2. Find variance of their sum.",
+      prompt: "Independent position errors have variances of 0.04 and 0.09 square metres. Find the variance of their sum.",
       substitution: "0.04 m^2 + 0.09 m^2",
       answer: 0.13,
       unit: "m^2",
@@ -1019,7 +1019,7 @@ export const masteryModules: MasteryModule[] = [
       dimensionalCheck: "px = px x m/m"
     }],
     workedExample: {
-      prompt: "With fx = 800 px, X = 0.2 m and Z = 2 m, find u.",
+      prompt: "The focal length is 800 px, the object coordinate is 0.2 m and the depth is 2 m. Find the image coordinate.",
       substitution: "800 px x 0.2 m / 2 m",
       answer: 80,
       unit: "px",
@@ -1059,7 +1059,7 @@ export const masteryModules: MasteryModule[] = [
         { symbol: "FP", meaning: "false-positive count", unit: "1" },
         { symbol: "precision", meaning: "positive predictive value", unit: "1" }
       ],
-      dimensionalCheck: "1 = 1/(1 + 1)"
+      dimensionalCheck: "dimensionless = count/count"
     }],
     workedExample: {
       prompt: "A detector makes 100 positive predictions and 80 are correct. Find precision.",
@@ -1067,7 +1067,7 @@ export const masteryModules: MasteryModule[] = [
       answer: 0.8,
       unit: "1",
       rounding: "0.80, equivalent to 80 percent",
-      check: { operation: "quotient", inputs: [80, 100], expected: 0.8, tolerance: 0, independentMethod: "Twenty false positives from 100 predictions imply 100 percent - 20 percent = 80 percent." }
+      check: { operation: "quotient", inputs: [80, 100], expected: 0.8, tolerance: 0, independentMethod: "Twenty false positives among 100 positive predictions leave 80% precision." }
     },
     retrievalTask: "Explain why a high aggregate accuracy can coexist with dangerous class-specific failure.",
     practicalTask: "Train a transparent baseline and one improved model on a versioned dataset, then evaluate held-out confusion, calibration and edge cases.",
@@ -1114,7 +1114,7 @@ export const masteryModules: MasteryModule[] = [
       answer: 0.05,
       unit: "s",
       rounding: "0.050 s, equivalent to 50 ms",
-      check: { operation: "sum", inputs: [0.012, 0.028, 0.01], expected: 0.05, tolerance: 1e-12, independentMethod: "12 ms + 28 ms + 10 ms = 50 ms." }
+      check: { operation: "sum", inputs: [0.012, 0.028, 0.01], expected: 0.05, tolerance: 1e-12, independentMethod: "The 12 ms, 28 ms and 10 ms contributions total 50 ms." }
     },
     retrievalTask: "Name the timestamps needed to distinguish sensor age, queue delay, inference time and actuation delay.",
     practicalTask: "Integrate a bounded perception model into a simulated robot, record latency distribution, stale-output handling and one distribution-shift failure.",
@@ -1154,12 +1154,12 @@ export const masteryModules: MasteryModule[] = [
       dimensionalCheck: "1 = 1 x 1 x 1"
     }],
     workedExample: {
-      prompt: "Within one local FMEA scheme, S = 4, O = 3 and D = 2. Find RPN.",
+      prompt: "Within one local FMEA scheme, severity is 4, occurrence is 3 and detection is 2. Find the risk-priority number.",
       substitution: "4 x 3 x 2",
       answer: 24,
       unit: "1",
       rounding: "Exact ordinal product; not an absolute risk probability",
-      check: { operation: "product", inputs: [4, 3, 2], expected: 24, tolerance: 0, independentMethod: "4 x 3 = 12, and 12 x 2 = 24." }
+      check: { operation: "product", inputs: [4, 3, 2], expected: 24, tolerance: 0, independentMethod: "Severity times occurrence gives 12, and including detection gives 24." }
     },
     retrievalTask: "Explain the distinction among a requirement, verification method, validation evidence and residual risk.",
     practicalTask: "Create a rover system architecture, interface set, FMEA, cybersecurity boundary and bidirectional requirements-to-test matrix.",

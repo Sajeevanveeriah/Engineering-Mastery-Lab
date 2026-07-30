@@ -44,6 +44,21 @@ describe("catalogue integrity", () => {
     }
   });
 
+  it("makes the self-contained Academy and review queue directly searchable", () => {
+    expect(searchCommandCatalogue("engineering academy").some((item) =>
+      item.id === "academy-catalogue"
+      && item.route === "/learn/courses"
+    )).toBe(true);
+    expect(searchCommandCatalogue("retrieval review").some((item) =>
+      item.id === "academy-review"
+      && item.route === "/learn/review"
+    )).toBe(true);
+    expect(searchCommandCatalogue("EML-E3-D20").some((item) =>
+      item.id === "academy-unit-EML-E3-D20"
+      && item.route === "/learn/courses/ACADEMY-E3/units/EML-E3-D20"
+    )).toBe(true);
+  });
+
   it("uses a distinct canonical bookmark namespace for skills", () => {
     expect(bookmarkKey("skill", "robotics")).toBe("skill:robotics");
     expect(bookmarkKey("skill", "robotics")).not.toBe(bookmarkKey("tool", "robotics"));

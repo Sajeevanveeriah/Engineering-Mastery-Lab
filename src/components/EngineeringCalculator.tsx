@@ -1,5 +1,7 @@
 import { useEffect, useId, useMemo, useState } from "react";
+import { calculatorMathExpressions } from "../data/mathExpressions";
 import { Icon } from "./Icon";
+import { Equation } from "./AcademyMath";
 import {
   EngineeringInputError,
   calculateById,
@@ -160,7 +162,16 @@ export function EngineeringCalculator({ definition }: EngineeringCalculatorProps
           <div className="section-heading">
             <div>
               <h3 id={resultHeadingId}>Calculated result</h3>
-              <p className="calculator-equation"><code>{definition.equation}</code></p>
+              <Equation
+                className="calculator-equation"
+                expression={
+                  calculatorMathExpressions[
+                    definition.id as keyof typeof calculatorMathExpressions
+                  ]
+                }
+                fallbackText={definition.equation}
+                label={`${definition.title} equations`}
+              />
             </div>
           </div>
           {calculation.error ? (

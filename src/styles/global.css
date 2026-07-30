@@ -766,6 +766,157 @@ svg.plot { display: block; width: 100%; height: auto; border: 1px solid var(--bo
 .quantity-input input { min-width: 0; border: 0; border-radius: 0; outline: 0 !important; }
 .quantity-input > span { display: grid; min-width: 52px; padding: 0 0.55rem; place-items: center; border-left: 1px solid var(--border); background: var(--bg-inset); color: var(--text-dim); font-family: "Cascadia Code", monospace; font-size: 0.68rem; white-space: nowrap; }
 .calculator-equation { color: var(--text-dim); font-size: 0.72rem; }
+.academy-math {
+  min-width: 0;
+  max-width: 100%;
+  color: var(--text);
+}
+
+.academy-math--inline {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: baseline;
+}
+
+.academy-math--block {
+  display: grid;
+  gap: 0.35rem;
+  margin-block: 0.45rem;
+}
+
+.academy-math__scroll-region {
+  max-width: 100%;
+  padding: 0.65rem 0.75rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-inset);
+  color: var(--text);
+  overscroll-behavior-inline: contain;
+  scrollbar-color: var(--border-strong) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.academy-math__scroll-region:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--focus) 42%, transparent);
+  outline-offset: 2px;
+  border-color: var(--focus);
+}
+
+.academy-math__math,
+.academy-math__rendered {
+  display: inline-block;
+  min-width: max-content;
+  max-width: none;
+  user-select: text;
+}
+
+.academy-math__scroll-region .katex-display {
+  margin: 0;
+}
+
+.academy-math__trailing-punctuation {
+  display: inline-block;
+  margin-inline-start: 0.12em;
+  white-space: pre;
+}
+
+.academy-math__fallback {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: var(--accent-hover);
+  font-family: var(--font-mono);
+  white-space: pre-wrap;
+}
+
+.academy-math__plain-text {
+  max-width: 100%;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+}
+
+.academy-math__plain-text summary {
+  width: fit-content;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+}
+
+.academy-math__plain-text code {
+  display: block;
+  max-width: 100%;
+  margin-top: 0.3rem;
+  padding: 0.45rem 0.55rem;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text);
+  overflow-wrap: anywhere;
+  user-select: all;
+  white-space: pre-wrap;
+}
+
+.academy-math__dimensional-check > strong {
+  display: block;
+  margin-top: 0.7rem;
+  font-size: 0.78rem;
+}
+
+[data-theme="dark"] .academy-math__scroll-region {
+  background: color-mix(in srgb, var(--bg-inset) 90%, #000);
+}
+
+[data-contrast="high"] .academy-math__scroll-region,
+[data-contrast="high"] .academy-math__plain-text code {
+  border-color: var(--text);
+}
+
+/* Reflow at an effective 200 percent zoom on a 1280 CSS-pixel viewport. */
+@media (max-width: 640px) {
+  .academy-math__scroll-region {
+    padding: 0.55rem;
+  }
+
+  .academy-math__scroll-region .katex {
+    font-size: 1em;
+  }
+}
+
+/* Reflow at an effective 400 percent zoom on a 1280 CSS-pixel viewport. */
+@media (max-width: 320px) {
+  .academy-math__scroll-region {
+    padding: 0.4rem;
+  }
+
+  .academy-math__plain-text summary,
+  .academy-math__plain-text code {
+    font-size: 0.68rem;
+  }
+}
+
+@media (forced-colors: active) {
+  .academy-math__scroll-region,
+  .academy-math__plain-text code {
+    border: 1px solid CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .academy-math__scroll-region:focus-visible {
+    outline: 3px solid Highlight;
+    border-color: Highlight;
+  }
+
+  .academy-math__fallback,
+  .academy-math__plain-text,
+  .academy-math__plain-text code {
+    color: CanvasText;
+  }
+}
+
 .result-metric-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; margin: 0; }
 .result-metric-grid > div { min-width: 0; padding: 0.75rem; border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 7px; background: var(--bg-card); }
 .result-metric-grid dt { color: var(--text-dim); font-size: 0.67rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }

@@ -9,6 +9,7 @@ export default defineConfig({
   plugins: [react()],
   base: process.env.TAURI_ENV_PLATFORM ? "./" : "/Engineering-Mastery-Lab/",
   build: {
+    manifest: true,
     // Three.js is isolated behind the lazy CAD route. Its minified route chunk
     // is intentionally larger than Vite's generic 500 kB warning threshold.
     chunkSizeWarningLimit: 650,

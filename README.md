@@ -18,9 +18,10 @@ The global application has five primary destinations:
 - Today: one clear continue action, current pathway, active project, recent
   work across the product, the next accelerated session, current capability
   stage, milestone, rover release, weekly review, and an evidence snapshot.
-- Learn: the complete E0-E4 prerequisite roadmap, the S001-S110 accelerated
-  reboot, practical diagnostics, a source inventory, pathways, laboratories,
-  five flagship engineering workflows, skills, discovery, and bookmarks.
+- Learn: the self-contained E0-E4 Engineering Academy, the retained roadmap
+  and S001-S110 accelerated reboot bridges, practical diagnostics, a source
+  inventory, pathways, laboratories, five flagship engineering workflows,
+  skills, discovery, and bookmarks.
 - Build: four workbook-derived rover releases plus 12 retained data-driven
   engineering briefs with milestones, validation, notes, evidence, estimates,
   and local state.
@@ -33,9 +34,10 @@ The global application has five primary destinations:
 Pricing, Settings, About, search, and the local profile are secondary actions
 in the top bar.
 
-## Guided learning
+## Self-contained engineering academy
 
-The complete curriculum adds five dependency-ordered capability stages:
+The primary learning experience is an internal beginner academy, not a list of
+external resources. It contains five dependency-ordered courses:
 
 - E0 Engineering Starter
 - E1 Undergraduate Foundations
@@ -43,12 +45,51 @@ The complete curriculum adds five dependency-ordered capability stages:
 - E3 Robotics and AI Specialisation
 - E4 R&D Mastery and Proof
 
-Those stages contain 25 substantive domain modules. Every module includes
-prerequisites, measurable outcomes, vocabulary and symbols, equations with SI
-units, a worked numeric example with an independent check, retrieval practice,
-a practical task, diagnostic guidance, evidence requirements, a mastery gate,
-source provenance, an accessible visual equivalent, and non-accrediting
-Engineers Australia Stage 1 educational mapping.
+The five courses contain 25 ordered units and 175 complete native lessons.
+Every lesson has explicit outcomes and prerequisites, written instruction,
+definitions, accessible KaTeX mathematics where relevant, worked examples,
+guided questions, progressive hints, worked solutions, retrieval practice,
+laboratory handoffs, source provenance and exact local resumption. Unit
+assessments and course challenges feed evidence-based skill mastery, review
+scheduling and deterministic next-lesson recommendations.
+
+The lesson route loads one validated seven-lesson teaching-profile unit at a
+time. Reopening a lesson restores its exact section or retained teaching block,
+reading and video position, revealed hints, explicit solution state,
+changed-condition retry disclosure, best scores and bounded attempt history.
+Historical progress cursors for superseded generic blocks are mapped to the
+closest equivalent native teaching section.
+
+Assessment supports single choice, multiple selection, numeric work with
+declared units and tolerances, ordering, matching, short response, diagrams,
+static code analysis and deterministic seeded calculations. Displayed code is
+never executed. A lesson is complete only after its knowledge checks, practice
+and required applied evidence are all satisfied.
+
+The documented default mastery policy starts a skill when instructional or
+assessment evidence exists, moves it to practising at a 60 percent average
+across the latest three guided-practice records, and requires two independent
+activities at 80 percent or higher for proficiency. Mastery then requires a
+delayed review at 90 percent or higher and any required applied evidence.
+Proficient reviews use 7, 14 and 30 day intervals; mastered reviews use 14, 30,
+60 and 120 day intervals. This is an editable product heuristic, not a claim
+of a scientifically perfect memory model, and the interface exposes the
+evidence-based reason for every state.
+
+The curriculum covers every legacy E0-E4 module and every S001-S110 session.
+Those routes remain available as bridges into the internal lesson system, so
+existing bookmarks and progress are preserved.
+
+Optional reviewed MIT OpenCourseWare videos appear only inside relevant
+lessons. A privacy explanation is shown before a player is created, playback
+uses the permitted YouTube privacy-enhanced origin, captions and attribution
+are identified, and each video has a complete native written fallback. Videos
+are never required for assessment or offline study.
+
+The production web build generates a bounded same-origin offline manifest and
+service-worker cache for the complete written academy. The service worker is
+not registered in the Tauri desktop shell, whose packaged local assets remain
+the offline source.
 
 The accelerated reboot is the workbook-derived execution track. It contains
 exactly 110 stable sessions, S001-S110, grouped into milestones M0-M9 and four
@@ -93,7 +134,7 @@ goal, disciplines, experience level, weekly effort, and optional display name.
 Deterministic rules recommend a pathway. Onboarding can be skipped and edited
 later.
 
-Progress schema version 4 stores:
+Progress schema version 5 stores:
 
 - every version 1 skill rating, challenge result, reflection, artefact, sprint
   item, and theme;
@@ -106,15 +147,22 @@ Progress schema version 4 stores:
   bundle JSON;
 - manual evidence and evidence-based achievements;
 - theme and accessibility preferences;
-- bounded unknown version 1 fields under `legacy`.
+- bounded unknown version 1 fields under `legacy`;
 - selected System, Light, or Dark appearance separately from the resolved
   light or dark presentation;
 - curriculum records with completion state, blocker, confidence, actual
   minutes, notes, evidence references, attempt count, diagnostic result,
-  mastery-gate result, completion time, and content version; and
-- weekly planned-versus-completed review records.
+  mastery-gate result, completion time, and content version;
+- weekly planned-versus-completed review records; and
+- Academy lesson records, exact block and normalised scroll resumption, notes,
+  bookmarks, question and assessment attempts, optional-video positions,
+  mastery evidence, spaced-review state, unfinished laboratory handoffs and
+  recommendation receipts. Course and unit progress is derived from lesson
+  records; course availability and completion also use prerequisite-course and
+  course-challenge results.
 
-Version 1, version 2, and version 3 imports are migrated deterministically.
+Version 1, version 2, version 3 and version 4 imports are migrated
+deterministically.
 Existing explicit Light or Dark choices remain explicit; a missing new
 preference defaults to System. Stable content aliases migrate only when the
 mapping is unambiguous, and conflicting current and aliased records block the
@@ -231,7 +279,8 @@ npm run dev
 ```
 
 Dependencies should be installed only as an explicit setup action. Version
-0.2 adds Three.js and its TypeScript declarations for the lazy CAD route.
+0.2 uses Three.js for the lazy CAD route and exact-version KaTeX for accessible
+Academy mathematics.
 
 ## Quality commands
 
@@ -242,9 +291,16 @@ npm test
 npm run build
 npm run test:e2e
 npm run test:visual-review
+npm run validate:academy-media
 npm audit --omit=dev --audit-level=high
 git diff --check
 ```
+
+`npm run validate:academy-media` is an opt-in provider metadata and embed
+document reachability check. Its `METADATA_PASS` result does not establish
+player readiness, video playback, caption quality or packaged desktop WebView
+compatibility. Those behaviours require the Academy browser and desktop media
+journeys.
 
 `npm run test:e2e` uses the locked Playwright version and a locally installed
 Chromium runtime. Install that runtime once with
@@ -281,6 +337,13 @@ Legacy aliases remain available for `/labs`, every `/labs/:id`, `/skills`,
 
 The current foundation routes include:
 
+- `/learn/courses`
+- `/learn/courses/:courseId`
+- `/learn/courses/:courseId/units/:unitId`
+- `/learn/courses/:courseId/units/:unitId/lessons/:lessonId`
+- `/learn/courses/:courseId/units/:unitId/assessments/:assessmentKind`
+- `/learn/courses/:courseId/challenge`
+- `/learn/review`
 - `/learn/roadmap`
 - `/learn/reboot`
 - `/learn/reboot/sessions/S001` through `/learn/reboot/sessions/S110`

@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
+import { Equation } from "../components/AcademyMath";
 import { ModuleShell } from "../components/ModuleShell";
 import { Slider } from "../components/Slider";
 import { LinePlot } from "../components/LinePlot";
+import { labMathExpressions } from "../data/mathExpressions";
 import { moduleById } from "../data/modules";
 import { defaultPidParams, simulatePid, stepMetrics, type PidParams } from "../lib/simulations/control";
 import { round } from "../lib/metrics";
@@ -12,6 +14,9 @@ function Simulator() {
 
   const points = useMemo(() => simulatePid(p), [p]);
   const m = useMemo(() => stepMetrics(points, p.setpoint), [points, p.setpoint]);
+  const plantExpression = p.plant === "first-order"
+    ? labMathExpressions["pid-first-order"]
+    : labMathExpressions["pid-second-order"];
 
   return (
     <div className="lab-layout">
@@ -24,16 +29,21 @@ function Simulator() {
           onChange={(e) => set({ plant: e.target.value as PidParams["plant"] })}
           style={{ marginBottom: "0.6rem", width: "100%" }}
         >
-          <option value="first-order">First-order (τ·dy/dt + y = u)</option>
-          <option value="second-order">Second-order (ωn = 1/τ, damping ζ)</option>
+          <option value="first-order">First-order plant</option>
+          <option value="second-order">Second-order plant</option>
         </select>
-        <Slider label="Kp" value={p.kp} min={0} max={20} step={0.1} onChange={(v) => set({ kp: v })} />
-        <Slider label="Ki" value={p.ki} min={0} max={10} step={0.05} onChange={(v) => set({ ki: v })} />
-        <Slider label="Kd" value={p.kd} min={0} max={5} step={0.05} onChange={(v) => set({ kd: v })} />
+        <Equation
+          expression={plantExpression}
+          fallbackText={plantExpression.plainText}
+          label={`${p.plant === "first-order" ? "First-order" : "Second-order"} plant model`}
+        />
+        <Slider label="Proportional gain" value={p.kp} min={0} max={20} step={0.1} onChange={(v) => set({ kp: v })} />
+        <Slider label="Integral gain" value={p.ki} min={0} max={10} step={0.05} onChange={(v) => set({ ki: v })} />
+        <Slider label="Derivative gain" value={p.kd} min={0} max={5} step={0.05} onChange={(v) => set({ kd: v })} />
         <Slider label="Setpoint" value={p.setpoint} min={0.2} max={3} step={0.1} onChange={(v) => set({ setpoint: v })} />
-        <Slider label="Plant time constant τ" value={p.tau} min={0.2} max={5} step={0.1} unit="s" onChange={(v) => set({ tau: v })} />
+        <Slider label="Plant time constant" value={p.tau} min={0.2} max={5} step={0.1} unit="s" onChange={(v) => set({ tau: v })} />
         {p.plant === "second-order" && (
-          <Slider label="Damping ratio ζ" value={p.zeta} min={0.05} max={2} step={0.05} onChange={(v) => set({ zeta: v })} />
+          <Slider label="Damping ratio" value={p.zeta} min={0.05} max={2} step={0.05} onChange={(v) => set({ zeta: v })} />
         )}
         <Slider label="Disturbance magnitude" value={p.disturbance} min={-1} max={1} step={0.05} onChange={(v) => set({ disturbance: v })} />
         <Slider label="Disturbance time" value={p.disturbanceTime} min={1} max={18} step={0.5} unit="s" onChange={(v) => set({ disturbanceTime: v })} />
@@ -53,7 +63,7 @@ function Simulator() {
           <LinePlot
             title="Control effort"
             xLabel="time (s)"
-            yLabel="u"
+            yLabel="controller output"
             height={160}
             series={[{ name: "Control effort u", color: "var(--chart-3)", points: points.map((pt) => ({ x: pt.t, y: pt.u })) }]}
           />
@@ -71,12 +81,12 @@ function Simulator() {
               <div className="val">{m.settlingTime !== null ? `${round(m.settlingTime)} s` : "not settled"}</div>
             </div>
             <div className="metric">
-              <div className="label">SS error</div>
+              <div className="label">Steady-state error</div>
               <div className="val">{round(m.steadyStateError, 3)}</div>
             </div>
           </div>
           <p className="small muted">
-            Actuator saturates at ±10 with basic anti-windup. Watch the effort plot when tuning aggressively - a
+            Actuator output is limited from -10 to 10 with basic anti-windup. Watch the effort plot when tuning aggressively - a
             flat-lined effort means the controller is asking for more than the actuator can give.
           </p>
         </div>

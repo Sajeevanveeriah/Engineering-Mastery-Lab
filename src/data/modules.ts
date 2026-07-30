@@ -29,15 +29,15 @@ export const modules: ModuleContent[] = [
     domainId: "controls",
     route: "/labs/pid",
     learn: [
-      "A PID controller computes its output from the error e = setpoint − process variable: u = Kp·e + Ki·∫e dt + Kd·de/dt.",
+      "A PID controller first compares the setpoint with the measured process variable. It then combines proportional correction, accumulated error and the rate of error change. The reviewed controller model is shown below.",
       "Proportional action gives immediate correction but leaves steady-state error on most plants. Integral action removes steady-state error but adds phase lag and can cause windup when the actuator saturates. Derivative action damps oscillation but amplifies measurement noise.",
-      "A first-order plant (τ·dy/dt + y = u) cannot overshoot under P-only control; a second-order plant (defined by natural frequency and damping ratio ζ) can oscillate. Key step metrics: rise time (10-90%), overshoot, 2% settling time and steady-state error.",
+      "A first-order plant cannot overshoot under proportional-only control, while a second-order plant can oscillate when it is lightly damped. The two reviewed plant models are shown below. Key step metrics are rise time from 10% to 90%, overshoot, 2% settling time and steady-state error.",
       "This simulator includes actuator saturation with basic anti-windup, and a step disturbance input so you can study regulation as well as tracking."
     ],
     challenges: [
-      { id: "pid-c1", title: "P-only steady-state error", task: "Set Ki = 0 and Kd = 0 on the first-order plant. Increase Kp and watch steady-state error.", passCriteria: "Demonstrate steady-state error below 0.1 with Kp alone, and state why it never reaches exactly zero." },
-      { id: "pid-c2", title: "Tame the overshoot", task: "On the second-order plant (ζ = 0.4), tune Kp, Ki, Kd for the metrics shown.", passCriteria: "Overshoot < 10% AND settling time < 4 s AND |steady-state error| < 0.02." },
-      { id: "pid-c3", title: "Disturbance rejection", task: "Apply a disturbance of 0.5 at t = 10 s. Tune so the PV recovers quickly.", passCriteria: "PV returns within ±2% of setpoint within 3 s of the disturbance, without sustained oscillation." }
+      { id: "pid-c1", title: "P-only steady-state error", task: "Set the integral and derivative gains to zero on the first-order plant. Increase the proportional gain and watch steady-state error.", passCriteria: "Demonstrate steady-state error below 0.1 with proportional action alone, and state why it never reaches exactly zero." },
+      { id: "pid-c2", title: "Tame the overshoot", task: "On the second-order plant with damping ratio 0.4, tune the proportional, integral and derivative gains for the metrics shown.", passCriteria: "Keep overshoot below 10%, settling time below 4 s and the magnitude of steady-state error below 0.02." },
+      { id: "pid-c3", title: "Disturbance rejection", task: "Apply a disturbance of 0.5 at 10 s. Tune so the process variable recovers quickly.", passCriteria: "The process variable returns within 2% of the setpoint within 3 s of the disturbance, without sustained oscillation." }
     ],
     diagnose: [
       { fault: "Sustained oscillation that never settles", cause: "Loop gain too high (Kp or Ki excessive) for the plant's phase lag - the closed loop is near instability." },
@@ -56,24 +56,24 @@ export const modules: ModuleContent[] = [
     domainId: "electrical",
     route: "/labs/electrical",
     learn: [
-      "Ohm's law (V = IR) and power (P = VI) govern every resistive interface. A voltage divider Vout = Vin·R2/(R1+R2) is the simplest sensor interface, but its output impedance interacts with whatever you connect to it.",
-      "An RC circuit charges as v(t) = Vs(1 − e^(−t/RC)); after one time constant τ = RC it reaches 63.2%. The same RC acts as a low-pass filter with cutoff fc = 1/(2πRC), passing slow signals and attenuating fast noise.",
-      "A series RLC circuit is the electrical twin of the spring-mass-damper: damping ratio ζ = (R/2)·√(C/L) decides whether the step response rings (underdamped), is fastest without ringing (critically damped) or is sluggish (overdamped).",
-      "ADCs quantise: an N-bit converter over Vref has a step (LSB) of Vref/2^N. Resolution, divider scaling and filtering together set how faithfully firmware sees the real world."
+      "Ohm's law and electrical power govern every resistive interface. A voltage divider is the simplest sensor interface, but its output impedance interacts with whatever you connect to it. The reviewed relationships are shown below.",
+      "An RC circuit reaches about 63.2% of its final voltage after one time constant. The same circuit acts as a low-pass filter, passing slow signals and attenuating fast noise. Its charge, time-constant and cutoff relationships are shown below.",
+      "A series RLC circuit is the electrical twin of the spring-mass-damper. Its damping ratio decides whether the step response rings, is fastest without ringing or is sluggish. The reviewed natural-frequency and damping model is shown below.",
+      "An analogue-to-digital converter maps a voltage range into a finite number of codes. Resolution, divider scaling and filtering together set how faithfully firmware sees the real world. The voltage represented by one least-significant bit is shown below."
     ],
     challenges: [
-      { id: "elec-c1", title: "3.3 V interface design", task: "Use the divider tool to bring a 5 V signal to ≤ 3.3 V.", passCriteria: "Output between 3.2 V and 3.3 V using standard-looking resistor values; state the divider's current draw." },
+      { id: "elec-c1", title: "3.3 V interface design", task: "Use the divider tool to bring a 5 V signal to no more than 3.3 V.", passCriteria: "Output between 3.2 V and 3.3 V using standard-looking resistor values; state the divider's current draw." },
       { id: "elec-c2", title: "Kill the 1 kHz noise", task: "With the RC filter, attenuate a 1 kHz signal to below 10% while keeping a 10 Hz signal above 99%.", passCriteria: "Show both gains from the filter readout with a single R and C choice." },
-      { id: "elec-c3", title: "Name that regime", task: "Adjust R in the RLC tool to produce all three damping regimes.", passCriteria: "Record the R value at which the response becomes critically damped (ζ = 1) within ±10%." }
+      { id: "elec-c3", title: "Name that regime", task: "Adjust resistance in the RLC tool to produce all three damping regimes.", passCriteria: "Record the resistance at which the response becomes critically damped, within 10% of a damping ratio of 1." }
     ],
     diagnose: [
       { fault: "Divider output sags when connected to a load", cause: "Load impedance comparable to R2 - the divider's output impedance is too high for the load." },
-      { fault: "RC filter passes noise you expected it to remove", cause: "Cutoff set too high relative to the noise frequency; one pole only gives −20 dB/decade." },
+      { fault: "RC filter passes noise you expected it to remove", cause: "Cutoff set too high relative to the noise frequency; one pole attenuates by only 20 dB per decade above cutoff." },
       { fault: "ADC reading toggles between adjacent codes", cause: "Input noise near the LSB size, or signal sitting exactly on a code boundary - normal quantisation behaviour." },
-      { fault: "RLC output rings violently", cause: "Very low resistance gives low ζ; energy sloshes between L and C with little dissipation." }
+      { fault: "RLC output rings violently", cause: "Very low resistance gives a low damping ratio; energy moves between the inductor and capacitor with little dissipation." }
     ],
     build: "Wire a thermistor divider into a microcontroller ADC, add an RC anti-noise filter, and log temperature for 24 hours. Compare measured ripple with the filter gain this lab predicts.",
-    evidence: ["Divider design with loading and current calculations", "Filter design table (fc, gains at signal and noise frequencies)", "RLC regime screenshots with ζ values"],
+    evidence: ["Divider design with loading and current calculations", "Filter design table with cutoff and gains at signal and noise frequencies", "RLC regime screenshots with damping-ratio values"],
     reflect: "Where did an ideal-component assumption in the simulator differ from what you'd expect on a real bench?",
     next: { label: "Embedded Systems Lab - read those sensors in firmware", route: "/labs/embedded" }
   },
@@ -85,7 +85,7 @@ export const modules: ModuleContent[] = [
     learn: [
       "A finite state machine makes firmware behaviour explicit: states, events and transitions. Anything not in the transition table simply cannot happen, which is exactly what you want near hardware.",
       "Mechanical switch contacts bounce for 1-20 ms. Firmware must ignore changes until the input has been stable for a hold time, or one press becomes many. The debounce simulator lets you watch raw vs debounced edges.",
-      "Polling checks an input every loop iteration: worst-case latency is one full poll period plus handler time. An interrupt responds in microseconds but adds concurrency hazards. The latency simulator quantifies the trade-off.",
+      "Polling checks an input every loop iteration, so an event can wait for a complete polling period before its handler runs. An interrupt responds in microseconds but adds concurrency hazards. The reviewed worst-case latency models shown below quantify the trade-off.",
       "UART frames each byte with start/stop bits (asynchronous, LSB first). SPI shifts bits on a clock with a chip-select (fast, full-duplex, more pins). I2C shares two wires with addresses and ACKs (slower, multi-device). The timing diagrams show each frame structure."
     ],
     challenges: [
@@ -110,7 +110,7 @@ export const modules: ModuleContent[] = [
     domainId: "plc",
     route: "/labs/plc",
     learn: [
-      "A PLC executes a scan cycle: read inputs, evaluate logic, write outputs, repeat. The conveyor logic here mirrors a classic seal-in rung: (Start OR Running) AND NOT Stop AND interlocks healthy → Motor.",
+      "A PLC executes a scan cycle: read inputs, evaluate logic, write outputs, repeat. The conveyor logic here mirrors a classic seal-in rung. Its reviewed Boolean model is shown below.",
       "Interlocks prevent unsafe operation: a guard switch inhibits starting, an emergency stop and jam sensor latch a fault. Latched faults must be reset deliberately, and only after the cause is removed - this is fundamental to safe machine behaviour.",
       "The tank process shows level control with alarm limits: high and low alarms inform the operator; the high-high limit is a protective trip that forces the fill valve closed and stays latched.",
       "SCADA layers on top: the HMI panel shows live state, the alarm list shows active abnormal conditions, and the trend records process history for diagnosis. Good alarm design means every alarm is meaningful and actionable."
@@ -137,7 +137,7 @@ export const modules: ModuleContent[] = [
     domainId: "robotics",
     route: "/labs/robotics",
     learn: [
-      "A differential-drive robot moves with linear velocity v = (vR + vL)/2 and turns at ω = (vR − vL)/L, where L is the wheel base. Equal speeds drive straight; opposite speeds spin in place.",
+      "A differential-drive robot's linear and angular velocities follow directly from its left and right wheel velocities and wheelbase. The reviewed kinematic model is shown below. Equal wheel speeds drive straight; opposite wheel speeds spin in place.",
       "Odometry integrates wheel motion to estimate pose. Wheel slip and encoder noise make the estimate drift without bound - the simulator overlays true pose against noisy odometry so you can watch the divergence grow.",
       "Waypoint following uses a simple proportional steering law: compute the heading error to the target and command a wheel-speed difference proportional to it. Gain too low corners lazily; too high oscillates around the path.",
       "A* plans a shortest path over a grid by expanding nodes ordered by cost-so-far plus a heuristic (Manhattan distance here). The planner gives waypoints; the controller above follows them; obstacle proximity triggers avoidance."
@@ -164,14 +164,14 @@ export const modules: ModuleContent[] = [
     domainId: "aiml",
     route: "/labs/ml",
     learn: [
-      "Linear regression fits y = mx + b by minimising squared error. The closed-form least-squares solution needs no iteration; understanding it demystifies 'training'. Evaluate with MSE and R² on held-out test data, never on training data alone.",
+      "Linear regression fits a straight-line prediction by minimising squared error. The closed-form least-squares solution needs no iteration; understanding it demystifies training. The reviewed prediction and held-out evaluation metrics are shown below.",
       "Classification assigns labels. k-nearest-neighbours votes among the k closest training points - simple, but it exposes every core concept: decision boundaries, overfitting (k too small) and underfitting (k too large).",
-      "A confusion matrix splits results into true/false positives/negatives. Precision (of flagged items, how many were real?) and recall (of real items, how many were flagged?) trade off - in maintenance, a missed failure usually costs more than a false alarm.",
-      "Anomaly detection here uses z-scores: points more than N standard deviations from the mean are flagged. The predictive-maintenance demo fits a degradation trend and extrapolates remaining useful life. These demos are educational only - real safety decisions need engineered systems, validated data and professional judgement, not a toy model."
+      "A confusion matrix splits results into true and false positives and negatives. Precision asks how many flagged items were real; recall asks how many real items were flagged. The reviewed metrics are shown below. In maintenance, a missed failure usually costs more than a false alarm.",
+      "Anomaly detection here uses a standardised score to measure how far each point is from the mean. The reviewed score is shown below. The predictive-maintenance demo fits a degradation trend and extrapolates remaining useful life. These demos are educational only - real safety decisions need engineered systems, validated data and professional judgement, not a toy model."
     ],
     challenges: [
-      { id: "ml-c1", title: "Interpret the fit", task: "Fit the regression demo, then change the noise level and refit.", passCriteria: "Report slope, R² at two noise levels and explain why R² fell while the slope barely moved." },
-      { id: "ml-c2", title: "Tune k honestly", task: "Vary k in the classifier and watch test accuracy and the confusion matrix.", passCriteria: "Identify a k where test accuracy ≥ 85% and explain the failure mode at k = 1." },
+      { id: "ml-c1", title: "Interpret the fit", task: "Fit the regression demo, then change the noise level and refit.", passCriteria: "Report slope and coefficient of determination at two noise levels, then explain why the coefficient fell while the slope barely moved." },
+      { id: "ml-c2", title: "Tune k honestly", task: "Vary the neighbour count in the classifier and watch test accuracy and the confusion matrix.", passCriteria: "Identify a neighbour count where test accuracy is at least 85% and explain the failure mode when only one neighbour is used." },
       { id: "ml-c3", title: "Catch the fault, predict the failure", task: "Set the anomaly threshold to flag all injected spikes with zero false positives, then read the RUL estimate.", passCriteria: "All injected anomalies detected, zero false positives, and a stated RUL with one limitation of the linear-degradation assumption." }
     ],
     diagnose: [
@@ -191,15 +191,15 @@ export const modules: ModuleContent[] = [
     domainId: "mechanical",
     route: "/labs/mechanical",
     learn: [
-      "A gear pair with ratio N = T_out/T_in divides speed and multiplies torque by N (ideally, with no losses): power in equals power out, P = Tω. Every drivetrain decision is a torque-speed trade at constant power.",
-      "Mechanical power in SI: P (W) = T (Nm) × ω (rad/s); with rpm, P = T·rpm·2π/60. Motors have torque-speed curves; gearboxes move the operating point to where the load needs it.",
-      "The spring-mass-damper m·ẍ + c·ẋ + k·x = 0 is the canonical second-order system. Natural frequency ωn = √(k/m); damping ratio ζ = c/(2√(km)). Underdamped systems ring at the damped frequency; engineers usually target ζ ≈ 0.4-0.7.",
-      "Vibration problems are usually frequency problems: if excitation frequency approaches ωn, amplitude grows (resonance). Fixes change m, k, or add damping - the explorer shows how each parameter moves the frequency."
+      "A gear pair divides speed and multiplies torque according to its tooth-count ratio. In an ideal lossless transmission, input power equals output power. The reviewed gear and power relationships are shown below.",
+      "Mechanical power in SI units is the product of torque and angular speed. Motor datasheets often give speed in revolutions per minute, so the reviewed conversion and power relationships are shown below. Gearboxes move the operating point to where the load needs it.",
+      "The spring-mass-damper is the canonical second-order mechanical system. Its natural frequency and damping ratio determine whether it rings or returns smoothly. The reviewed free-response, frequency, damping-ratio and critical-damping relationships are shown below.",
+      "Vibration problems are usually frequency problems: if excitation approaches the system's natural frequency, amplitude grows through resonance. Fixes change mass or stiffness, or add damping. The explorer shows how each parameter moves the frequency."
     ],
     challenges: [
-      { id: "mech-c1", title: "Gearbox sizing", task: "A motor gives 0.5 Nm at 3000 rpm. The load needs ≥ 6 Nm.", passCriteria: "Select a tooth-count pair giving ≥ 6 Nm output, and state the resulting output speed and (ideal) power check." },
-      { id: "mech-c2", title: "Hit critical damping", task: "With m = 2 kg and k = 200 N/m, adjust damping c to reach ζ = 1.", passCriteria: "c within ±5% of the analytic critical value (compute it first: c = 2√(km))." },
-      { id: "mech-c3", title: "Detune the resonance", task: "A machine mount has fn near a 10 Hz excitation. Change k or m to move fn at least 30% away.", passCriteria: "New fn ≤ 7 Hz or ≥ 13 Hz, with the parameter change stated and justified." }
+      { id: "mech-c1", title: "Gearbox sizing", task: "A motor gives 0.5 N m at 3000 rpm. The load needs at least 6 N m.", passCriteria: "Select a tooth-count pair giving at least 6 N m output, and state the resulting output speed and ideal power check." },
+      { id: "mech-c2", title: "Hit critical damping", task: "With mass 2 kg and stiffness 200 N/m, adjust the damping coefficient to reach a damping ratio of 1.", passCriteria: "Keep the damping coefficient within 5% of the analytic critical value shown in Learn. Compute that value before using the simulator." },
+      { id: "mech-c3", title: "Detune the resonance", task: "A machine mount has a natural frequency near a 10 Hz excitation. Change stiffness or mass to move the natural frequency at least 30% away.", passCriteria: "Move the natural frequency to 7 Hz or below, or to 13 Hz or above, and state and justify the parameter change." }
     ],
     diagnose: [
       { fault: "Geared-down axis is strong but uselessly slow", cause: "Ratio chosen for torque only; the speed requirement was never written down. Requirements first." },
@@ -219,12 +219,12 @@ export const modules: ModuleContent[] = [
     route: "/labs/practice",
     learn: [
       "Requirements traceability links every requirement to the test that proves it. If a requirement has no test, it isn't verified; if a test has no requirement, ask what it's for. The matrix builder here enforces that link.",
-      "FMEA (Failure Modes and Effects Analysis) asks, for each component or function: how can it fail, what happens, how bad (Severity), how often (Occurrence), how detectable (Detection)? RPN = S×O×D ranks where to act first.",
+      "FMEA (Failure Modes and Effects Analysis) asks, for each component or function: how can it fail, what happens, how severe is it, how often could it occur and how detectable is it? The reviewed risk-priority calculation shown below helps rank where to act first.",
       "A risk register tracks project risks (not just technical failures): description, likelihood, impact, owner and mitigation. A decision log records what was decided, when, by whom and why - future-you's best friend.",
       "FAT (Factory Acceptance Test) proves the system works before shipping; SAT (Site Acceptance Test) proves it works installed. Both are scripted checklists with expected results and sign-off. These tools produce real portfolio artefacts you can export."
     ],
     challenges: [
-      { id: "prac-c1", title: "Trace the conveyor", task: "Write 5 requirements for the PLC Lab conveyor and trace each to a test you actually ran.", passCriteria: "Matrix has ≥ 5 rows, every requirement has a linked test and a pass/fail result." },
+      { id: "prac-c1", title: "Trace the conveyor", task: "Write 5 requirements for the PLC Lab conveyor and trace each to a test you actually ran.", passCriteria: "The matrix has at least 5 rows, every requirement has a linked test and every test has a pass or fail result." },
       { id: "prac-c2", title: "FMEA the tank", task: "Build an FMEA for the tank process with at least 5 failure modes.", passCriteria: "All rows scored for S, O, D; the highest-RPN item has a stated mitigation." },
       { id: "prac-c3", title: "Run a FAT", task: "Generate a FAT checklist for the conveyor and execute it against the PLC Lab.", passCriteria: "Every checklist item marked with a result; failures (if any) have notes." }
     ],

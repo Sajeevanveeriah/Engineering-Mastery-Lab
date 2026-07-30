@@ -100,9 +100,46 @@ test("laboratory stage changes remain addressable in the URL", async ({ page }) 
   await expect.poll(() => new URL(page.url()).hash).toContain("stage=simulate");
 });
 
+test("laboratory plot labels, ticks and legends remain visually separated", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await page.goto("#/learn/labs/pid?stage=simulate");
+
+  const plots = page.locator("svg.plot");
+  await expect(plots).toHaveCount(2);
+
+  const collisions = await plots.evaluateAll((plotElements) => {
+    const intersects = (left: DOMRect, right: DOMRect) =>
+      left.left < right.right
+      && left.right > right.left
+      && left.top < right.bottom
+      && left.bottom > right.top;
+
+    return plotElements.flatMap((plot, plotIndex) => {
+      const yLabel = plot.querySelector<SVGGraphicsElement>(".plot__axis-label--y");
+      const yTicks = Array.from(plot.querySelectorAll<SVGGraphicsElement>(".plot__tick--y"));
+      const legends = Array.from(plot.querySelectorAll<SVGGraphicsElement>(".plot__legend"));
+      const topTick = yTicks.at(-1);
+      if (!yLabel || !topTick) return [`plot ${plotIndex + 1} is missing its y-axis label or top tick`];
+
+      const yLabelBox = yLabel.getBoundingClientRect();
+      const topTickBox = topTick.getBoundingClientRect();
+      const failures: string[] = [];
+      if (intersects(yLabelBox, topTickBox)) failures.push(`plot ${plotIndex + 1}: y-axis label intersects top tick`);
+      legends.forEach((legend, legendIndex) => {
+        const legendBox = legend.getBoundingClientRect();
+        if (intersects(yLabelBox, legendBox)) failures.push(`plot ${plotIndex + 1}: y-axis label intersects legend ${legendIndex + 1}`);
+        if (intersects(topTickBox, legendBox)) failures.push(`plot ${plotIndex + 1}: top tick intersects legend ${legendIndex + 1}`);
+      });
+      return failures;
+    });
+  });
+
+  expect(collisions).toEqual([]);
+});
+
 test("a confirmed progress import can be undone to the exact prior in-session state", async ({ page }) => {
   await page.goto("#/settings");
-  const storageKey = "engineering-mastery-lab/progress/v4";
+  const storageKey = "engineering-mastery-lab/progress/v5";
   await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), storageKey)).not.toBeNull();
   const beforeImport = await page.evaluate((key) => localStorage.getItem(key), storageKey);
 
@@ -155,7 +192,7 @@ test("weekly review records save locally and survive reload", async ({ page }) =
 
   await expect(page.getByRole("status")).toContainText(/^Saved \d{4}-W\d{2} locally\.$/);
   const savedReview = await page.evaluate(() => {
-    const raw = localStorage.getItem("engineering-mastery-lab/progress/v4");
+    const raw = localStorage.getItem("engineering-mastery-lab/progress/v5");
     const parsed = raw ? JSON.parse(raw) as { weeklyReviews: Record<string, unknown> } : null;
     return parsed ? Object.values(parsed.weeklyReviews)[0] : null;
   });
@@ -184,7 +221,7 @@ test("session save confirmation survives the progress-state rerender", async ({ 
   await record.getByRole("button", { name: "Save local record" }).click();
 
   await expect.poll(() => page.evaluate(() => {
-    const raw = localStorage.getItem("engineering-mastery-lab/progress/v4");
+    const raw = localStorage.getItem("engineering-mastery-lab/progress/v5");
     const progress = raw ? JSON.parse(raw) as {
       curriculumRecords?: Record<string, { notes?: string }>;
     } : null;

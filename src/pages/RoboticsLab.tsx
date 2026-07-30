@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Equation } from "../components/AcademyMath";
 import { ModuleShell } from "../components/ModuleShell";
 import { Slider } from "../components/Slider";
 import { useTabPanelActive } from "../components/Tabs";
+import { labMathExpressions } from "../data/mathExpressions";
 import { moduleById } from "../data/modules";
 import {
   diffDriveStep,
@@ -146,6 +148,11 @@ function Simulator() {
     <div className="lab-layout">
       <div className="card">
         <h3 style={{ marginTop: 0 }}>Robot control</h3>
+        <Equation
+          expression={labMathExpressions["robotics-differential-drive"]}
+          fallbackText={labMathExpressions["robotics-differential-drive"].plainText}
+          label="Differential-drive kinematic model"
+        />
         <p>
           {(["manual", "waypoints", "astar"] as Mode[]).map((m) => (
             <button
@@ -168,14 +175,14 @@ function Simulator() {
             <Slider label="Right wheel speed" value={vr} min={-1} max={1} step={0.05} unit="m/s" onChange={setVr} />
           </>
         )}
-        <Slider label="Odometry noise σ" value={noiseStd} min={0} max={0.2} step={0.01} onChange={setNoiseStd} />
+        <Slider label="Odometry noise standard deviation" value={noiseStd} min={0} max={0.2} step={0.01} onChange={setNoiseStd} />
         <p>
           <button className="primary" onClick={() => setRunning((r) => !r)}>{running ? "Pause" : "Run"}</button>{" "}
           <button onClick={reset}>Reset</button>
         </p>
         <div className="metric-grid">
-          <div className="metric"><div className="label">True pose</div><div className="val" style={{ fontSize: "0.85rem" }}>({round(pose.x, 2)}, {round(pose.y, 2)}) θ={round(pose.theta, 2)}</div></div>
-          <div className="metric"><div className="label">Odometry pose</div><div className="val" style={{ fontSize: "0.85rem" }}>({round(odom.x, 2)}, {round(odom.y, 2)})</div></div>
+          <div className="metric"><div className="label">True pose</div><div className="val" style={{ fontSize: "0.85rem" }}>x {round(pose.x, 2)} m, y {round(pose.y, 2)} m, heading {round(pose.theta, 2)} rad</div></div>
+          <div className="metric"><div className="label">Odometry pose</div><div className="val" style={{ fontSize: "0.85rem" }}>x {round(odom.x, 2)} m, y {round(odom.y, 2)} m</div></div>
           <div className="metric"><div className="label">Odometry drift</div><div className="val">{round(driftDist, 2)} m</div></div>
           {mode !== "manual" && (
             <div className="metric"><div className="label">Waypoint</div><div className="val">{Math.min(wpIndex + 1, waypoints.length)}/{waypoints.length}</div></div>
@@ -213,7 +220,7 @@ function Simulator() {
         </svg>
         <p className="small muted">
           Solid blue: true path. Dashed grey: where odometry <em>thinks</em> the robot is. Orange dots: waypoints
-          (green when reached). Red circles: obstacles. A* mode plans on a 20×20 grid to the top-right corner.
+          (green when reached). Red circles: obstacles. A* mode plans on a 20 by 20 grid to the top-right corner.
         </p>
       </div>
     </div>

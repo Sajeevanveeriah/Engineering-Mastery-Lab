@@ -397,7 +397,7 @@ export const roboticsFlagship: FlagshipWorkflowSpecification = {
     },
     {
       forOutput: "Covariance plot",
-      tableColumns: ["step", "prior variance (m^2)", "predicted variance (m^2)", "measurement variance (m^2)", "gain", "posterior variance (m^2)"],
+      tableColumns: ["step", "prior variance (square metres)", "predicted variance (square metres)", "measurement variance (square metres)", "gain", "posterior variance (square metres)"],
       textSummary: "State whether the measurement was accepted and how the posterior shifted."
     }
   ],

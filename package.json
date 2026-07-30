@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && npm run validate:academy-formulas && node scripts/build-academy-offline-manifest.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -17,12 +17,16 @@
     "typecheck": "tsc --noEmit",
     "test:e2e": "npm run build && playwright test --grep-invert @visual-review",
     "test:visual-review": "npm run build && playwright test --grep @visual-review",
-    "build:tauri-frontend": "tsc --noEmit && vite build",
+    "validate:academy-media": "node --experimental-strip-types scripts/validate-academy-media.mjs",
+    "validate:academy-sources": "node scripts/validate-academy-sources.mjs",
+    "validate:academy-formulas": "node scripts/validate-academy-formulas.mjs",
+    "build:tauri-frontend": "npm run build",
     "tauri": "tauri",
     "build:desktop": "tauri build"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.11.1",
+    "katex": "0.18.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-router": "^8.3.0",

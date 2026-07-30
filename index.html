@@ -4,42 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Engineering Mastery Lab helps learners build, simulate and prove practical engineering capability through structured pathways, laboratories, projects and local evidence." />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost; frame-src https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'self'"
+    />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Engineering Mastery Lab" />
     <meta property="og:description" content="Build, simulate and prove real engineering capability through structured local learning." />
     <meta property="og:url" content="https://sajeevanveeriah.github.io/Engineering-Mastery-Lab/" />
     <meta name="theme-color" content="#0d1b2a" />
-    <script>
-      (() => {
-        const allowed = new Set(["system", "light", "dark"]);
-        let preference = "system";
-        try {
-          const current = JSON.parse(localStorage.getItem("engineering-mastery-lab/progress/v4") || "null");
-          if (current && allowed.has(current.themePreference)) {
-            preference = current.themePreference;
-          } else {
-            for (const version of [3, 2, 1]) {
-              const legacy = JSON.parse(localStorage.getItem(`engineering-mastery-lab/progress/v${version}`) || "null");
-              if (legacy && (legacy.theme === "light" || legacy.theme === "dark")) {
-                preference = legacy.theme;
-                break;
-              }
-            }
-          }
-        } catch {
-          preference = "system";
-        }
-        const systemDark = typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: dark)").matches;
-        const resolved = preference === "system" ? (systemDark ? "dark" : "light") : preference;
-        document.documentElement.dataset.themePreference = preference;
-        document.documentElement.dataset.theme = resolved;
-        document.documentElement.style.colorScheme = resolved;
-        document.querySelector('meta[name="theme-color"]')?.setAttribute(
-          "content",
-          resolved === "dark" ? "#050c16" : "#f3f6fa"
-        );
-      })();
-    </script>
+    <script src="%BASE_URL%theme-bootstrap.js"></script>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <title>Engineering Mastery Lab</title>
   </head>

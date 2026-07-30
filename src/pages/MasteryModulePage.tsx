@@ -1,13 +1,29 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
+import {
+  AlignedDerivation,
+  DimensionalCheck,
+  Equation,
+  InlineMath,
+  VariableDefinition
+} from "../components/AcademyMath";
 import { PageHeader } from "../components/PageHeader";
 import { useProgress } from "../components/ProgressContext";
+import { academyCourses, academyUnits } from "../data/academy/catalogue";
 import {
   MASTERY_CONTENT_VERSION,
   capabilityStages,
   engineersAustraliaMappingNotice,
   masteryModules
 } from "../data/masteryCurriculum";
+import {
+  masteryDimensionalCheckMathExpressions,
+  masteryEquationMathExpressions,
+  masterySubstitutionMathExpressions,
+  masteryVariableMathExpressions,
+  engineeringUnitMathExpressions
+} from "../data/mathExpressions";
+import { academyUnitRoute } from "../lib/academy/navigation";
 import { evaluateNumericCheck } from "../lib/curriculum";
 import type { LearningRecord, MasteryGateResult } from "../lib/storage";
 import { NotFoundPage } from "./NotFoundPage";
@@ -28,6 +44,38 @@ function blankModuleRecord(): LearningRecord {
   };
 }
 
+function MasteryMeasurement({
+  value,
+  unit
+}: {
+  value: number;
+  unit: string;
+}) {
+  const unitExpression = engineeringUnitMathExpressions[
+    unit as keyof typeof engineeringUnitMathExpressions
+  ];
+  const isDimensionless = unit === "1";
+  return (
+    <>
+      {value.toLocaleString("en-AU")}
+      {isDimensionless
+        ? <span className="sr-only"> dimensionless</span>
+        : unitExpression
+        ? (
+            <>
+              {" "}
+            <InlineMath
+              expression={unitExpression}
+              fallbackText={unit}
+              label={unitExpression.screenReaderText}
+            />
+            </>
+          )
+        : <> {unit}</>}
+    </>
+  );
+}
+
 export function MasteryModulePage() {
   const { moduleId = "" } = useParams();
   const { progress, update } = useProgress();
@@ -45,6 +93,14 @@ export function MasteryModulePage() {
 
   if (!module) return <NotFoundPage />;
   const stage = capabilityStages.find((candidate) => candidate.id === module.stageId)!;
+  const academyUnit = academyUnits.find((candidate) => candidate.legacyModuleId === module.id);
+  const academyCourse = academyUnit
+    ? academyCourses.find((candidate) => candidate.id === academyUnit.courseId)
+    : undefined;
+  const academyRoute = academyUnit && academyCourse
+    ? academyUnitRoute(academyCourse.id, academyUnit.id)
+    : null;
+  const mathKey = module.id as keyof typeof masteryEquationMathExpressions;
   const independentValue = evaluateNumericCheck(module.workedExample.check);
   const saveRecord = () => {
     const now = new Date().toISOString();
@@ -65,9 +121,23 @@ export function MasteryModulePage() {
         eyebrow={`${module.id} - ${stage.id} ${stage.title}`}
         title={module.title}
         description={module.beginnerExplanation}
-        actions={<Link className="btn" to={`/learn/roadmap#stage-${stage.id}`}>Back to {stage.id}</Link>}
+        actions={(
+          <div className="button-row">
+            {academyRoute && <Link className="btn primary" to={academyRoute}>Learn complete unit</Link>}
+            <Link className="btn" to={`/learn/roadmap#stage-${stage.id}`}>Back to {stage.id}</Link>
+          </div>
+        )}
       />
 
+      {academyRoute && (
+        <section className="learning-boundary" aria-labelledby="academy-unit-bridge-heading">
+          <strong id="academy-unit-bridge-heading">This E0-E4 module is preserved and mapped.</strong>{" "}
+          The Engineering Academy unit contains seven complete native lessons, guided practice,
+          solutions, a laboratory connection, a quiz and a unit test. This legacy page remains
+          available as its concise reference and local record.
+          <div className="button-row"><Link className="btn primary" to={academyRoute}>Open the complete Academy unit</Link></div>
+        </section>
+      )}
       <div className="learning-boundary" role="note"><strong>Educational mapping.</strong> {engineersAustraliaMappingNotice}</div>
 
       <div className="module-detail-layout">
@@ -90,18 +160,59 @@ export function MasteryModulePage() {
             <p className="eyebrow">Verified dimensional model</p><h2 id="equations-heading">Equations with SI units</h2>
             {module.equations.map((equation) => (
               <article key={equation.expression}>
-                <code>{equation.expression}</code>
-                <p><strong>Dimensional check:</strong> {equation.dimensionalCheck}</p>
-                <dl>{equation.variables.map((variable) => <div key={variable.symbol}><dt><code>{variable.symbol}</code></dt><dd>{variable.meaning} [{variable.unit}]</dd></div>)}</dl>
+                <Equation
+                  expression={masteryEquationMathExpressions[mathKey]}
+                  fallbackText={equation.expression}
+                  label={`${module.title} equation`}
+                />
+                <DimensionalCheck
+                  expression={masteryDimensionalCheckMathExpressions[mathKey]}
+                  fallbackText={equation.dimensionalCheck}
+                />
+                <dl>
+                  {equation.variables.map((variable) => (
+                    <VariableDefinition
+                      key={variable.symbol}
+                      symbol={variable.symbol}
+                      meaning={variable.meaning}
+                      unit={variable.unit}
+                      symbolExpression={
+                        masteryVariableMathExpressions[
+                          variable.symbol as keyof typeof masteryVariableMathExpressions
+                        ]
+                      }
+                    />
+                  ))}
+                </dl>
               </article>
             ))}
           </section>
           <section className="worked-example" aria-labelledby="worked-example-heading">
             <p className="eyebrow">Worked numeric example</p><h2 id="worked-example-heading">{module.workedExample.prompt}</h2>
-            <p><code>{module.workedExample.substitution}</code></p>
-            <p className="worked-example__answer"><strong>{module.workedExample.answer.toLocaleString("en-AU")} {module.workedExample.unit}</strong></p>
+            <AlignedDerivation
+              expression={masterySubstitutionMathExpressions[mathKey]}
+              fallbackText={module.workedExample.substitution}
+              label={`${module.title} worked substitution`}
+            />
+            <p className="worked-example__answer">
+              <strong>
+                <MasteryMeasurement
+                  value={module.workedExample.answer}
+                  unit={module.workedExample.unit}
+                />
+              </strong>
+            </p>
             <p>{module.workedExample.rounding}</p>
-            <div className="verification-strip"><span>Independent evaluator</span><strong>{independentValue.toLocaleString("en-AU")} {module.workedExample.unit}</strong><small>{module.workedExample.check.independentMethod}</small></div>
+            <div className="verification-strip">
+              <span>Independent evaluator</span>
+              <strong>
+                <MasteryMeasurement
+                  value={independentValue}
+                  unit={module.workedExample.unit}
+                />
+              </strong>
+              <small>{module.workedExample.check.independentMethod}</small>
+            </div>
           </section>
           <div className="learning-action-grid">
             <section><p className="eyebrow">Retrieve</p><h2>Recall without notes</h2><p>{module.retrievalTask}</p></section>
@@ -130,7 +241,7 @@ export function MasteryModulePage() {
         </div>
 
         <aside className="session-record" aria-labelledby="module-record-heading">
-          <p className="eyebrow">Local progress v4</p><h2 id="module-record-heading">Record module proof</h2>
+          <p className="eyebrow">Local progress v5</p><h2 id="module-record-heading">Record module proof</h2>
           <label><span>Status</span><select value={draft.status} onChange={(event) => setDraft((current) => ({ ...current, status: event.target.value as LearningRecord["status"] }))}><option value="not-started">Not started</option><option value="in-progress">In progress</option><option value="done">Done</option></select></label>
           <label><span>Confidence, self-report 1 to 5</span><select value={draft.confidence ?? ""} onChange={(event) => setDraft((current) => ({ ...current, confidence: event.target.value === "" ? null : Number(event.target.value) }))}><option value="">Not reported</option>{[1, 2, 3, 4, 5].map((score) => <option key={score}>{score}</option>)}</select></label>
           <label><span>Actual minutes</span><input type="number" min={0} max={100000} value={draft.actualMinutes} onChange={(event) => setDraft((current) => ({ ...current, actualMinutes: Number(event.target.value) }))} /></label>

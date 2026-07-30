@@ -8,7 +8,10 @@ This document describes the local data models implemented in:
 - `src/data/rebootCurriculum.ts`
 - `src/data/masteryCurriculum.ts`
 - `src/data/curriculumMetadata.ts`
+- `src/data/academy/`
+- `src/data/academyMedia.ts`
 - `src/lib/curriculum.ts`
+- `src/lib/academy/`
 - `src/lib/kernel/`
 - `src/lib/interchange/`
 - `src/lib/ecosystem/`
@@ -24,11 +27,13 @@ authority.
 
 | Data contract | Current version | Migration behaviour | Persistence boundary |
 |---|---:|---|---|
-| Browser progress | 4 | Versions 1, 2 and 3 import deterministically to version 4 | Browser or desktop-webview `localStorage` |
+| Browser progress | 5 | Versions 1, 2, 3 and 4 import deterministically to version 5 | Browser or desktop-webview `localStorage` |
 | Accelerated reboot curriculum | `2026.07.26` | Canonical reviewed workbook extraction; no runtime XLSX migration | Versioned TypeScript content |
 | Complete mastery curriculum | `2026.07.28` | Stable content ids and explicit aliases | Versioned TypeScript content |
-| Curriculum learning record | 1 inside progress 4 | Aliases migrate only when unambiguous | Browser or desktop-webview `localStorage` |
-| Weekly review record | 1 inside progress 4 | Added empty during prior-progress migration | Browser or desktop-webview `localStorage` |
+| Academy curriculum | Schema 1, content `2026.07.30` | Stable ids; stage payloads are loaded and validated against composed manifests | Versioned TypeScript content |
+| Academy progress | Inside progress 5 | Added as an empty validated state during version 1 through version 4 migration | Browser or desktop-webview `localStorage` |
+| Curriculum learning record | 1 inside progress 5 | Aliases migrate only when unambiguous | Browser or desktop-webview `localStorage` |
+| Weekly review record | 1 inside progress 5 | Added empty during prior-progress migration | Browser or desktop-webview `localStorage` |
 | Local learner profile | 1 | Retained inside progress migration | Browser or desktop-webview `localStorage` |
 | Engineering workspace record | 1 | Added empty when progress version 1 or 2 migrates | Browser or desktop-webview `localStorage` |
 | Engineering project | 2 | Version 1 project migration exists through bundle import | Inside project bundles and workspace records |
@@ -51,9 +56,9 @@ authority.
 | Desktop workbench manifest | 1 | Unknown versions fail closed | Authorised desktop workspace |
 | Desktop latest-run receipt | 2 | Unknown versions fail closed | Authorised desktop workspace |
 
-## Browser progress version 4
+## Browser progress version 5
 
-`ProgressState` version 4 contains:
+`ProgressState` version 5 contains:
 
 - skill ratings, challenge results, reflections, artefact flags and sprint
   checklist state;
@@ -66,7 +71,9 @@ authority.
 - engineering workspace records; and
 - selected theme preference (`system`, `light`, or `dark`);
 - curriculum learning records;
-- weekly review records; and
+- weekly review records;
+- Academy lesson, assessment, skill, review, recommendation, unfinished-lab
+  and exact-resume state; and
 - bounded legacy values migrated from unknown version 1 root fields.
 
 An engineering workspace record has:
@@ -85,16 +92,21 @@ authorised Tauri workspace root.
 Load order is:
 
 ```text
-progress/v4 -> progress/v3 -> progress/v2 -> progress/v1 -> clean version 4 state
+progress/v5 -> progress/v4 -> progress/v3 -> progress/v2 -> progress/v1
+  -> clean version 5 state
 ```
 
-Version 3 migration validates and retains every declared version 3 field.
-Version 2 migration validates and retains every declared version 2 field, then
-starts `engineeringWorkspaces` as an empty record. Version 1 migration retains
-recognised legacy fields, moves bounded unknown root fields into `legacy`,
-marks onboarding complete and starts newer collections from deterministic
-empty values. All prior migrations then add empty curriculum and weekly-review
-collections.
+Version 4 migration uses the retained exact version 4 validator, preserves
+every declared version 4 section, extends the allowed recent-item types and
+adds an empty Academy state. Version 3 migration validates and retains every
+declared version 3 field. Version 2 migration validates and retains every
+declared version 2 field, then starts `engineeringWorkspaces` as an empty
+record. Version 1 migration retains recognised legacy fields, moves bounded
+unknown root fields into `legacy`, marks onboarding complete and starts newer
+collections from deterministic empty values. Earlier migrations add empty
+curriculum and weekly-review collections before the version 5 upgrade. No
+prior record is interpreted as Academy assessment, mastery or completion
+evidence.
 
 An explicit old Light or Dark choice remains explicit. A missing new
 preference becomes System. System is a stored preference, not a third colour
@@ -136,6 +148,155 @@ reflection, and creation and update timestamps. The workbook's twelve-week
 template cycles independently of the ISO week number. UI calculations expose
 both values rather than labelling the template index as a calendar week.
 
+### Academy progress state
+
+The `academy` object has exactly these top-level fields:
+
+```text
+lessonRecords
+assessmentAttempts
+questionAttempts
+questionInteractions
+skillRecords
+unfinishedLabs
+recommendationReceipts
+reviewStates
+resumeCursor
+```
+
+Unknown fields are rejected. The collection bounds below are the executable
+`PROGRESS_IMPORT_LIMITS` values in `src/lib/storage.ts`, not target population
+claims:
+
+| Academy collection | Maximum |
+|---|---:|
+| Lesson records | 256 |
+| Assessment histories | 512 |
+| Attempts in one assessment history | 20 |
+| Question histories | 512 |
+| Attempts in one question history | 20 |
+| Question interaction records | 512 |
+| Revealed hints in one interaction record | 16 |
+| Response-summary entries in one attempt | 128 |
+| Video positions in one lesson | 32 |
+| Skill records | 512 |
+| Evidence entries in one skill record | 64 |
+| Transitions in one skill record | 64 |
+| Unfinished laboratory records | 128 |
+| Recommendation receipts | 100 |
+| Review records | 512 |
+
+The entire imported progress JSON remains bounded to 1,000,000 characters.
+These collection limits are validated before state replacement.
+
+#### Lesson record
+
+A lesson record stores canonical course, unit and lesson ids, start, update and
+optional completion timestamps, last block id, a normalised scroll position
+from 0 through 1, bounded optional-video positions, notes, bookmark state and
+three completion requirements:
+
+```text
+knowledgeChecksPassed
+practiceCompleted
+appliedEvidenceSatisfied
+```
+
+`completionEarned` is valid only when all three requirements are true, and
+`completedAt` exists exactly when completion is earned. Timestamps cannot move
+backwards. A media position stores seconds, optional duration and update time;
+position cannot exceed a known duration.
+
+The resume cursor stores one canonical course, unit, lesson, block and route.
+It must reference an existing started lesson, match that record's identity and
+last block, and cannot be newer than the lesson record. Course and unit progress
+is derived from lesson records; course availability and completion also use
+prerequisite-course and course-challenge results. No independent course or unit
+completion record is stored.
+
+#### Assessment history
+
+Assessment histories are keyed by assessment or question id. Every attempt
+stores an attempt id, matching assessment id, bounded response summary, score
+from 0 through 100, unique hint ids, feedback state, solution-reveal state and
+start and submit timestamps. Reveal cannot precede shown feedback. Attempts are
+chronological and have unique ids. Supported authored question contracts are:
+
+- single choice;
+- multiple selection;
+- numeric with declared unit conversions and tolerances;
+- ordering;
+- matching;
+- short response;
+- diagram;
+- static code analysis; and
+- deterministic seeded calculation.
+
+`questionAttempts` retains the bounded, learner-visible history for each exact
+question identity, including base or retry index, response summary, correctness,
+score, misconception keys, variant seed and hint ids. `questionInteractions`
+stores the latest resumable UI state for each stable V2 question id: assessment
+context, base or retry mode, revealed hint ids and count, solution-reveal state,
+retry-disclosure state, latest score and correctness, and update time. A record
+cannot change its context or scenario identity, and timestamps cannot move
+backwards. V2 attempts additionally require the canonical lesson, assessment,
+question, base or retry and hint identities. The deterministic event receipt is
+used as the attempt and mastery idempotency key, and the grader's actual
+32-bit variant seed is retained rather than a placeholder.
+
+Question content and the grading algorithms are versioned application content,
+not user-authored executable input. Displayed code is never executed.
+
+#### Skill mastery and review
+
+A skill record stores its current mastery state, bounded evidence, legal
+transition history, a history-truncated flag, optional review due time and
+update time. The mastery states are:
+
+```text
+not-started -> introduced -> practising -> proficient -> mastered
+proficient or mastered -> review-due when its interval expires
+review-due -> the achievement state supported by the next evidence evaluation
+```
+
+The arrows are a conceptual progression, not the complete transition table.
+Explicit current evidence may move an achieved skill back to introduced,
+practising or proficient, and the transition reason is retained. `review-due`
+preserves the underlying achieved state in the mastery evaluator.
+
+The default evaluator uses:
+
+- at least one instructional, knowledge-check or assessment record for
+  introduced;
+- a 60 percent average across up to the latest three guided-practice records
+  for practising;
+- two independent scored activities at 80 percent or higher for proficient;
+  and
+- a latest delayed review at 90 percent or higher, plus passed applied evidence
+  when the skill requires it, for mastered.
+
+Review intervals are a documented configurable heuristic. Proficient intervals
+are 7, 14 and 30 days. Mastered intervals are 14, 30, 60 and 120 days. A review
+record separately tracks lesson, unit or skill target, scheduled, due,
+completed or snoozed state, due time, last review time and update time. Review
+state changes are restricted to the transition table in `src/lib/storage.ts`.
+
+#### Laboratory handoff and recommendation receipt
+
+An unfinished laboratory record binds a lab to canonical Academy identity,
+status, optional last step, blocker, notes and timestamps. A blocked status
+requires a blocker and other statuses reject one. Opening a handoff does not
+award lesson completion or skill mastery. The structured return path requires
+an observed result, comparison with a criterion and a retained evidence
+reference before applied evidence can be recorded.
+
+A recommendation receipt stores a unique receipt id, algorithm version, input
+fingerprint, candidate ids, selected recommendation ids, reason codes and
+generation time. Selected ids must come from the candidate set. The same
+algorithm version and input fingerprint cannot be recorded twice with
+conflicting output. Receipts document an accepted deterministic result; they
+are not remote analytics.
+
 ## Curriculum content contracts
 
 The accelerated curriculum contract contains exactly 110 ordered sessions,
@@ -143,16 +304,36 @@ M0-M9, ten practical diagnostics, P1-P4, 64 resources, technology lanes,
 cadence, weekly rhythm and twelve weekly-review templates. Session references
 use stable ids. Optional MIG01, ADV01 and ADV02 resources remain optional.
 
-The complete curriculum contract contains stages E0-E4 and 25 domain modules.
-Every module contains prerequisites, outcomes, vocabulary, SI equations, a
-worked example with independent expected value, retrieval, a practical task,
-diagnostic guidance, evidence, a mastery gate, provenance, accessible text and
-an educational Stage 1 mapping.
+The retained mastery curriculum contains stages E0-E4 and 25 domain modules.
+Those stable module ids are also the Academy unit identities.
+
+The self-contained Academy contract contains five ordered courses, 25 units and
+175 lessons, exactly seven lessons per unit. The five stage payloads contain
+21, 35, 56, 49 and 14 lessons respectively. Every lesson has stable identity,
+two to five measurable objectives, resolved prerequisites and skills, complete
+native blocks, six authored questions, sources and previous or next lesson
+links. Formulae retain variables with SI units, assumptions, reviewed
+derivations and worked examples with dimensional and independent checks.
+
+The composed manifests cover:
+
+- the course, unit and skill prerequisite graphs;
+- 25 unit quizzes, 25 unit tests and five course challenges;
+- mandatory subject requirements mapped to lesson, assessment, skill and
+  internal applied route;
+- all 110 ordered reboot sessions mapped to internal lessons, assessments,
+  review skills and applied routes;
+- formula and skill-assessment evidence derived from loaded lessons;
+- sources, optional media placements and required internal routes; and
+- exact legacy E0-E4 unit identities.
 
 Executable validation checks exact S001-S110 ordering, the 2,750-minute total,
 milestone counts, duplicate or missing ids, resource references, prerequisite
 existence, graph cycles, reachability from entry modules, dimensional worked
-examples and the mandatory proof boundary.
+examples and the mandatory proof boundary. Academy validation separately checks
+the 5-course, 25-unit and 175-lesson contract, resolved sources and media,
+assessment question references, prerequisite graphs, formula structure,
+coverage mappings and required route reachability.
 
 ## Engineering project version 2
 

@@ -1,6 +1,6 @@
 # Third-party dependency and licence inventory
 
-Release target v0.2.0, refreshed 2026-07-29 from `package-lock.json` and
+Release target v0.2.0, refreshed 2026-07-30 from `package-lock.json` and
 `src-tauri/Cargo.lock`. This records declared lockfile licence metadata and is
 not an independent legal opinion.
 
@@ -9,17 +9,18 @@ not an independent legal opinion.
 | Package | Licence |
 |---|---|
 | @tauri-apps/api 2.11.1 | Apache-2.0 OR MIT |
+| katex 0.18.1 | MIT |
 | react 19.2.7 | MIT |
 | react-dom 19.2.7 | MIT |
 | react-router 8.3.0 | MIT |
 | three 0.185.1 | MIT |
 
-The production npm tree contains seven lockfile entries: six MIT entries and
-one Apache-2.0 OR MIT entry. The two transitive production packages are
-`cookie-es` 3.1.1 and `scheduler` 0.27.0, both MIT.
+The production npm tree contains nine lockfile entries: eight MIT entries and
+one Apache-2.0 OR MIT entry. The three transitive production packages are
+`commander` 8.3.0, `cookie-es` 3.1.1 and `scheduler` 0.27.0, all MIT.
 
-The complete npm lockfile contains 237 package entries and every entry declares
-a licence. The declaration counts are 168 MIT, 20 Apache-2.0, 14 MPL-2.0,
+The complete npm lockfile contains 239 package entries and every entry declares
+a licence. The declaration counts are 170 MIT, 20 Apache-2.0, 14 MPL-2.0,
 13 Apache-2.0 OR MIT, 11 ISC, six BSD-2-Clause, two BSD-3-Clause, and one each
 for CC-BY-4.0, BlueOak-1.0.0 and 0BSD. Direct development dependencies are
 MIT, Apache-2.0, Apache-2.0 OR MIT, or MPL-2.0; the MPL-2.0 direct dependency is
@@ -75,6 +76,35 @@ LGPL-2.1-or-later also offer MIT or Apache-2.0.
 These tools are recorded as separately invoked, user-installed processes and
 are not bundled by v0.2.0. This inventory does not determine downstream legal
 or licensing obligations.
+
+## Academy external learning sources
+
+The Academy catalogue records 65 exact, optional HTTPS source pointers, last
+live-validated on 2026-07-30. These pages, standards, courses, textbooks and
+publications are not npm or Rust dependencies, are not downloaded into the
+application and are not required to complete the native lessons or
+assessments. A successful URL check does not grant reuse rights.
+
+| Source family | Recorded reuse boundary |
+|---|---|
+| MIT OpenCourseWare | CC BY-NC-SA 4.0, subject to course-specific third-party exclusions and MIT name rules |
+| OpenStax College Success, Precalculus 2e and University Physics Volumes 1 and 2 | CC BY-NC-SA 4.0, with the attribution, third-party and AI-ingestion notices recorded for each work |
+| OpenStax Physics, produced for the Texas Education Agency | CC BY 4.0, with the work-specific Texas Education Agency attribution recorded in the source entry |
+| BIPM, ROS 2 and Gazebo documentation | CC BY 4.0 under the terms recorded for the relevant source |
+| C++ Core Guidelines | Custom Standard C++ Foundation licence limited to personal or internal business use, with notice retention and trademark limits |
+| FreeRTOS developer documentation | Link-out only; the FreeRTOS kernel and software are MIT, but no separate reuse right is asserted for the website prose |
+| CMSIS, ros2_control, OpenCV, scikit-learn, PyTorch and ExecuTorch | Apache-2.0, BSD-3-Clause or other terms as identified per source record |
+| NIST, NASA and United States Department of Energy publications | Government-publication terms, acknowledgement requirements and marked third-party exclusions apply |
+| Pro Git and the Missing Semester | CC BY-NC-SA 3.0 or 4.0 as recorded per source |
+| Modbus, OASIS MQTT and RFC 9293 | Their respective EULA, specification notice or IETF Trust Legal Provisions apply |
+| Nav2 documentation | Apache-2.0 for the docs.nav2.org repository; separately licensed third-party media may differ |
+| OMG DDS 1.4 | Link-out only; the specification grants limited unmodified informational copying with notices while prohibiting modification, network posting and commercial transfer |
+| Autodesk, ASME, ISA, OPC Foundation, PLCopen and Engineers Australia | Provider-specific website or specification terms apply; Academy links out only and does not frame or redistribute this content |
+
+ST deep links are deliberately absent because the reviewed ST terms do not
+permit deep-linking or framing without permission. The authoritative title,
+organisation, URL, licence or terms note, attribution and validation date for
+each Academy source are maintained in `src/data/academy/catalogue.ts`.
 
 ## Repository licence
 

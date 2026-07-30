@@ -30,7 +30,7 @@ const sprintItems = [
 ];
 
 export function Dashboard() {
-  const { progress, update, replace } = useProgress();
+  const { progress, update, replaceAndResolveRecovery } = useProgress();
   const summary = overallProgress(progress);
   const artefacts = artefactCount(progress);
   const passes = challengePassCount(progress);
@@ -71,8 +71,15 @@ export function Dashboard() {
         setImportMsg({ type: "neutral", text: "Import cancelled. Existing progress was kept." });
         return;
       }
-      setImportRollback(structuredClone(progress));
-      replace(imported);
+      const previousProgress = structuredClone(progress);
+      if (!replaceAndResolveRecovery(imported)) {
+        setImportMsg({
+          type: "error",
+          text: "The validated import could not be saved. Existing local bytes were kept unchanged."
+        });
+        return;
+      }
+      setImportRollback(previousProgress);
       setImportMsg({ type: "success", text: "Progress imported successfully. You can undo this import until the app is closed or another import is completed." });
     } catch (error) {
       setImportMsg({ type: "error", text: `Import failed: ${error instanceof Error ? error.message : "invalid file"}` });
@@ -299,7 +306,13 @@ export function Dashboard() {
               className="btn btn--quiet"
               type="button"
               onClick={() => {
-                replace(importRollback);
+                if (!replaceAndResolveRecovery(importRollback)) {
+                  setImportMsg({
+                    type: "error",
+                    text: "The progress state from before the import could not be restored because browser storage is unavailable."
+                  });
+                  return;
+                }
                 setImportRollback(null);
                 setImportMsg({ type: "success", text: "The progress state from before the import was restored." });
               }}

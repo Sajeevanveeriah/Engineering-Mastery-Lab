@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router";
+import { moduleMathExpressions } from "../data/mathExpressions";
 import type { ModuleContent } from "../data/modules";
 import { projects } from "../data/projects";
 import { skillDomains } from "../data/skills";
 import { moduleProgress } from "../lib/metrics";
+import { Equation } from "./AcademyMath";
 import { Icon } from "./Icon";
 import { PageHeader } from "./PageHeader";
 import { useProgress } from "./ProgressContext";
@@ -75,7 +77,9 @@ export function ModuleShell({ module, simulator }: { module: ModuleContent; simu
 
   const setActive = (stage: StageId) => {
     setActiveState(stage);
-    setSearchParams({ stage }, { replace: true });
+    const nextParameters = new URLSearchParams(searchParams);
+    nextParameters.set("stage", stage);
+    setSearchParams(nextParameters, { replace: true });
   };
 
   const setChallenge = useCallback((id: string, passed: boolean) => {
@@ -112,7 +116,23 @@ export function ModuleShell({ module, simulator }: { module: ModuleContent; simu
       <section className="module-panel prose" aria-labelledby={`${module.id}-learn-heading`}>
         <div className="module-panel__heading"><span className="step-number">01</span><div><p className="eyebrow">Concept foundation</p><h2 id={`${module.id}-learn-heading`}>Learn the model</h2></div></div>
         <div className="learning-boundary"><strong>Before you begin</strong><p>Use the stated model assumptions and challenge criteria as learning boundaries. Record evidence only after independently checking the observable result.</p></div>
-        {module.learn.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+        {module.learn.map((paragraph, index) => {
+          const expression = moduleMathExpressions[
+            `${module.id}:${index}` as keyof typeof moduleMathExpressions
+          ];
+          return (
+            <Fragment key={`${module.id}-learn-${index}`}>
+              <p>{paragraph}</p>
+              {expression && (
+                <Equation
+                  expression={expression}
+                  fallbackText={expression.plainText}
+                  label={`${module.title}, reviewed model ${index + 1}`}
+                />
+              )}
+            </Fragment>
+          );
+        })}
       </section>
     ),
     simulate: (

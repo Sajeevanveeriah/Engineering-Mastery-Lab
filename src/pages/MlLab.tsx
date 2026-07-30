@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
+import { Equation } from "../components/AcademyMath";
 import { ModuleShell } from "../components/ModuleShell";
 import { Slider } from "../components/Slider";
 import { LinePlot } from "../components/LinePlot";
 import { Tabs } from "../components/Tabs";
+import { labMathExpressions } from "../data/mathExpressions";
 import { moduleById } from "../data/modules";
 import {
   fitLinearRegression,
@@ -40,14 +42,19 @@ function RegressionTool() {
   return (
     <div className="card">
       <h3 style={{ marginTop: 0 }}>Linear regression from scratch (least squares)</h3>
-      <p className="small muted">Synthetic data: motor temperature (°C) vs load current (A). True relationship y = 2.5x + 20.</p>
+      <p className="small muted">Synthetic data: motor temperature in degrees Celsius against load current in amperes. The reviewed data-generating relationship is shown below.</p>
+      <Equation
+        expression={labMathExpressions["ml-regression"]}
+        fallbackText={labMathExpressions["ml-regression"].plainText}
+        label="Synthetic motor-temperature relationship"
+      />
       <Slider label="Noise level" value={noise} min={0} max={5} step={0.1} onChange={setNoise} />
       <p><button onClick={() => setSeed((s) => s + 1)}>Resample data</button></p>
       <div className="metric-grid">
         <div className="metric"><div className="label">Slope</div><div className="val">{round(model.slope, 3)}</div></div>
         <div className="metric"><div className="label">Intercept</div><div className="val">{round(model.intercept, 2)}</div></div>
         <div className="metric"><div className="label">Test MSE</div><div className="val">{round(mse, 3)}</div></div>
-        <div className="metric"><div className="label">Test R²</div><div className="val">{round(r2, 3)}</div></div>
+        <div className="metric"><div className="label">Test coefficient of determination</div><div className="val">{round(r2, 3)}</div></div>
       </div>
       <LinePlot
         title="Data and fitted line"
@@ -82,7 +89,12 @@ function ClassifierTool() {
     <div className="card">
       <h3 style={{ marginTop: 0 }}>kNN classification: healthy vs faulty machine</h3>
       <p className="small muted">Features: vibration RMS (x) and bearing temperature deviation (y). Synthetic clusters with overlap.</p>
-      <Slider label="k (neighbours)" value={k} min={1} max={15} step={2} onChange={setK} />
+      <Equation
+        expression={labMathExpressions["ml-classification"]}
+        fallbackText={labMathExpressions["ml-classification"].plainText}
+        label="Classification precision and recall"
+      />
+      <Slider label="Number of neighbours" value={k} min={1} max={15} step={2} onChange={setK} />
       <div className="metric-grid">
         <div className="metric"><div className="label">Accuracy</div><div className="val">{round(cm.accuracy * 100, 1)}%</div></div>
         <div className="metric"><div className="label">Precision</div><div className="val">{round(cm.precision * 100, 1)}%</div></div>
@@ -116,7 +128,12 @@ function AnomalyTool() {
   return (
     <div className="card">
       <h3 style={{ marginTop: 0 }}>Anomaly detection & predictive maintenance</h3>
-      <Slider label="Z-score threshold" value={threshold} min={1} max={6} step={0.1} onChange={setThreshold} />
+      <Equation
+        expression={labMathExpressions["ml-z-score"]}
+        fallbackText={labMathExpressions["ml-z-score"].plainText}
+        label="Standardised anomaly score"
+      />
+      <Slider label="Standardised-score threshold" value={threshold} min={1} max={6} step={0.1} onChange={setThreshold} />
       <div className="metric-grid">
         <div className="metric"><div className="label">Injected anomalies</div><div className="val">{anomalyIdx.length}</div></div>
         <div className="metric"><div className="label">Detected</div><div className="val">{truePos}</div></div>

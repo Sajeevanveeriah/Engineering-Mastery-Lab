@@ -3,12 +3,23 @@ import { Link, useParams } from "react-router";
 import { PageHeader } from "../components/PageHeader";
 import { useProgress } from "../components/ProgressContext";
 import {
+  academyCourses,
+  academyUnitSeeds,
+  academyUnits
+} from "../data/academy/catalogue";
+import { academyRebootMappings } from "../data/academy/rebootMappings";
+import {
   REBOOT_CONTENT_VERSION,
   rebootCadence,
   rebootMilestones,
   rebootResources,
   rebootSessions
 } from "../data/rebootCurriculum";
+import {
+  academyCourseChallengeRoute,
+  academyLessonRoute,
+  academyUnitAssessmentRoute
+} from "../lib/academy/navigation";
 import { canSkipAfterDiagnostic, isProofSession } from "../lib/curriculum";
 import type { LearningRecord, LearningStatus, MasteryGateResult } from "../lib/storage";
 import { NotFoundPage } from "./NotFoundPage";
@@ -57,6 +68,45 @@ export function RebootSessionPage() {
     && canSkipAfterDiagnostic(session, draft.diagnosticScore);
   const previous = rebootSessions[session.sequence - 2];
   const next = rebootSessions[session.sequence];
+  const academyMapping = academyRebootMappings.find((candidate) => candidate.sessionId === session.id);
+  const mappedAcademyLessons = (academyMapping?.lessonIds ?? []).flatMap((lessonId) => {
+    const unit = academyUnits.find((candidate) => candidate.lessonIds.includes(lessonId));
+    const course = unit
+      ? academyCourses.find((candidate) => candidate.id === unit.courseId)
+      : undefined;
+    const seed = unit
+      ? academyUnitSeeds.find((candidate) => candidate.id === unit.id)
+      : undefined;
+    const lessonIndex = unit?.lessonIds.indexOf(lessonId) ?? -1;
+    if (!unit || !course || !seed || lessonIndex < 0) return [];
+    return [{
+      id: lessonId,
+      title: seed.lessonTitles[lessonIndex],
+      unitTitle: unit.title,
+      route: academyLessonRoute(course.id, unit.id, lessonId)
+    }];
+  });
+  const mappedAcademyAssessments = (academyMapping?.assessmentIds ?? []).flatMap((assessmentId) => {
+    const unit = academyUnits.find((candidate) =>
+      candidate.quiz.id === assessmentId || candidate.unitTest.id === assessmentId
+    );
+    if (unit) {
+      const assessmentKind = unit.quiz.id === assessmentId ? "quiz" : "test";
+      return [{
+        id: assessmentId,
+        title: assessmentKind === "quiz" ? unit.quiz.title : unit.unitTest.title,
+        route: academyUnitAssessmentRoute(unit.courseId, unit.id, assessmentKind)
+      }];
+    }
+    const course = academyCourses.find((candidate) => candidate.challenge.id === assessmentId);
+    return course
+      ? [{
+          id: assessmentId,
+          title: course.challenge.title,
+          route: academyCourseChallengeRoute(course.id)
+        }]
+      : [];
+  });
 
   const save = () => {
     const evidenceReferences = evidenceText.split(/\r?\n/).map((value) => value.trim()).filter(Boolean);
@@ -97,6 +147,37 @@ export function RebootSessionPage() {
 
       <div className="session-layout">
         <div className="session-content">
+          <section className="session-object session-object--build" aria-labelledby="academy-session-mapping-heading">
+            <p className="eyebrow">Complete internal teaching for {session.id}</p>
+            <h2 id="academy-session-mapping-heading">Learn this topic in the Engineering Academy</h2>
+            <p>
+              This accelerated session remains available as a compact record. Its full beginner
+              teaching, worked examples, guided practice, solutions and mastery checks now live in
+              the mapped Academy lessons below. The external resources later on this page are
+              optional supplements.
+            </p>
+            <div className="simple-link-list" aria-label={`Academy lessons mapped from ${session.id}`}>
+              {mappedAcademyLessons.map((lesson) => (
+                <Link key={lesson.id} to={lesson.route}>
+                  <span><strong>{lesson.title}</strong><small>{lesson.unitTitle}</small></span>
+                  <span className="badge">{lesson.id}</span>
+                </Link>
+              ))}
+            </div>
+            {mappedAcademyAssessments.length > 0 && (
+              <>
+                <h3>Mapped assessments</h3>
+                <div className="simple-link-list">
+                  {mappedAcademyAssessments.map((assessment) => (
+                    <Link key={assessment.id} to={assessment.route}>
+                      <span><strong>{assessment.title}</strong><small>Internal mastery evidence</small></span>
+                      <span className="badge">Assessment</span>
+                    </Link>
+                  ))}
+                </div>
+              </>
+            )}
+          </section>
           <section className="session-object" aria-labelledby="micro-lesson-heading">
             <p className="eyebrow">Up to {rebootCadence.microLessonMaximumMinutes} min</p>
             <h2 id="micro-lesson-heading">Micro-lesson</h2>
@@ -136,7 +217,7 @@ export function RebootSessionPage() {
         </div>
 
         <aside className="session-record" aria-labelledby="session-record-heading">
-          <p className="eyebrow">Local progress v4</p>
+          <p className="eyebrow">Local progress v5</p>
           <h2 id="session-record-heading">Record the attempt</h2>
           <label>
             <span>Completion state</span>
