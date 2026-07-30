@@ -137,7 +137,9 @@ export function defineSafe<T>(target: Record<string, T>, key: string, value: T):
 export function assertUniqueIds(items: ReadonlyArray<{ id: string }>, path: string): void {
   const ids = new Set<string>();
   for (const item of items) {
-    if (ids.has(item.id)) throw new Error(`${path} contains duplicate id ${item.id}`);
+    if (ids.has(item.id)) {
+      throw new Error(`duplicate id ${JSON.stringify(item.id)} was found in ${path}.`);
+    }
     ids.add(item.id);
   }
 }

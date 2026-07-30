@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { EngineeringScene } from "../components/EngineeringScene";
 import { Icon } from "../components/Icon";
 import { PageHeader } from "../components/PageHeader";
 import { useProgress } from "../components/ProgressContext";
@@ -138,20 +139,12 @@ export function Home() {
             <Link className="btn" to="/learn/roadmap">View complete roadmap</Link>
           </div>
         </div>
-        <div className="home-continue__visual" aria-label={`${rebootSummary.mastery}% of fast-track mastery gates passed. Current stage ${currentStage.id}, milestone ${milestone.id}, release ${projectRelease.id}.`}>
-          <div className="home-continue__metric">
-            <Icon name="robotics" size={34} />
-            <strong>{rebootSummary.mastery}%</strong>
-            <span>mastery gates passed</span>
-          </div>
-          <span className="home-orbit home-orbit--one" aria-hidden="true" />
-          <span className="home-orbit home-orbit--two" aria-hidden="true" />
-          <dl>
-            <div><dt>Stage</dt><dd>{currentStage.id}</dd></div>
-            <div><dt>Milestone</dt><dd>{milestone.id}</dd></div>
-            <div><dt>Release</dt><dd>{projectRelease.id}</dd></div>
-          </dl>
-        </div>
+        <EngineeringScene
+          mastery={rebootSummary.mastery}
+          stage={currentStage.id}
+          milestone={milestone.id}
+          release={projectRelease.id}
+        />
       </section>
 
       <section className="curriculum-now" aria-labelledby="curriculum-now-heading">

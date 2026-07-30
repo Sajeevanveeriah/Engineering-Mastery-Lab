@@ -8,6 +8,7 @@ import { calculateCadMetrics, validateCadDesign, type CadDesign } from "../lib/c
 import { createIdempotentCleanup, supportsWebGl2 } from "../lib/webgl";
 
 const isDevelopment = (import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV === true;
+const MAX_DAMPING_FRAMES = 90;
 
 export type CadViewName = "isometric" | "front" | "top" | "right";
 
@@ -40,6 +41,7 @@ export function CadViewport({ design, showGrid, wireframe, view, viewNonce }: Ca
   const gridRef = useRef<THREE.GridHelper | null>(null);
   const lifecycleCleanupRef = useRef<() => void>(noCleanup);
   const failureHandlerRef = useRef<(error: unknown) => void>(() => undefined);
+  const renderInvalidationRef = useRef<() => void>(noCleanup);
   const [previewFailed, setPreviewFailed] = useState(false);
   const [previewNonce, setPreviewNonce] = useState(0);
 
@@ -57,25 +59,91 @@ export function CadViewport({ design, showGrid, wireframe, view, viewNonce }: Ca
     let controls: OrbitControls | null = null;
     let resizeObserver: ResizeObserver | null = null;
     let themeObserver: MutationObserver | null = null;
+    let intersectionObserver: IntersectionObserver | null = null;
     let modelToDispose: THREE.Group | null = null;
     let gridToDispose: THREE.GridHelper | null = null;
+    let needsRender = true;
+    let dampingFramesRemaining = 0;
+    let documentVisible = document.hidden !== true;
+    let viewportVisible = typeof IntersectionObserver === "undefined";
+    let updatingControls = false;
 
     const handleContextLost = (event: Event) => {
       event.preventDefault();
       failureHandlerRef.current(new Error("The WebGL2 context was lost."));
     };
 
+    function canRender() {
+      return active && documentVisible && viewportVisible;
+    }
+
+    function cancelScheduledRender() {
+      if (frame !== null) cancelAnimationFrame(frame);
+      frame = null;
+    }
+
+    function scheduleRender() {
+      if (frame !== null || !needsRender || !canRender()) return;
+      frame = requestAnimationFrame(renderFrame);
+    }
+
+    function invalidateRender() {
+      needsRender = true;
+      scheduleRender();
+    }
+
+    function pauseRender() {
+      cancelScheduledRender();
+      needsRender = true;
+    }
+
+    function renderFrame() {
+      frame = null;
+      if (!needsRender || !canRender() || !scene || !camera || !renderer || !controls) return;
+      needsRender = false;
+
+      try {
+        updatingControls = true;
+        const controlsChanged = controls.update();
+        updatingControls = false;
+        renderer.render(scene, camera);
+
+        if (controlsChanged && dampingFramesRemaining > 0) {
+          dampingFramesRemaining -= 1;
+          needsRender = true;
+        } else {
+          dampingFramesRemaining = 0;
+        }
+        scheduleRender();
+      } catch (error) {
+        updatingControls = false;
+        failureHandlerRef.current(error);
+      }
+    }
+
+    const handleControlsChange = () => {
+      if (updatingControls) return;
+      dampingFramesRemaining = MAX_DAMPING_FRAMES;
+      invalidateRender();
+    };
+
+    const handleVisibilityChange = () => {
+      documentVisible = document.hidden !== true;
+      if (canRender()) invalidateRender();
+      else pauseRender();
+    };
+
     const cleanup = createIdempotentCleanup([
       () => {
         active = false;
       },
-      () => {
-        if (frame !== null) cancelAnimationFrame(frame);
-        frame = null;
-      },
+      cancelScheduledRender,
       () => resizeObserver?.disconnect(),
       () => themeObserver?.disconnect(),
+      () => intersectionObserver?.disconnect(),
+      () => document.removeEventListener("visibilitychange", handleVisibilityChange),
       () => renderer?.domElement.removeEventListener("webglcontextlost", handleContextLost),
+      () => controls?.removeEventListener("change", handleControlsChange),
       () => controls?.dispose(),
       () => {
         if (sceneRef.current !== scene) return;
@@ -103,6 +171,7 @@ export function CadViewport({ design, showGrid, wireframe, view, viewNonce }: Ca
         if (sceneRef.current === scene) sceneRef.current = null;
         if (cameraRef.current === camera) cameraRef.current = null;
         if (controlsRef.current === controls) controlsRef.current = null;
+        if (renderInvalidationRef.current === invalidateRender) renderInvalidationRef.current = noCleanup;
       }
     ], (error) => logPreviewFailure("CAD 3D preview cleanup failure", error));
 
@@ -139,6 +208,7 @@ export function CadViewport({ design, showGrid, wireframe, view, viewNonce }: Ca
         controls.screenSpacePanning = true;
         controls.minDistance = 20;
         controls.maxDistance = 5000;
+        controls.addEventListener("change", handleControlsChange);
 
         const hemisphere = new THREE.HemisphereLight(0xeef6ff, 0x26374a, 2.1);
         scene.add(hemisphere);
@@ -159,6 +229,7 @@ export function CadViewport({ design, showGrid, wireframe, view, viewNonce }: Ca
         themeObserver = new MutationObserver(() => {
           try {
             setBackground();
+            invalidateRender();
           } catch (error) {
             failPreview(error);
           }
@@ -172,6 +243,7 @@ export function CadViewport({ design, showGrid, wireframe, view, viewNonce }: Ca
           camera.aspect = width / height;
           camera.updateProjectionMatrix();
           renderer.setSize(width, height, false);
+          invalidateRender();
         };
         resize();
         resizeObserver = new ResizeObserver(() => {
@@ -190,17 +262,30 @@ export function CadViewport({ design, showGrid, wireframe, view, viewNonce }: Ca
         controls.target.set(0, 0, 0);
         controls.update();
 
-        const animate = () => {
-          if (!active || !scene || !camera || !renderer || !controls) return;
-          try {
-            controls.update();
-            renderer.render(scene, camera);
-            frame = requestAnimationFrame(animate);
-          } catch (error) {
-            failPreview(error);
-          }
-        };
-        animate();
+        renderInvalidationRef.current = invalidateRender;
+        documentVisible = document.hidden !== true;
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        if (typeof IntersectionObserver === "undefined") {
+          viewportVisible = true;
+        } else {
+          const bounds = host.getBoundingClientRect();
+          viewportVisible = bounds.width > 0
+            && bounds.height > 0
+            && bounds.right > 0
+            && bounds.bottom > 0
+            && bounds.left < window.innerWidth
+            && bounds.top < window.innerHeight;
+          intersectionObserver = new IntersectionObserver((entries) => {
+            const entry = entries.find((candidate) => candidate.target === host);
+            if (!entry) return;
+            viewportVisible = entry.isIntersecting && entry.intersectionRatio > 0;
+            if (canRender()) invalidateRender();
+            else pauseRender();
+          });
+          intersectionObserver.observe(host);
+        }
+        invalidateRender();
       }
     } catch (error) {
       failPreview(error);
@@ -229,7 +314,10 @@ export function CadViewport({ design, showGrid, wireframe, view, viewNonce }: Ca
         scene.remove(previousModel);
         disposeCadObject(previousModel);
       }
-      if (validateCadDesign(design).length > 0) return;
+      if (validateCadDesign(design).length > 0) {
+        renderInvalidationRef.current();
+        return;
+      }
       nextModel = buildCadObject(design);
       nextModel.traverse((child) => {
         if (child instanceof THREE.Mesh) {
@@ -241,6 +329,7 @@ export function CadViewport({ design, showGrid, wireframe, view, viewNonce }: Ca
       });
       scene.add(nextModel);
       modelRef.current = nextModel;
+      renderInvalidationRef.current();
     } catch (error) {
       if (nextModel && modelRef.current !== nextModel) {
         createIdempotentCleanup([
@@ -264,7 +353,10 @@ export function CadViewport({ design, showGrid, wireframe, view, viewNonce }: Ca
         scene.remove(previousGrid);
         disposeGrid(previousGrid);
       }
-      if (!showGrid || validateCadDesign(design).length > 0) return;
+      if (!showGrid || validateCadDesign(design).length > 0) {
+        renderInvalidationRef.current();
+        return;
+      }
       const metrics = calculateCadMetrics(design);
       const size = Math.max(100, Math.ceil(Math.max(metrics.boundingBox.x, metrics.boundingBox.y, metrics.boundingBox.z) * 2.5 / 10) * 10);
       const divisions = Math.min(50, Math.max(10, Math.round(size / 10)));
@@ -278,6 +370,7 @@ export function CadViewport({ design, showGrid, wireframe, view, viewNonce }: Ca
       });
       scene.add(nextGrid);
       gridRef.current = nextGrid;
+      renderInvalidationRef.current();
     } catch (error) {
       if (nextGrid && gridRef.current !== nextGrid) {
         createIdempotentCleanup([
@@ -311,6 +404,7 @@ export function CadViewport({ design, showGrid, wireframe, view, viewNonce }: Ca
       camera.updateProjectionMatrix();
       controls.target.set(0, 0, 0);
       controls.update();
+      renderInvalidationRef.current();
     } catch (error) {
       failureHandlerRef.current(error);
     }

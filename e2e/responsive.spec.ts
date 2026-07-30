@@ -56,6 +56,88 @@ test("stored reduced-motion and contrast preferences reach the document", async 
   await expect(page.locator("main#main-content h1").first()).toBeVisible();
 });
 
+test("editorial artwork selects responsive local sources with intrinsic dimensions", async ({ page }) => {
+  await installProgress(page, emptyProgress);
+
+  for (const [width, expectedSource] of [
+    [390, "Studio-Mobile-Rev00.webp"],
+    [1024, "Studio-Tablet-Rev00.webp"],
+    [1440, "Studio-Desktop-Rev00.webp"]
+  ] as const) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("#/");
+
+    const scene = page.locator(".engineering-scene");
+    const studio = scene.locator(".engineering-scene__studio img");
+    await expect(scene).toBeVisible();
+    await expect(scene.locator(".engineering-scene__studio source")).toHaveCount(5);
+    await expect(studio).toHaveAttribute("width", "1280");
+    await expect(studio).toHaveAttribute("height", "853");
+    await expect(studio).toHaveAttribute("fetchpriority", "high");
+    await expect(studio).toHaveAttribute(
+      "alt",
+      "Three engineers collaborate around a wheeled mobile robot in an electronics laboratory with test equipment and mechanical components."
+    );
+    await expect.poll(() => studio.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+    expect(await studio.evaluate((image: HTMLImageElement) => image.currentSrc)).toContain(expectedSource);
+    expect(await documentOverflow(page), `Today artwork overflow at ${width} CSS px`).toBeLessThanOrEqual(1);
+  }
+});
+
+test("editorial scene pauses when offscreen", async ({ page }) => {
+  await installProgress(page, emptyProgress);
+  await page.goto("#/");
+
+  const scene = page.locator(".engineering-scene");
+  await expect(scene).toHaveAttribute("data-scene-active", "true");
+  await page.locator(".home-closing").scrollIntoViewIfNeeded();
+  await expect(scene).toHaveAttribute("data-scene-active", "false");
+});
+
+test("editorial scene honours stored reduced motion", async ({ page }) => {
+  await installProgress(page, {
+    ...structuredClone(emptyProgress),
+    accessibility: { reducedMotion: true, highContrast: false }
+  });
+  await page.goto("#/");
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "reduced");
+  await expect.poll(() => page.locator(".engineering-scene__studio img").evaluate(
+    (image) => getComputedStyle(image).animationName
+  )).toBe("none");
+});
+
+test("shared shell exposes editorial and workspace interface modes", async ({ page }) => {
+  await installProgress(page, emptyProgress);
+
+  for (const [route, expectedMode] of [
+    ["/", "editorial"],
+    ["/learn", "editorial"],
+    ["/learn/modules/EML-E1-D04", "workspace"],
+    ["/projects", "workspace"],
+    ["/tools", "workspace"],
+    ["/portfolio", "workspace"],
+    ["/about", "editorial"]
+  ] as const) {
+    await page.goto(`#${route}`);
+    await expect(page.locator(".product-shell")).toHaveAttribute("data-interface-mode", expectedMode);
+  }
+
+  await page.goto("#/toolshed");
+  await expect(page.locator(".product-shell")).toHaveAttribute("data-interface-mode", "editorial");
+  await expect(page.locator(".product-shell")).toHaveAttribute("data-route-family", "secondary");
+});
+
+test("desktop sticky controls clear both shell headers", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await installProgress(page, emptyProgress);
+  await page.goto("#/learn/roadmap");
+
+  const jump = page.locator(".roadmap-jump");
+  await jump.scrollIntoViewIfNeeded();
+  await page.evaluate(() => window.scrollBy(0, 240));
+  await expect.poll(() => jump.evaluate((element) => Math.round(element.getBoundingClientRect().top))).toBeGreaterThanOrEqual(130);
+});
+
 test("forced-colour media mode retains visible primary navigation", async ({ page }) => {
   await page.emulateMedia({ forcedColors: "active" });
   await installProgress(page, emptyProgress);

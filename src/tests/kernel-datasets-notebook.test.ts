@@ -101,6 +101,10 @@ describe("engineering kernel datasets", () => {
       'name\nunquoted"value',
       { id: "bad-unquoted-quote", name: "Bad unquoted quote" }
     )).toThrow(/unexpected quote/);
+    expect(() => parseDatasetCsv(
+      "case,torque,torque\ncontinuous,10,20",
+      { id: "duplicate-headers", name: "Duplicate headers" }
+    )).toThrow('duplicate id "torque" was found in CSV headers.');
     expect(() => parseDatasetJson(
       '[{"__proto__":{"polluted":true}}]',
       { id: "unsafe", name: "Unsafe" }

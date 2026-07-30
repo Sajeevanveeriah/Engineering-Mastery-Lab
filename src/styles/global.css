@@ -1,88 +1,7 @@
 :root {
-  color-scheme: light;
-  --bg: #f3f6fa;
-  --bg-card: #ffffff;
-  --bg-inset: #edf2f7;
-  --surface-raised: #ffffff;
-  --surface-tint: #eaf2fb;
-  --surface-strong: #dfe8f2;
-  --border: #d5dee9;
-  --border-strong: #aebdce;
-  --text: #142338;
-  --text-dim: #53657c;
-  --text-soft: #718096;
-  --accent: #0b5cad;
-  --accent-hover: #084985;
-  --accent-soft: #e3effc;
-  --accent-content: #ffffff;
-  --accent-2: #0f766e;
-  --success: #0f766e;
-  --success-soft: #e2f5f0;
-  --warn: #97520a;
-  --warn-soft: #fff1d8;
-  --danger: #b4233a;
-  --danger-hover: #8e172c;
-  --danger-soft: #fde9ed;
-  --focus: #075fb5;
-  --sidebar: #0d1b2a;
-  --sidebar-raised: #14263a;
-  --sidebar-text: #f4f7fb;
-  --sidebar-muted: #9fb0c4;
-  --chart-bg: #edf2f7;
-  --chart-1: #0756a3;
-  --chart-2: #6341a5;
-  --chart-3: #0f766e;
-  --chart-4: #945000;
-  --chart-5: #b4233a;
-  --shadow-sm: 0 1px 2px rgb(15 31 50 / 7%);
-  --shadow-md: 0 10px 30px rgb(15 31 50 / 10%);
-  --radius-sm: 6px;
-  --radius: 10px;
-  --radius-lg: 16px;
-  --content-max: 1360px;
-  font-family: "Segoe UI Variable", "Segoe UI", Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-body);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-}
-
-[data-theme="dark"] {
-  color-scheme: dark;
-  --bg: #08111e;
-  --bg-card: #101c2c;
-  --bg-inset: #17263a;
-  --surface-raised: #142238;
-  --surface-tint: #102b4a;
-  --surface-strong: #22344c;
-  --border: #2a3d57;
-  --border-strong: #49627f;
-  --text: #f1f5fa;
-  --text-dim: #a9b7c9;
-  --text-soft: #8396ad;
-  --accent: #66adff;
-  --accent-hover: #8bc1ff;
-  --accent-soft: #16375d;
-  --accent-content: #06101d;
-  --accent-2: #55d3bd;
-  --success: #55d3bd;
-  --success-soft: #123c39;
-  --warn: #ffbd70;
-  --warn-soft: #4b3214;
-  --danger: #ff8293;
-  --danger-hover: #ff9eaa;
-  --danger-soft: #4a1d27;
-  --focus: #8fc4ff;
-  --sidebar: #050c16;
-  --sidebar-raised: #111f31;
-  --sidebar-text: #f4f7fb;
-  --sidebar-muted: #98a9bd;
-  --chart-bg: #152338;
-  --chart-1: #65b5ff;
-  --chart-2: #c59aff;
-  --chart-3: #55d3bd;
-  --chart-4: #ffbd70;
-  --chart-5: #ff8293;
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 22%);
-  --shadow-md: 0 16px 38px rgb(0 0 0 / 25%);
 }
 
 * { box-sizing: border-box; }
@@ -473,7 +392,7 @@ svg.plot { display: block; width: 100%; height: auto; border: 1px solid var(--bo
 
 /* Module shell and legacy lab simulators */
 .module-progress-strip { margin: -0.55rem 0 1rem; }
-.module-page > .tab-group > .tabs { position: sticky; top: 76px; z-index: 9; }
+.module-page > .tab-group > .tabs { position: sticky; top: var(--shell-sticky-offset); z-index: 9; }
 .module-panel { min-width: 0; }
 .module-panel__heading { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
 .module-panel__heading h2 { margin: 0; }
@@ -614,7 +533,7 @@ svg.plot { display: block; width: 100%; height: auto; border: 1px solid var(--bo
 .workbench-metrics .metric > span { color: var(--text-dim); font-size: 0.68rem; font-weight: 750; letter-spacing: 0.06em; text-transform: uppercase; }
 .workbench-metrics .metric > strong { font-size: 1.32rem; font-variant-numeric: tabular-nums; }
 .workbench-metrics .metric > small { overflow: hidden; color: var(--text-dim); font-size: 0.7rem; text-overflow: ellipsis; white-space: nowrap; }
-.workbench-project > .tab-group > .tabs { position: sticky; top: 76px; z-index: 9; }
+.workbench-project > .tab-group > .tabs { position: sticky; top: var(--shell-sticky-offset); z-index: 9; }
 .run-stage,
 .evidence-stage { min-width: 0; }
 .run-stage > .section-heading p,
@@ -704,8 +623,8 @@ svg.plot { display: block; width: 100%; height: auto; border: 1px solid var(--bo
   .workbench-onboarding,
   .evidence-stage__grid { grid-template-columns: minmax(0, 1fr); }
   .lab-layout { grid-template-columns: minmax(0, 1fr); }
-  .module-page > .tab-group > .tabs { top: 66px; }
-  .workbench-project > .tab-group > .tabs { top: 66px; }
+  .module-page > .tab-group > .tabs { top: var(--shell-sticky-offset); }
+  .workbench-project > .tab-group > .tabs { top: var(--shell-sticky-offset); }
 }
 
 @media (max-width: 760px) {
@@ -822,9 +741,9 @@ svg.plot { display: block; width: 100%; height: auto; border: 1px solid var(--bo
 .toolbox-summary > div { display: flex; align-items: baseline; gap: 0.45rem; padding: 0.8rem 0.9rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-card); }
 .toolbox-summary strong { color: var(--accent); font-size: 1.35rem; }
 .toolbox-summary span { color: var(--text-dim); font-size: 0.75rem; }
-.toolbox-page > .tab-group > .tabs { position: sticky; top: 76px; z-index: 8; margin-bottom: 1rem; }
+.toolbox-page > .tab-group > .tabs { position: sticky; top: var(--shell-sticky-offset); z-index: 8; margin-bottom: 1rem; }
 .toolbox-calculator-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); align-items: start; gap: 0.9rem; }
-.calculator-catalogue { position: sticky; top: 136px; display: grid; gap: 0.6rem; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-card); }
+.calculator-catalogue { position: sticky; top: var(--shell-tabs-sticky-offset); display: grid; gap: 0.6rem; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-card); }
 .calculator-catalogue__list { display: grid; gap: 0.3rem; }
 .calculator-catalogue__list button { display: block; width: 100%; padding: 0.65rem; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--text); cursor: pointer; text-align: left; }
 .calculator-catalogue__list button:hover { background: var(--bg-inset); }
@@ -885,12 +804,12 @@ svg.plot { display: block; width: 100%; height: auto; border: 1px solid var(--bo
 .tool-directory-card__action { display: inline-flex; align-items: center; gap: 0.35rem; margin-top: auto; color: var(--accent); font-size: 0.74rem; font-weight: 700; }
 
 /* Parametric CAD Studio */
-.cad-commandbar { position: sticky; top: 75px; z-index: 10; display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem; margin-bottom: 0.8rem; padding: 0.55rem 0.65rem; border: 1px solid var(--border); border-radius: var(--radius); background: color-mix(in srgb, var(--bg-card) 92%, transparent); box-shadow: var(--shadow-sm); backdrop-filter: blur(12px); }
+.cad-commandbar { position: sticky; top: var(--shell-sticky-offset); z-index: 10; display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem; margin-bottom: 0.8rem; padding: 0.55rem 0.65rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-card); background: color-mix(in srgb, var(--bg-card) 92%, transparent); box-shadow: var(--shadow-sm); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
 .cad-commandbar__group { display: inline-flex; overflow: hidden; border: 1px solid var(--border-strong); border-radius: 7px; }
 .cad-commandbar__group button { min-height: 34px; padding: 0.35rem 0.6rem; border: 0; border-right: 1px solid var(--border); background: var(--bg-card); color: var(--text-dim); cursor: pointer; font-size: 0.72rem; text-transform: capitalize; }
 .cad-commandbar__group button:last-child { border-right: 0; }
 .cad-commandbar__group button:hover,
-.cad-commandbar__group button.active { background: var(--accent-soft); color: var(--accent); }
+.cad-commandbar__group button.active { background: var(--accent-soft); color: var(--accent-hover); }
 .cad-toggle { display: inline-flex; align-items: center; gap: 0.35rem; margin-left: 0.2rem; color: var(--text-dim); font-size: 0.72rem; }
 .cad-workspace { display: grid; grid-template-columns: 220px minmax(420px, 1fr) 320px; min-height: 650px; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-card); box-shadow: var(--shadow-md); }
 .cad-model-tree,
@@ -983,7 +902,7 @@ svg.plot { display: block; width: 100%; height: auto; border: 1px solid var(--bo
 
 @media (max-width: 980px) {
   .toolbox-page > .tab-group > .tabs,
-  .cad-commandbar { top: 66px; }
+  .cad-commandbar { top: var(--shell-sticky-offset); }
   .toolbox-calculator-layout { grid-template-columns: minmax(0, 1fr); }
   .calculator-catalogue { position: static; max-height: none; }
   .calculator-catalogue__list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
