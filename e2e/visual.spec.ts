@@ -13,12 +13,15 @@ async function settleRouteEffects(page: Page): Promise<void> {
   }));
 }
 
-test("Today empty state remains visually stable", async ({ page }) => {
+test("guided Academy empty state remains visually stable", async ({ page }) => {
   await installProgress(page, emptyProgress);
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("#/");
-  await expect(page.getByRole("heading", { level: 1, name: "Today", exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Begin the Engineering Academy", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", {
+    level: 1,
+    name: /Learn engineering from first principles/
+  })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Start from the beginning/ })).toBeVisible();
   await settleRouteEffects(page);
 
   await expect(page).toHaveScreenshot("today-empty-light-desktop.png", {
@@ -27,7 +30,7 @@ test("Today empty state remains visually stable", async ({ page }) => {
   });
 });
 
-test("Learn discovery remains visually stable in dark mode", async ({ page }) => {
+test("guided Academy path remains visually stable in dark mode", async ({ page }) => {
   await installProgress(page, { ...structuredClone(seededProgress), theme: "dark" });
   await page.setViewportSize({ width: 1024, height: 900 });
   await page.goto("#/learn");

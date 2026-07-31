@@ -208,6 +208,27 @@ delete or rewrite that key.
 
 Saving validates the complete current state and writes only the version 5 key.
 
+## Guided Academy route migration
+
+The calmer Guided Academy shell changes primary navigation without removing
+valid local routes or learner records:
+
+| Previous destination or route | Primary destination | Compatibility behaviour |
+| --- | --- | --- |
+| Today at `/` | Guided Start or Continue at `/` | Existing resume and due-review state selects Continue; a clean state selects the first E0 lesson. |
+| Learn discovery at `/learn` | Ordered Academy path at `/learn` | Legacy maps, diagnostics, resources and laboratories remain available through More. |
+| Engineering Academy at `/learn/courses` | Ordered Academy path at `/learn/courses` | The route remains valid; the quiet default shows the current course and one expanded unit. |
+| Learn practice and review links | Practice at `/practice` | Existing Academy review state, unfinished checks and bookmarks remain in progress version 5. |
+| Build at `/projects` | Projects at `/projects` | Existing project records, release routes and local evidence remain unchanged. |
+| Analyse at `/tools` | More at `/more` | `/tools` and every existing tool deep link remain valid; More is the primary discovery location. |
+| Prove at `/portfolio` | Progress at `/progress` | `/portfolio` and capstone evidence routes remain valid; Progress is the primary learner-facing summary. |
+| Settings at `/settings` | More, then Settings | The direct route remains valid. Profile setup is optional and no longer blocks the first Start action. |
+
+The desktop primary navigation is Learn, Practice, Projects, Progress and More.
+The mobile bottom navigation contains Learn, Practice, Projects and Progress.
+More is available through the mobile navigation drawer. Route compatibility
+does not convert legacy curriculum completion into Academy mastery or proof.
+
 ## Project bundle version 1 to version 2
 
 Bundle version 1 uses the same format identifier:

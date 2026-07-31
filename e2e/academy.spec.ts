@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
 import {
+  academyMediaPlacementByLessonId,
+  getAcademyMedia
+} from "../src/data/academyMedia";
+import {
   emptyProgress,
   installProgress,
   monitorRuntimeErrors
@@ -10,6 +14,11 @@ const firstUnitRoute = `${firstCourseRoute}/units/EML-E0-D01`;
 const firstLessonRoute = `${firstUnitRoute}/lessons/EML-E0-D01-L01`;
 const mediaLessonRoute =
   "/learn/courses/ACADEMY-E1/units/EML-E1-D04/lessons/EML-E1-D04-L01";
+const mediaLessonId = "EML-E1-D04-L01";
+const mediaPlacement = academyMediaPlacementByLessonId.get(mediaLessonId);
+if (!mediaPlacement) throw new Error(`Missing media placement for ${mediaLessonId}.`);
+const mediaSpec = getAcademyMedia(mediaPlacement.mediaId);
+if (!mediaSpec?.providerId) throw new Error(`Missing media for ${mediaLessonId}.`);
 const laterStageRoute =
   "/learn/courses/ACADEMY-E4/units/EML-E4-D24/lessons/EML-E4-D24-L01";
 
@@ -186,16 +195,22 @@ test("the academy teaches through complete native course, unit and lesson routes
 
   await page.goto("#/learn/courses");
   await expect(
-    page.getByRole("heading", { level: 1, name: "Engineering Academy" })
+    page.getByRole("heading", { level: 1, name: "Learn", exact: true })
   ).toBeVisible();
   await expect(page.getByText("5 courses", { exact: true })).toBeVisible();
   await expect(page.getByText("25 units", { exact: true })).toBeVisible();
-  await expect(page.getByText("175 complete lessons", { exact: true })).toBeVisible();
+  await expect(page.getByText("175 lessons", { exact: true })).toBeVisible();
   await expect(
-    page.locator(".academy-course-card").filter({ hasText: "Learning and quantitative foundations" })
-  ).toContainText("Recommended");
+    page.locator(".academy-path-course").filter({ hasText: "Learning and quantitative foundations" })
+  ).toContainText("Current");
+  await page.getByRole("link", { name: "Browse the full curriculum" }).click();
   await expect(
-    page.locator(".academy-course-card").filter({ hasText: "Core engineering and computing foundations" })
+    page.locator(".academy-path-course").filter({
+      has: page.getByRole("heading", {
+        name: "Core engineering and computing foundations",
+        exact: true
+      })
+    })
   ).toContainText("Locked");
 
   await page.goto(`#${firstCourseRoute}`);
@@ -257,7 +272,8 @@ test("question retry cases and their bounded attempt history survive reload", as
   await retry.getByRole("button", { name: "Check order" }).click();
   await expect(retry.getByText("Question attempt history (1)")).toBeVisible();
 
-  await expect.poll(() => page.evaluate(() => {
+  await expect.poll(() => page.evaluate(
+    () => {
     const stored = localStorage.getItem("engineering-mastery-lab/progress/v5");
     if (!stored) return null;
     const progress = JSON.parse(stored) as {
@@ -451,7 +467,7 @@ test("lesson notes, bookmarks and the exact resume cursor survive reload", async
   })).toBe(true);
 });
 
-test("optional MIT video is private by default, resumes safely and retains a failure fallback", async ({ page }) => {
+test("reviewed lesson video is private by default, resumes safely and retains a failure fallback", async ({ page }) => {
   const providerRequests: string[] = [];
   page.on("request", (request) => {
     if (request.url().startsWith("https://www.youtube-nocookie.com/")) {
@@ -473,11 +489,13 @@ test("optional MIT video is private by default, resumes safely and retains a fai
   await expect(media).toContainText("Native lesson fallback");
   expect(providerRequests).toEqual([]);
 
-  await media.getByRole("button", { name: "Load optional video" }).click();
+  await media.getByRole("button", { name: "Allow embedded videos" }).click();
   const frame = media.locator("iframe");
   await expect(frame).toHaveAttribute(
     "src",
-    /^https:\/\/www\.youtube-nocookie\.com\/embed\/MFRWDuduuSw\?/
+    new RegExp(
+      `^https://www\\.youtube-nocookie\\.com/embed/${mediaSpec.providerId}\\?`
+    )
   );
   await expect.poll(() => providerRequests.length).toBeGreaterThan(0);
 
@@ -492,7 +510,7 @@ test("optional MIT video is private by default, resumes safely and retains a fai
       })
     }));
   });
-  await expect.poll(() => page.evaluate(() => {
+  await expect.poll(() => page.evaluate(({ lessonId, mediaId }) => {
     const stored = localStorage.getItem("engineering-mastery-lab/progress/v5");
     if (!stored) return null;
     const progress = JSON.parse(stored) as {
@@ -502,16 +520,14 @@ test("optional MIT video is private by default, resumes safely and retains a fai
         }>;
       };
     };
-    return progress.academy?.lessonRecords?.["EML-E1-D04-L01"]
-      ?.videoPositions?.["mit-calculus-course-introduction"]?.positionSeconds;
-  })).toBe(37);
-
-  await media.getByRole("button", { name: "Unload video and clear frame" }).click();
-  await expect(media.locator("iframe")).toHaveCount(0);
+      return progress.academy?.lessonRecords?.[lessonId]
+        ?.videoPositions?.[mediaId]?.positionSeconds;
+    },
+    { lessonId: mediaLessonId, mediaId: mediaPlacement.mediaId }
+  )).toBe(37);
 
   await page.reload();
   const reloadedMedia = page.locator(".academy-media");
-  await reloadedMedia.getByRole("button", { name: "Load optional video" }).click();
   await expect(reloadedMedia.locator("iframe")).toHaveAttribute("src", /[?&]start=37(?:&|$)/);
   await reloadedMedia.locator("iframe").dispatchEvent("error");
   await expect(reloadedMedia.locator("iframe")).toHaveCount(0);
@@ -519,13 +535,13 @@ test("optional MIT video is private by default, resumes safely and retains a fai
     "complete native lesson and reviewed summary fallback"
   );
   await expect(reloadedMedia.getByRole("alert")).toContainText(
-    "The course introduction frames calculus as reasoning about relationships and change."
+    "The complete native Academy lesson remains the authoritative learning path."
   );
   await expect(reloadedMedia.getByRole("alert")).toContainText(
-    "The video is never required for assessment."
+    "Video is never required for completion or offline study."
   );
   const retryVideo = reloadedMedia.getByRole("button", {
-    name: "Retry optional video"
+    name: "Retry embedded video"
   });
   await expect(retryVideo).toBeVisible();
   await retryVideo.click();
@@ -556,7 +572,7 @@ test("optional video withholds undersized player viewports without document over
     element.style.width = "320px";
     element.style.maxWidth = "none";
   });
-  await media.getByRole("button", { name: "Load optional video" }).click();
+  await media.getByRole("button", { name: "Allow embedded videos" }).click();
   const frame = media.locator("iframe");
   await expect(frame).toHaveCount(1);
   await expect(frame).toHaveAttribute(
@@ -566,16 +582,11 @@ test("optional video withholds undersized player viewports without document over
   const frameBounds = await frame.boundingBox();
   expect(frameBounds?.width).toBeGreaterThanOrEqual(200);
   expect(frameBounds?.height).toBeGreaterThanOrEqual(200);
-  await media.getByRole("button", { name: "Unload video and clear frame" }).click();
-
   const requestsAfterEligibleLoad = providerRequests.length;
   for (const width of [210, 199]) {
     await media.evaluate((element, nextWidth) => {
       element.style.width = `${nextWidth}px`;
     }, width);
-    await expect(
-      media.getByRole("button", { name: "Embedded playback unavailable" })
-    ).toBeDisabled();
     await expect(media.locator("iframe")).toHaveCount(0);
     await expect(media).toContainText("minimum 200 by 200 pixel player viewport");
     expect(providerRequests).toHaveLength(requestsAfterEligibleLoad);

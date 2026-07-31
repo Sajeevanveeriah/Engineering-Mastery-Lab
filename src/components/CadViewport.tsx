@@ -431,7 +431,7 @@ export function CadViewport({ design, showGrid, wireframe, view, viewNonce }: Ca
             >
               Retry 3D preview
             </button>
-            <Link className="btn" to="/tools">Back to Analyse</Link>
+            <Link className="btn" to="/more">Back to More</Link>
           </div>
         </div>
         <div className="cad-drawing-panel" role="region" aria-label={`Dimensioned drawing fallback for ${design.name}`}>

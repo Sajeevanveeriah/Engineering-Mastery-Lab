@@ -109,7 +109,7 @@ class ToolRouteErrorBoundary extends Component<BoundaryProps, BoundaryState> {
             <button className="btn primary" type="button" onClick={this.retry}>
               Retry tool
             </button>
-            <Link className="btn" to="/tools">Back to Analyse</Link>
+            <Link className="btn" to="/more">Back to More</Link>
           </div>
         </div>
       </section>

@@ -910,7 +910,7 @@ export const academySources: SourceReference[] = [
     id: "SRC-ASME-Y14-5",
     title: "ASME Y14.5 Dimensioning and Tolerancing",
     organisation: "American Society of Mechanical Engineers",
-    url: "https://www.asme.org/codes-standards/find-codes-standards/y14-5-dimensioning-tolerancing",
+    url: "https://www.asme.org/getmedia/88b96f5c-7fbb-4dfa-aa19-2ae5ddbf63c5/35976.pdf",
     kind: "standard",
     licence: "Link-out only; ASME terms apply and the full standard is paid and copyrighted",
     attribution: "ASME Y14.5 Dimensioning and Tolerancing; standards pointer only",

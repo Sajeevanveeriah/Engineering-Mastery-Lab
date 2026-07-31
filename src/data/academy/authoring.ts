@@ -14,7 +14,10 @@ import {
   type LessonBlock,
   type WorkedExample
 } from "../../lib/academy/types";
-import { academyMediaByLessonId } from "../academyMedia";
+import {
+  academyMediaByLessonId,
+  academyMediaPlacementByLessonId
+} from "../academyMedia";
 import {
   academyLessonMinutePattern,
   academyUnitSeeds,
@@ -8048,6 +8051,7 @@ const buildLesson = (
     formulaTemplate
   );
   const lessonMediaIds = [...(academyMediaByLessonId[lessonId] ?? [])];
+  const lessonMediaPlacement = academyMediaPlacementByLessonId.get(lessonId);
   const sourceIds = sourceIdsForUnit(seed.unitId);
   const imageBlocks: LessonBlock[] = lessonId === "EML-E3-D17-L01"
     ? [{
@@ -8132,11 +8136,27 @@ const buildLesson = (
         `${teachingContext.applicationTask} Completion requires the observed result, its interpretation, the criterion comparison and retained evidence.`
       ]
     },
-    ...lessonMediaIds.map((mediaId, mediaIndex): LessonBlock => ({
-      id: `${lessonId}-BLOCK-MEDIA-${String(mediaIndex + 1).padStart(2, "0")}`,
-      kind: "media",
-      mediaId
-    })),
+    ...(lessonMediaIds.length > 0
+      ? lessonMediaIds.map((mediaId, mediaIndex): LessonBlock => ({
+          id: `${lessonId}-BLOCK-MEDIA-${String(mediaIndex + 1).padStart(2, "0")}`,
+          kind: "media",
+          mediaId,
+          startSeconds:
+            lessonMediaPlacement?.mediaId === mediaId
+              ? lessonMediaPlacement.startSeconds
+              : undefined,
+          endSeconds:
+            lessonMediaPlacement?.mediaId === mediaId
+              ? lessonMediaPlacement.endSeconds
+              : undefined
+        }))
+      : [{
+          id: `${lessonId}-BLOCK-MEDIA-GAP`,
+          kind: "warning" as const,
+          heading: "Watch: reviewed video not yet available",
+          body:
+            "MEDIA_GAP: no directly relevant embedded teaching video has passed review for this lesson. Continue with the complete native teaching, worked example and practice. This gap blocks Academy media release."
+        }]),
     {
       id: `${lessonId}-BLOCK-MISCONCEPTION`,
       kind: "misconception",

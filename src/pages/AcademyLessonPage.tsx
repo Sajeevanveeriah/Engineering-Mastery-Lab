@@ -493,13 +493,13 @@ function lessonBlockLabel(block: LessonBlock): string {
     case "diagram":
       return block.title;
     case "media":
-      return "Optional inline media";
+      return "Watch";
     case "warning":
-      return block.heading;
+      return block.heading.startsWith("Watch") ? "Watch" : block.heading;
     case "laboratory-callout":
-      return block.title;
+      return "Apply";
     case "summary":
-      return "Lesson summary";
+      return "Complete";
     case "source-note":
       return "Sources and attribution";
     default:
@@ -1368,7 +1368,7 @@ export function AcademyLessonPage() {
               : <span />}
             <Link className="btn secondary" to={academyUnitRoute(course.id, unit.id)}>Return to unit</Link>
             {nextRoute
-              ? <Link className="btn" to={nextRoute}>Next lesson</Link>
+              ? <Link className="btn" to={nextRoute}>Continue to next lesson</Link>
               : <Link className="btn" to={`/learn/courses/${course.id}/challenge`}>Course challenge</Link>}
           </nav>
         </article>

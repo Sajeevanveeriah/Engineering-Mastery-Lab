@@ -76,9 +76,10 @@ test.describe("automated accessibility support", () => {
     });
   }
 
-  test("new-user onboarding has no axe findings", async ({ page }) => {
+  test("optional profile editor has no axe findings", async ({ page }) => {
     await installProgress(page, { ...structuredClone(emptyProgress), onboardingComplete: false });
-    await page.goto("#/");
+    await page.goto("#/settings");
+    await page.getByRole("button", { name: /profile$/ }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
     await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("hidden");
 

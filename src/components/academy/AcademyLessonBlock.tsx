@@ -408,7 +408,11 @@ export function AcademyLessonBlockView({
             ? (
                 <ThirdPartyMedia
                   media={media}
-                  initialPositionSeconds={initialVideoPositions[media.id] ?? 0}
+                  initialPositionSeconds={Math.max(
+                    block.startSeconds ?? 0,
+                    initialVideoPositions[media.id] ?? 0
+                  )}
+                  segmentEndSeconds={block.endSeconds}
                   onPositionChange={(positionSeconds, durationSeconds) =>
                     onVideoPosition?.(media.id, positionSeconds, durationSeconds)}
                 />

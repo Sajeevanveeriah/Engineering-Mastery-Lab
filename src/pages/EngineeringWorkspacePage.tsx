@@ -518,7 +518,7 @@ export function EngineeringWorkspacePage() {
       <PageHeader
         eyebrow="Shared engineering kernel"
         title="Engineering project workspace"
-        description="Connect Learn, Build, Analyse, and Prove through versioned SI variables, deterministic scenarios, controlled notebook records, evidence lineage, and portable local interchange."
+        description="Connect Learn, Practise, Projects, and Progress through versioned SI variables, deterministic scenarios, controlled notebook records, evidence lineage, and portable local interchange."
         actions={(
           <div className="button-row">
             <button type="button" onClick={saveWorkspace}><Icon name="check" size={17} /> Save local record</button>

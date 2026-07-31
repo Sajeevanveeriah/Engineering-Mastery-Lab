@@ -6,7 +6,12 @@ import {
   useRef,
   useState
 } from "react";
+import { Link } from "react-router";
 import type { MediaSpec } from "../lib/academy/types";
+import {
+  setAcademyMediaPreference,
+  useAcademyMediaPreference
+} from "../lib/academy/mediaPreference";
 import {
   buildPrivacyEmbedUrl,
   YOUTUBE_PRIVACY_ORIGIN
@@ -20,13 +25,6 @@ const THIRD_PARTY_MEDIA_FRAME_HORIZONTAL_BORDER_PIXELS = 2;
 export function isThirdPartyMediaViewportEligible(widthPixels: number): boolean {
   return Number.isFinite(widthPixels)
     && widthPixels >= THIRD_PARTY_MEDIA_MIN_VIEWPORT_PIXELS;
-}
-
-export function isThirdPartyMediaConsentCurrent(
-  consentedMediaId: string | null,
-  currentMediaId: string
-): boolean {
-  return consentedMediaId !== null && consentedMediaId === currentMediaId;
 }
 
 function cssPixels(value: string): number {
@@ -67,6 +65,7 @@ export function getAcademyMediaAlternativeSource(media: MediaSpec) {
 export interface ThirdPartyMediaProps {
   media: MediaSpec;
   initialPositionSeconds?: number;
+  segmentEndSeconds?: number | null;
   onPositionChange?: (positionSeconds: number, durationSeconds: number | null) => void;
 }
 
@@ -178,6 +177,7 @@ export function thirdPartyMediaLifecycleReducer(
 export function ThirdPartyMedia({
   media,
   initialPositionSeconds = 0,
+  segmentEndSeconds,
   onPositionChange
 }: ThirdPartyMediaProps) {
   const [
@@ -187,7 +187,7 @@ export function ThirdPartyMedia({
     thirdPartyMediaLifecycleReducer,
     initialThirdPartyMediaLifecycleState
   );
-  const [consentedMediaId, setConsentedMediaId] = useState<string | null>(null);
+  const mediaPreference = useAcademyMediaPreference();
   const [documentVisible, setDocumentVisible] = useState(
     () => typeof document !== "undefined" && document.visibilityState === "visible"
   );
@@ -215,17 +215,14 @@ export function ThirdPartyMedia({
   const embedUrl = useMemo(
     () => buildPrivacyEmbedUrl(media, {
       origin: callerOrigin,
-      resumeSeconds: resumePositionSeconds
+      resumeSeconds: resumePositionSeconds,
+      endSeconds: segmentEndSeconds
     }),
-    [callerOrigin, media, resumePositionSeconds]
+    [callerOrigin, media, resumePositionSeconds, segmentEndSeconds]
   );
   const canLoad = embedUrl !== null && playerViewportEligible;
-  const consentIsCurrent = isThirdPartyMediaConsentCurrent(
-    consentedMediaId,
-    media.id
-  );
-  const loadedForCurrentMedia = loaded && consentIsCurrent;
-  const loadFailedForCurrentMedia = loadFailed && consentIsCurrent;
+  const loadedForCurrentMedia = loaded && mediaPreference === "allow";
+  const loadFailedForCurrentMedia = loadFailed && mediaPreference === "allow";
 
   useEffect(() => {
     const root = mediaRootRef.current;
@@ -249,7 +246,6 @@ export function ThirdPartyMedia({
 
   useEffect(() => {
     const nextPosition = Math.max(0, latestInitialPosition.current);
-    setConsentedMediaId(null);
     dispatchLifecycle({ type: "reset" });
     setPlayerInViewport(false);
     setResumePositionSeconds(nextPosition);
@@ -272,7 +268,6 @@ export function ThirdPartyMedia({
   useEffect(() => {
     if (playerViewportEligible || !loadedForCurrentMedia) return;
     setResumePositionSeconds(lastRecordedPosition.current);
-    setConsentedMediaId(null);
     dispatchLifecycle({ type: "reset" });
     setPlayerInViewport(false);
     playerReadyRef.current = false;
@@ -280,6 +275,19 @@ export function ThirdPartyMedia({
     readinessRemainingMilliseconds.current =
       THIRD_PARTY_MEDIA_READY_TIMEOUT_MS;
   }, [loadedForCurrentMedia, playerViewportEligible]);
+
+  useEffect(() => {
+    if (mediaPreference !== "allow" || !canLoad || loaded || loadFailed) return;
+    dispatchLifecycle({ type: "load" });
+  }, [canLoad, loadFailed, loaded, mediaPreference]);
+
+  useEffect(() => {
+    if (mediaPreference === "allow" || (!loaded && !loadFailed)) return;
+    dispatchLifecycle({ type: "reset" });
+    setPlayerInViewport(false);
+    playerReadyRef.current = false;
+    initialSeekApplied.current = false;
+  }, [loadFailed, loaded, mediaPreference]);
 
   useEffect(() => {
     if (!loadedForCurrentMedia) return;
@@ -457,6 +465,31 @@ export function ThirdPartyMedia({
     );
   };
 
+  const loadPlayer = () => {
+    const root = mediaRootRef.current;
+    if (
+      !root
+      || !isThirdPartyMediaViewportEligible(
+        availableThirdPartyMediaViewportWidth(root)
+      )
+    ) {
+      setPlayerViewportEligible(false);
+      return;
+    }
+    const nextPosition = Math.max(
+      lastRecordedPosition.current,
+      initialPositionSeconds
+    );
+    lastRecordedPosition.current = nextPosition;
+    setResumePositionSeconds(nextPosition);
+    setPlayerInViewport(false);
+    playerReadyRef.current = false;
+    initialSeekApplied.current = false;
+    readinessRemainingMilliseconds.current =
+      THIRD_PARTY_MEDIA_READY_TIMEOUT_MS;
+    dispatchLifecycle({ type: "load" });
+  };
+
   return (
     <section
       ref={mediaRootRef}
@@ -465,7 +498,7 @@ export function ThirdPartyMedia({
     >
       <div className="academy-media__heading">
         <div>
-          <p className="eyebrow">Optional external teaching</p>
+          <p className="eyebrow">Watch</p>
           <h3 id={`${media.id}-title`}>{media.title}</h3>
           <p>{media.learningOutcome}</p>
         </div>
@@ -501,23 +534,23 @@ export function ThirdPartyMedia({
             type="button"
             onClick={() => {
               setResumePositionSeconds(lastRecordedPosition.current);
-              setConsentedMediaId(null);
               dispatchLifecycle({ type: "reset" });
               setPlayerInViewport(false);
               playerReadyRef.current = false;
               initialSeekApplied.current = false;
               readinessRemainingMilliseconds.current =
                 THIRD_PARTY_MEDIA_READY_TIMEOUT_MS;
+              setAcademyMediaPreference("written-only");
             }}
           >
-            Unload video and clear frame
+            Use written lessons only
           </button>
         </div>
       ) : (
         <div className="academy-media__consent">
           <div className="academy-media__placeholder" aria-hidden="true">
-            <span>MIT</span>
-            <strong>Optional video</strong>
+            <span>Video</span>
+            <strong>Embedded teaching</strong>
           </div>
           <div>
             {loadFailedForCurrentMedia && (
@@ -560,47 +593,60 @@ export function ThirdPartyMedia({
                 lesson and reviewed summary remain available.
               </p>
             )}
-            <p>
-              No player or provider request has been created. Loading sends your IP address and normal
-              browser request data to YouTube. The privacy-enhanced player does not autoplay.
-            </p>
-            <button
-              className="btn"
-              type="button"
-              disabled={!canLoad}
-              onClick={() => {
-                const root = mediaRootRef.current;
-                if (
-                  !root
-                  || !isThirdPartyMediaViewportEligible(
-                    availableThirdPartyMediaViewportWidth(root)
-                  )
-                ) {
-                  setPlayerViewportEligible(false);
-                  setConsentedMediaId(null);
-                  return;
-                }
-                const nextPosition = Math.max(
-                  lastRecordedPosition.current,
-                  initialPositionSeconds
-                );
-                lastRecordedPosition.current = nextPosition;
-                setResumePositionSeconds(nextPosition);
-                setPlayerInViewport(false);
-                playerReadyRef.current = false;
-                initialSeekApplied.current = false;
-                readinessRemainingMilliseconds.current =
-                  THIRD_PARTY_MEDIA_READY_TIMEOUT_MS;
-                setConsentedMediaId(media.id);
-                dispatchLifecycle({ type: "load" });
-              }}
-            >
-              {canLoad
-                ? loadFailedForCurrentMedia
-                  ? "Retry optional video"
-                  : "Load optional video"
-                : "Embedded playback unavailable"}
-            </button>
+            {mediaPreference === "ask" && (
+              <>
+                <p>
+                  No player or provider request has been created. Embedded YouTube
+                  teaching contacts YouTube and sends your IP address and normal browser
+                  request data. The privacy-enhanced player does not autoplay. Choose
+                  once for the whole Academy.
+                </p>
+                <div className="button-row">
+                  <button
+                    className="btn primary"
+                    type="button"
+                    onClick={() => setAcademyMediaPreference("allow")}
+                  >
+                    Allow embedded videos
+                  </button>
+                  <button
+                    className="btn secondary"
+                    type="button"
+                    onClick={() => setAcademyMediaPreference("written-only")}
+                  >
+                    Use written lessons only
+                  </button>
+                </div>
+              </>
+            )}
+            {mediaPreference === "written-only" && (
+              <div role="status">
+                <p>
+                  Your Academy media preference is written lessons only. No YouTube
+                  player or provider request has been created.
+                </p>
+                <p>{media.nativeSummaryFallback}</p>
+                <Link to="/settings">Change media preference in Settings</Link>
+              </div>
+            )}
+            {mediaPreference === "allow" && loadFailedForCurrentMedia && (
+              <button
+                className="btn secondary"
+                type="button"
+                disabled={!canLoad}
+                onClick={loadPlayer}
+              >
+                Retry embedded video
+              </button>
+            )}
+            {mediaPreference === "allow"
+              && !loadFailedForCurrentMedia
+              && canLoad
+              && (
+                <p role="status">
+                  Preparing the privacy-enhanced player.
+                </p>
+              )}
           </div>
         </div>
       )}

@@ -18,6 +18,8 @@
     "test:e2e": "npm run build && playwright test --grep-invert @visual-review",
     "test:visual-review": "npm run build && playwright test --grep @visual-review",
     "validate:academy-media": "node --experimental-strip-types scripts/validate-academy-media.mjs",
+    "validate:academy-playback:chromium": "node scripts/validate-academy-playback-chromium.mjs",
+    "validate:academy-playback:webview2": "node scripts/validate-academy-playback-chromium.mjs --runtime=webview2",
     "validate:academy-sources": "node scripts/validate-academy-sources.mjs",
     "validate:academy-formulas": "node scripts/validate-academy-formulas.mjs",
     "build:tauri-frontend": "npm run build",

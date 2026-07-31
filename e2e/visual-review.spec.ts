@@ -183,6 +183,31 @@ async function captureState(page: Page, testInfo: TestInfo, state: VisualState):
 }
 
 const reviewStates: VisualState[] = [
+  { name: "guided-start-new", route: "/" },
+  {
+    name: "guided-start-returning",
+    route: "/",
+    progress: seededProgress,
+    afterNavigate: async (page) => {
+      await page.goto("#/learn/courses/ACADEMY-E0/units/EML-E0-D01/lessons/EML-E0-D01-L01");
+      const resumeBlock = page.locator("[data-academy-resume-block]").nth(3);
+      await expect(resumeBlock).toBeVisible();
+      await resumeBlock.scrollIntoViewIfNeeded();
+      await expect.poll(() => page.evaluate(() => {
+        const raw = localStorage.getItem("engineering-mastery-lab/progress/v5");
+        if (!raw) return null;
+        return (JSON.parse(raw) as {
+          academy?: { resumeCursor?: { lessonId?: string } | null };
+        }).academy?.resumeCursor?.lessonId ?? null;
+      })).toBe("EML-E0-D01-L01");
+      await page.goto("#/");
+      await expect(page.getByRole("link", { name: /Continue learning/ })).toBeVisible();
+    }
+  },
+  { name: "guided-academy-full-curriculum", route: "/learn?browse=1" },
+  { name: "guided-academy-practice", route: "/practice", progress: seededProgress },
+  { name: "guided-academy-progress", route: "/progress", progress: seededProgress },
+  { name: "guided-academy-more", route: "/more", progress: seededProgress },
   {
     name: "new-user-onboarding",
     route: "/",
@@ -254,7 +279,7 @@ const reviewStates: VisualState[] = [
     route: "/learn/courses/ACADEMY-E1/units/EML-E1-D04/lessons/EML-E1-D04-L01",
     viewport: { width: 1440, height: 1100 },
     afterNavigate: async (page) => {
-      await expect(page.getByRole("button", { name: "Load optional video" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Allow embedded videos" })).toBeVisible();
     }
   },
   {

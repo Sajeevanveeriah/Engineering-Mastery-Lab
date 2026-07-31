@@ -794,6 +794,16 @@ describe("AcademyLessonV2 learner renderer", () => {
       "assessment"
     ]);
     expect(new Set(outline.map((item) => item.id)).size).toBe(outline.length);
+    expect(outline.map((item) => item.title)).toEqual([
+      "Learn",
+      "Learn: terms and operating conditions",
+      "Learn: build the conceptual model",
+      "Worked example",
+      "Check",
+      "Check: correct the tempting misconception",
+      "Apply",
+      "Practise"
+    ]);
 
     const html = renderToStaticMarkup(
       createElement(AcademyLessonV2, { profile })
