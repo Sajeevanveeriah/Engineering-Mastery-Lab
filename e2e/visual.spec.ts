@@ -13,7 +13,7 @@ async function settleRouteEffects(page: Page): Promise<void> {
   }));
 }
 
-test("guided Academy empty state remains visually stable", async ({ page }) => {
+test("@visual-review guided Academy empty state remains visually stable", async ({ page }) => {
   await installProgress(page, emptyProgress);
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("#/");
@@ -30,7 +30,7 @@ test("guided Academy empty state remains visually stable", async ({ page }) => {
   });
 });
 
-test("guided Academy path remains visually stable in dark mode", async ({ page }) => {
+test("@visual-review guided Academy path remains visually stable in dark mode", async ({ page }) => {
   await installProgress(page, { ...structuredClone(seededProgress), theme: "dark" });
   await page.setViewportSize({ width: 1024, height: 900 });
   await page.goto("#/learn");
@@ -43,7 +43,7 @@ test("guided Academy path remains visually stable in dark mode", async ({ page }
   });
 });
 
-test("mobile shell and navigation remain visually stable", async ({ page }) => {
+test("@visual-review mobile shell and navigation remain visually stable", async ({ page }) => {
   await installProgress(page, seededProgress);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("#/");
@@ -61,7 +61,7 @@ test("mobile shell and navigation remain visually stable", async ({ page }) => {
   });
 });
 
-test("CAD WebGL fallback remains visually stable", async ({ page }) => {
+test("@visual-review CAD WebGL fallback remains visually stable", async ({ page }) => {
   await installProgress(page, emptyProgress);
   await page.addInitScript(() => {
     const originalGetContext = HTMLCanvasElement.prototype.getContext;
@@ -83,7 +83,7 @@ test("CAD WebGL fallback remains visually stable", async ({ page }) => {
   });
 });
 
-test("engineering motor-sizing workspace remains visually stable", async ({ page }) => {
+test("@visual-review engineering motor-sizing workspace remains visually stable", async ({ page }) => {
   await installProgress(page, emptyProgress);
   await page.setViewportSize({ width: 1440, height: 1100 });
   await page.goto("#/tools/engineering");
@@ -95,7 +95,7 @@ test("engineering motor-sizing workspace remains visually stable", async ({ page
   });
 });
 
-test("controls flagship workflow remains visually stable", async ({ page }) => {
+test("@visual-review controls flagship workflow remains visually stable", async ({ page }) => {
   await installProgress(page, emptyProgress);
   await page.setViewportSize({ width: 1440, height: 1100 });
   await page.goto("#/learn/flagships/controls");

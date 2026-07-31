@@ -12,6 +12,29 @@ export default defineConfig({
   reporter: "line",
   outputDir: "test-results",
   snapshotPathTemplate: "{testDir}/__snapshots__/{platform}/{arg}{ext}",
+  projects: [
+    {
+      name: "functional",
+      testIgnore: [
+        "**/cad-recovery.spec.ts",
+        "**/routes.spec.ts",
+        "**/visual-review.spec.ts",
+        "**/visual.spec.ts"
+      ]
+    },
+    {
+      name: "cad-recovery",
+      testMatch: "**/cad-recovery.spec.ts"
+    },
+    {
+      name: "routes",
+      testMatch: "**/routes.spec.ts"
+    },
+    {
+      name: "visual-review",
+      testMatch: ["**/visual-review.spec.ts", "**/visual.spec.ts"]
+    }
+  ],
   use: {
     baseURL: `http://127.0.0.1:${port}/Engineering-Mastery-Lab/`,
     trace: "retain-on-failure",
