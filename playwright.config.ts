@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 const port = 4174;
 const executablePath = process.env.PLAYWRIGHT_EXECUTABLE_PATH?.trim();
+const channel = process.env.PLAYWRIGHT_CHANNEL?.trim();
 
 export default defineConfig({
   testDir: "./e2e",
@@ -41,6 +42,7 @@ export default defineConfig({
     screenshot: "only-on-failure",
     video: "off",
     ...devices["Desktop Chrome"],
+    channel: channel || undefined,
     launchOptions: executablePath ? { executablePath } : undefined
   },
   webServer: {

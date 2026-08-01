@@ -27,6 +27,8 @@ jobs:
       - run: npm audit --omit=dev --audit-level=high
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+        env:
+          PLAYWRIGHT_CHANNEL: chromium
 
   visual-review:
     name: Win32 visual review
