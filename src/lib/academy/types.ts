@@ -267,7 +267,13 @@ export type LessonBlock =
       width: number;
       height: number;
     }
-  | { id: string; kind: "media"; mediaId: string }
+  | {
+      id: string;
+      kind: "media";
+      mediaId: string;
+      startSeconds?: number;
+      endSeconds?: number | null;
+    }
   | {
       id: string;
       kind: "interactive-visual";

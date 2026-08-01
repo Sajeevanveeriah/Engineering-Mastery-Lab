@@ -16,8 +16,7 @@ test("preserves invalid v5 bytes until an explicit recovery decision", async ({ 
       marker: "engineering-mastery-lab/test-invalid-progress-seeded"
     }
   );
-  await page.goto("settings");
-  await page.getByRole("button", { name: "Skip for now" }).click();
+  await page.goto("#/settings");
   const recoveryLink = page.getByRole("link", {
     name: "Progress recovery required. Open Settings."
   });
@@ -39,7 +38,6 @@ test("preserves invalid v5 bytes until an explicit recovery decision", async ({ 
   )).toBe(invalidProgressBytes);
 
   await page.reload();
-  await page.getByRole("button", { name: "Skip for now" }).click();
   await recoveryLink.click();
   await expect(recoveryAlert).toBeVisible();
   await expect.poll(() => page.evaluate(

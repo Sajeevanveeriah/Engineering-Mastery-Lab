@@ -7,7 +7,11 @@ import {
   toolPurposeGroups,
   toolsCatalogue
 } from "../data/catalogue";
-import { displayDiscipline, primaryDestinations } from "../data/displayLabels";
+import {
+  displayDiscipline,
+  mobilePrimaryDestinations,
+  primaryDestinations
+} from "../data/displayLabels";
 import { modules } from "../data/modules";
 import { pathways } from "../data/pathways";
 import { projects } from "../data/projects";
@@ -19,18 +23,24 @@ const sorted = (values: string[]) => [...values].sort((left, right) => left.loca
 describe("catalogue integrity", () => {
   it("defines the five canonical primary destinations once and exposes them to command search", () => {
     expect(primaryDestinations.map((destination) => destination.label)).toEqual([
-      "Today",
       "Learn",
-      "Build",
-      "Analyse",
-      "Prove"
+      "Practice",
+      "Projects",
+      "Progress",
+      "More"
     ]);
     expect(primaryDestinations.map((destination) => destination.route)).toEqual([
-      "/",
       "/learn",
+      "/practice",
       "/projects",
-      "/tools",
-      "/portfolio"
+      "/progress",
+      "/more"
+    ]);
+    expect(mobilePrimaryDestinations.map((destination) => destination.label)).toEqual([
+      "Learn",
+      "Practice",
+      "Projects",
+      "Progress"
     ]);
     expect(new Set(primaryDestinations.map((destination) => destination.id)).size).toBe(primaryDestinations.length);
     expect(new Set(primaryDestinations.map((destination) => destination.route)).size).toBe(primaryDestinations.length);

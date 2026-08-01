@@ -83,7 +83,7 @@ test("WebGL unavailable before initialisation keeps CAD and the shell usable", a
 
   await expect(page.getByRole("navigation", { name: "Primary navigation" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "3D preview unavailable" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Back to Analyse" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Back to More" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Parameters" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Export design" })).toBeVisible();
   await expect(page.getByRole("region", { name: /Dimensioned drawing fallback/ })).toBeVisible();
@@ -138,10 +138,10 @@ test("retry remounts the renderer without duplicating its canvas", async ({ page
 test("a user can leave CAD after a local WebGL failure", async ({ page }) => {
   await makeWebGlUnavailable(page);
   await page.goto("#/tools/cad");
-  await page.getByRole("link", { name: "Back to Analyse" }).click();
+  await page.getByRole("link", { name: "Back to More" }).click();
 
-  await expect.poll(() => new URL(page.url()).hash).toBe("#/tools");
-  await expect(page.locator("main#main-content h1").first()).toHaveText("Analyse");
+  await expect.poll(() => new URL(page.url()).hash).toBe("#/more");
+  await expect(page.locator("main#main-content h1").first()).toHaveText("More");
   await expect(page.getByRole("navigation", { name: "Primary navigation" })).toBeVisible();
 });
 
@@ -184,8 +184,8 @@ test("normal WebGL initialisation succeeds and unmount cleanup removes its canva
   expect(framebuffer.uniqueSampledColours).toBeGreaterThan(16);
   expect(runtimeErrors).toEqual([]);
 
-  await page.getByRole("link", { name: "Analyse" }).first().click();
-  await expect.poll(() => new URL(page.url()).hash).toBe("#/tools");
+  await page.getByRole("link", { name: "More" }).first().click();
+  await expect.poll(() => new URL(page.url()).hash).toBe("#/more");
   await expect(page.locator("canvas[data-cad-preview]")).toHaveCount(0);
 
   await page.goto("#/tools/cad");

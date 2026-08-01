@@ -9,6 +9,7 @@ import { createIdempotentCleanup, supportsWebGl2 } from "../lib/webgl";
 
 const isDevelopment = (import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV === true;
 const MAX_DAMPING_FRAMES = 90;
+const MAX_DAMPING_DURATION_MS = 4_000;
 
 export type CadViewName = "isometric" | "front" | "top" | "right";
 
@@ -64,6 +65,7 @@ export function CadViewport({ design, showGrid, wireframe, view, viewNonce }: Ca
     let gridToDispose: THREE.GridHelper | null = null;
     let needsRender = true;
     let dampingFramesRemaining = 0;
+    let dampingDeadline = 0;
     let documentVisible = document.hidden !== true;
     let viewportVisible = typeof IntersectionObserver === "undefined";
     let updatingControls = false;
@@ -108,11 +110,16 @@ export function CadViewport({ design, showGrid, wireframe, view, viewNonce }: Ca
         updatingControls = false;
         renderer.render(scene, camera);
 
-        if (controlsChanged && dampingFramesRemaining > 0) {
+        if (
+          controlsChanged
+          && dampingFramesRemaining > 0
+          && performance.now() < dampingDeadline
+        ) {
           dampingFramesRemaining -= 1;
           needsRender = true;
         } else {
           dampingFramesRemaining = 0;
+          dampingDeadline = 0;
         }
         scheduleRender();
       } catch (error) {
@@ -124,6 +131,7 @@ export function CadViewport({ design, showGrid, wireframe, view, viewNonce }: Ca
     const handleControlsChange = () => {
       if (updatingControls) return;
       dampingFramesRemaining = MAX_DAMPING_FRAMES;
+      dampingDeadline = performance.now() + MAX_DAMPING_DURATION_MS;
       invalidateRender();
     };
 
@@ -431,7 +439,7 @@ export function CadViewport({ design, showGrid, wireframe, view, viewNonce }: Ca
             >
               Retry 3D preview
             </button>
-            <Link className="btn" to="/tools">Back to Analyse</Link>
+            <Link className="btn" to="/more">Back to More</Link>
           </div>
         </div>
         <div className="cad-drawing-panel" role="region" aria-label={`Dimensioned drawing fallback for ${design.name}`}>

@@ -3089,6 +3089,11 @@ const normalisedDisplayedUnitAliases: Readonly<Record<string, string>> = {
 const normaliseDisplayedUnit = (displayUnit: string): string =>
   normalisedDisplayedUnitAliases[displayUnit] ?? displayUnit;
 
+const numericLiteralHalfUnit = (
+  exponent: number,
+  decimalPlaces: number
+): number => Number(`5e${exponent - decimalPlaces - 1}`);
+
 export const extractWorkedExampleNumericDisplayClaims = (
   displaySource: WorkedExampleDisplaySource
 ): WorkedExampleNumericDisplayClaim[] => {
@@ -3156,7 +3161,7 @@ export const extractWorkedExampleNumericDisplayClaims = (
         : 0;
       const exponent = Number(rawNumber.match(/e([-+]?\d+)$/iu)?.[1] ?? 0);
       const absoluteTolerance = decimalPlaces > 0
-        ? 0.5 * 10 ** (exponent - decimalPlaces)
+        ? numericLiteralHalfUnit(exponent, decimalPlaces)
         : 0;
       const relation = /<=\s*$/u.test(leadingText)
         ? "less-than-or-equal"
@@ -3204,7 +3209,7 @@ const numericLiteralAbsoluteToleranceCeiling = (
     ? significand.split(".")[1]?.length ?? 0
     : 0;
   const exponent = Number(rawExponent);
-  return 0.5 * 10 ** (exponent - decimalPlaces);
+  return numericLiteralHalfUnit(exponent, decimalPlaces);
 };
 
 export interface WorkedExampleTypedClaimResolution {

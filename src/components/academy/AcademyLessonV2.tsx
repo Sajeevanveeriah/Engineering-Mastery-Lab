@@ -50,14 +50,14 @@ const SECTION_DEFINITIONS: readonly {
   key: AcademyLessonV2SectionKey;
   title: string;
 }[] = [
-  { key: "overview", title: "Start with the whole system" },
-  { key: "terms", title: "Terms and operating conditions" },
-  { key: "conceptual-model", title: "Build the conceptual model" },
-  { key: "reasoned-cases", title: "Reason through contrasting cases" },
-  { key: "failure-boundary", title: "Locate the failure boundary" },
-  { key: "misconception", title: "Correct the tempting misconception" },
-  { key: "explorer", title: "Explore the model" },
-  { key: "assessment", title: "Practise and demonstrate mastery" }
+  { key: "overview", title: "Learn" },
+  { key: "terms", title: "Learn: terms and operating conditions" },
+  { key: "conceptual-model", title: "Learn: build the conceptual model" },
+  { key: "reasoned-cases", title: "Worked example" },
+  { key: "failure-boundary", title: "Check" },
+  { key: "misconception", title: "Check: correct the tempting misconception" },
+  { key: "explorer", title: "Apply" },
+  { key: "assessment", title: "Practise" }
 ];
 
 const normaliseIdPart = (value: string): string =>

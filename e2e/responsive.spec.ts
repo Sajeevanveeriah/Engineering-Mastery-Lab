@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { documentOverflow, emptyProgress, installProgress, monitorRuntimeErrors } from "./support";
 
 const widths = [320, 390, 768, 1024, 1440];
-const primaryRoutes = ["/", "/learn", "/projects", "/tools", "/portfolio"];
+const primaryRoutes = ["/", "/learn", "/practice", "/projects", "/progress", "/more"];
 
 for (const width of widths) {
   test(`primary destinations reflow at ${width} CSS px`, async ({ page }) => {
@@ -56,54 +56,44 @@ test("stored reduced-motion and contrast preferences reach the document", async 
   await expect(page.locator("main#main-content h1").first()).toBeVisible();
 });
 
-test("editorial artwork selects responsive local sources with intrinsic dimensions", async ({ page }) => {
+test("the calm new-user start reflows across representative viewports", async ({ page }) => {
   await installProgress(page, emptyProgress);
 
-  for (const [width, expectedSource] of [
-    [390, "Studio-Mobile-Rev00.webp"],
-    [1024, "Studio-Tablet-Rev00.webp"],
-    [1440, "Studio-Desktop-Rev00.webp"]
-  ] as const) {
+  for (const width of [390, 1024, 1440] as const) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("#/");
 
-    const scene = page.locator(".engineering-scene");
-    const studio = scene.locator(".engineering-scene__studio img");
-    await expect(scene).toBeVisible();
-    await expect(scene.locator(".engineering-scene__studio source")).toHaveCount(5);
-    await expect(studio).toHaveAttribute("width", "1280");
-    await expect(studio).toHaveAttribute("height", "853");
-    await expect(studio).toHaveAttribute("fetchpriority", "high");
-    await expect(studio).toHaveAttribute(
-      "alt",
-      "Three engineers collaborate around a wheeled mobile robot in an electronics laboratory with test equipment and mechanical components."
-    );
-    await expect.poll(() => studio.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
-    expect(await studio.evaluate((image: HTMLImageElement) => image.currentSrc)).toContain(expectedSource);
-    expect(await documentOverflow(page), `Today artwork overflow at ${width} CSS px`).toBeLessThanOrEqual(1);
+    await expect(page.getByRole("heading", {
+      level: 1,
+      name: /Learn engineering from first principles/
+    })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Start from the beginning/ })).toBeVisible();
+    expect(await documentOverflow(page), `guided start overflow at ${width} CSS px`).toBeLessThanOrEqual(1);
   }
 });
 
-test("editorial scene pauses when offscreen", async ({ page }) => {
+test("the guided start keeps one primary entry action", async ({ page }) => {
   await installProgress(page, emptyProgress);
   await page.goto("#/");
 
-  const scene = page.locator(".engineering-scene");
-  await expect(scene).toHaveAttribute("data-scene-active", "true");
-  await page.locator(".home-closing").scrollIntoViewIfNeeded();
-  await expect(scene).toHaveAttribute("data-scene-active", "false");
+  await expect(page.locator(".guided-home__actions .btn.primary")).toHaveCount(1);
+  await expect(page.getByRole("link", { name: /Start from the beginning/ })).toHaveAttribute(
+    "href",
+    "#/learn/courses/ACADEMY-E0/units/EML-E0-D01/lessons/EML-E0-D01-L01"
+  );
 });
 
-test("editorial scene honours stored reduced motion", async ({ page }) => {
+test("guided start honours stored reduced motion", async ({ page }) => {
   await installProgress(page, {
     ...structuredClone(emptyProgress),
     accessibility: { reducedMotion: true, highContrast: false }
   });
   await page.goto("#/");
   await expect(page.locator("html")).toHaveAttribute("data-motion", "reduced");
-  await expect.poll(() => page.locator(".engineering-scene__studio img").evaluate(
-    (image) => getComputedStyle(image).animationName
-  )).toBe("none");
+  const animationDuration = await page.locator(".guided-home__intro").evaluate(
+    (element) => getComputedStyle(element).animationDuration
+  );
+  expect(animationDuration).toMatch(/^(?:0s|0\.01ms|1e-05s)$/);
 });
 
 test("shared shell exposes editorial and workspace interface modes", async ({ page }) => {

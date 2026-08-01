@@ -5,6 +5,10 @@ import { PageHeader } from "../components/PageHeader";
 import { useProgress } from "../components/ProgressContext";
 import { readBoundedLocalTextFile } from "../lib/localFileImport";
 import {
+  setAcademyMediaPreference,
+  useAcademyMediaPreference
+} from "../lib/academy/mediaPreference";
+import {
   PROGRESS_IMPORT_LIMITS,
   emptyProgress,
   exportProgress,
@@ -30,6 +34,7 @@ export function Settings() {
     progressRecoveryRequired,
     resolvedTheme
   } = useProgress();
+  const mediaPreference = useAcademyMediaPreference();
   const fileRef = useRef<HTMLInputElement>(null);
   const [editingProfile, setEditingProfile] = useState(false);
   const [message, setMessage] = useState<{ kind: "success" | "error" | "neutral"; text: string } | null>(null);
@@ -148,6 +153,47 @@ export function Settings() {
             <label className="switch-row"><span><b>Reduce motion</b><small>Disable non-essential transitions.</small></span><input type="checkbox" checked={progress.accessibility.reducedMotion} onChange={(event) => update((state) => ({ ...state, accessibility: { ...state.accessibility, reducedMotion: event.target.checked } }))} /></label>
             <label className="switch-row"><span><b>Higher contrast</b><small>Strengthen borders and muted text.</small></span><input type="checkbox" checked={progress.accessibility.highContrast} onChange={(event) => update((state) => ({ ...state, accessibility: { ...state.accessibility, highContrast: event.target.checked } }))} /></label>
           </div>
+        </section>
+        <section>
+          <h2>Academy media</h2>
+          <p>
+            Embedded YouTube teaching uses the privacy-enhanced player and contacts
+            YouTube only when allowed. Native written lessons remain complete in
+            either mode.
+          </p>
+          <fieldset className="settings-choice-group">
+            <legend>Embedded teaching preference</legend>
+            <label>
+              <input
+                type="radio"
+                name="academy-media-preference"
+                checked={mediaPreference === "allow"}
+                onChange={() => setAcademyMediaPreference("allow")}
+              />
+              <span>
+                <strong>Allow embedded videos</strong>
+                <small>Create the in-lesson player without repeated consent prompts.</small>
+              </span>
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="academy-media-preference"
+                checked={mediaPreference === "written-only"}
+                onChange={() => setAcademyMediaPreference("written-only")}
+              />
+              <span>
+                <strong>Use written lessons only</strong>
+                <small>Never create a YouTube player or provider request.</small>
+              </span>
+            </label>
+          </fieldset>
+          {mediaPreference === "ask" && (
+            <p className="inline-message inline-message--neutral" role="status">
+              No Academy media choice has been saved yet. The first Watch section
+              will ask once.
+            </p>
+          )}
         </section>
         <section><div className="section-heading"><div><p className="eyebrow">Optional planner</p><h2>Weekly sprint</h2></div><button type="button" onClick={() => update((state) => ({ ...state, sprintChecklist: {} }))}>Clear planner</button></div><ul className="checklist checklist--spacious">{sprintItems.map(([id, label]) => <li key={id}><input id={id} type="checkbox" checked={Boolean(progress.sprintChecklist[id])} onChange={() => update((state) => ({ ...state, sprintChecklist: { ...state.sprintChecklist, [id]: !state.sprintChecklist[id] } }))} /><label htmlFor={id}>{label}</label></li>)}</ul></section>
         <section>

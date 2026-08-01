@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
 
 test("skip navigation moves keyboard focus to the main landmark", async ({ page }) => {
   await page.goto("#/");
-  await expect(page.getByRole("heading", { level: 1, name: "Today" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: /Learn engineering from first principles/ })).toBeVisible();
 
   await page.keyboard.press("Tab");
   const skipLink = page.getByRole("link", { name: "Skip to main content" });
@@ -19,7 +19,7 @@ test("skip navigation moves keyboard focus to the main landmark", async ({ page 
 
 test("primary navigation preserves the route-change focus contract", async ({ page }) => {
   await page.goto("#/");
-  await expect(page.getByRole("heading", { level: 1, name: "Today" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: /Learn engineering from first principles/ })).toBeVisible();
 
   await page.getByRole("navigation", { name: "Primary navigation" })
     .getByRole("link", { name: "Learn" })
@@ -157,11 +157,15 @@ test("a confirmed progress import can be undone to the exact prior in-session st
 
   await expect(page.getByRole("region", { name: "progress-version-2.json" })).toBeVisible();
   await page.getByRole("button", { name: "Replace with validated import" }).click();
-  await expect(page.getByRole("status")).toContainText("Progress imported and validated");
+  await expect(page.getByRole("status").filter({
+    hasText: "Progress imported and validated"
+  })).toBeVisible();
   await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), storageKey)).not.toBe(beforeImport);
   await page.getByRole("button", { name: "Undo last import or reset" }).click();
 
-  await expect(page.getByRole("status")).toContainText("exact previous exported state was restored");
+  await expect(page.getByRole("status").filter({
+    hasText: "exact previous exported state was restored"
+  })).toBeVisible();
   await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), storageKey)).toBe(beforeImport);
 });
 

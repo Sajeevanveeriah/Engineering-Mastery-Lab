@@ -2,46 +2,48 @@ import { skillDomains } from "./skills";
 
 export const primaryDestinations = [
   {
-    id: "today",
-    label: "Today",
-    route: "/",
-    icon: "dashboard",
-    description: "Resume recent work and see the next useful step.",
-    keywords: ["home", "dashboard", "continue", "recent", "progress"]
-  },
-  {
     id: "learn",
     label: "Learn",
     route: "/learn",
     icon: "labs",
-    description: "Discover pathways, laboratories, skills, and bookmarks.",
-    keywords: ["pathways", "laboratories", "skills", "bookmarks", "mastery"]
+    description: "Continue the dependency-ordered Engineering Academy.",
+    keywords: ["academy", "course", "unit", "lesson", "continue"]
   },
   {
-    id: "build",
-    label: "Build",
-    route: "/projects",
+    id: "practice",
+    label: "Practice",
+    route: "/practice",
     icon: "practice",
-    description: "Apply capability through practical engineering projects.",
-    keywords: ["projects", "practice", "apply", "prototype", "evidence"]
+    description: "Complete due reviews, checks and targeted practice.",
+    keywords: ["review", "questions", "checks", "bookmarks", "mastery"]
   },
   {
-    id: "analyse",
-    label: "Analyse",
-    route: "/tools",
-    icon: "workbench",
-    description: "Calculate, reference, design, verify, and inspect capability.",
-    keywords: ["tools", "calculate", "design", "verify", "diagnostics"]
+    id: "projects",
+    label: "Projects",
+    route: "/projects",
+    icon: "pathways",
+    description: "Apply unlocked capability through contextual projects.",
+    keywords: ["projects", "build", "apply", "prototype", "evidence"]
   },
   {
-    id: "prove",
-    label: "Prove",
-    route: "/portfolio",
+    id: "progress",
+    label: "Progress",
+    route: "/progress",
     icon: "report",
-    description: "Review recorded evidence, artefacts, and demonstrated capability.",
-    keywords: ["portfolio", "evidence", "artefacts", "skills", "results"]
+    description: "Understand course, skill, review and project progress.",
+    keywords: ["progress", "skills", "review", "evidence", "next"]
+  },
+  {
+    id: "more",
+    label: "More",
+    route: "/more",
+    icon: "menu",
+    description: "Open settings, references, tools, diagnostics and product information.",
+    keywords: ["settings", "tools", "diagnostics", "references", "about"]
   }
 ] as const;
+
+export const mobilePrimaryDestinations = primaryDestinations.slice(0, 4);
 
 export type PrimaryDestination = (typeof primaryDestinations)[number];
 

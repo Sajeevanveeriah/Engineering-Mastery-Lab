@@ -27,8 +27,8 @@ test("a transient lazy tool load failure stays local and Retry loads a fresh rou
   await expect(page.getByRole("heading", { name: "Parameters" })).toBeVisible();
   expect(chunkRequests).toBeGreaterThanOrEqual(1);
 
-  await page.getByRole("link", { name: "Analyse" }).first().click();
-  await expect.poll(() => new URL(page.url()).hash).toBe("#/tools");
-  await expect(page.locator("main#main-content h1").first()).toHaveText("Analyse");
+  await page.getByRole("link", { name: "More" }).first().click();
+  await expect.poll(() => new URL(page.url()).hash).toBe("#/more");
+  await expect(page.locator("main#main-content h1").first()).toHaveText("More");
   await expect(page.getByRole("heading", { name: "CAD Studio could not be opened" })).toHaveCount(0);
 });

@@ -51,6 +51,9 @@ const AcademyUnitRoute = lazy(() => import("./pages/AcademyUnitPage").then((modu
 const AcademyLessonRoute = lazy(() => import("./pages/AcademyLessonPage").then((module) => ({ default: module.AcademyLessonPage })));
 const AcademyAssessmentRoute = lazy(() => import("./pages/AcademyAssessmentPage").then((module) => ({ default: module.AcademyAssessmentPage })));
 const AcademyReviewRoute = lazy(() => import("./pages/AcademyReviewPage").then((module) => ({ default: module.AcademyReviewPage })));
+const AcademyPracticeRoute = lazy(() => import("./pages/AcademyPracticePage").then((module) => ({ default: module.AcademyPracticePage })));
+const AcademyProgressRoute = lazy(() => import("./pages/AcademyProgressPage").then((module) => ({ default: module.AcademyProgressPage })));
+const MoreRoute = lazy(() => import("./pages/MorePage").then((module) => ({ default: module.MorePage })));
 const CurriculumDiagnosticsRoute = lazy(() => import("./pages/CurriculumDiagnosticsPage").then((module) => ({ default: module.CurriculumDiagnosticsPage })));
 const CurriculumResourcesRoute = lazy(() => import("./pages/CurriculumResourcesPage").then((module) => ({ default: module.CurriculumResourcesPage })));
 const ProgressAnalysisRoute = lazy(() => import("./pages/ProgressAnalysisPage").then((module) => ({ default: module.ProgressAnalysisPage })));
@@ -82,7 +85,10 @@ export default function App() {
               <Routes>
                 <Route element={<Layout />}>
                   <Route path="/" element={<HomePage />} />
-                  <Route path="/learn" element={<LearnHub />} />
+                  <Route path="/learn" element={<AcademyCatalogueRoute />} />
+                  <Route path="/practice" element={<AcademyPracticeRoute />} />
+                  <Route path="/progress" element={<AcademyProgressRoute />} />
+                  <Route path="/more" element={<MoreRoute />} />
                   <Route path="/learn/roadmap" element={<CurriculumRoadmapPage />} />
                   <Route path="/learn/reboot" element={<RebootRoadmapPage />} />
                   <Route path="/learn/reboot/sessions/:sessionId" element={<RebootSessionRoute />} />

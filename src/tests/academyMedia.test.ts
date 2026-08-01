@@ -1,15 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
   academyMediaByLessonId,
+  academyMediaGaps,
+  academyLegacyMediaRegistry,
+  academyMediaPlacements,
   academyMediaRegistry,
   buildPrivacyEmbedUrl,
   getAcademyMedia,
   validateAcademyMediaProviderMetadata
 } from "../data/academyMedia";
 import { academySources } from "../data/academy/catalogue";
+import { academyUnits } from "../data/academy/catalogue";
 import {
   bindThirdPartyMediaFrameError,
-  isThirdPartyMediaConsentCurrent,
   isThirdPartyMediaViewportEligible,
   thirdPartyMediaLifecycleReducer,
   type ThirdPartyMediaLifecycleState
@@ -17,6 +20,37 @@ import {
 import type { MediaSpec } from "../lib/academy/types";
 
 describe("academy media manifest", () => {
+  it("publishes one reviewed, auditable media placement for every Academy lesson", () => {
+    const requiredLessonIds = academyUnits.flatMap((unit) => unit.lessonIds);
+    const placementLessonIds = academyMediaPlacements.map(
+      (placement) => placement.lessonId
+    );
+
+    expect(academyMediaPlacements).toHaveLength(175);
+    expect(new Set(placementLessonIds).size).toBe(175);
+    expect([...placementLessonIds].sort()).toEqual(
+      [...requiredLessonIds].sort()
+    );
+
+    for (const placement of academyMediaPlacements) {
+      expect(placement.mediaId.length).toBeGreaterThan(0);
+      expect(placement.learningObjective.length).toBeGreaterThan(30);
+      expect(placement.relevanceRationale.length).toBeGreaterThan(40);
+      expect(placement.fallbackWrittenContentReference).toMatch(
+        new RegExp(`^${placement.lessonId}-`)
+      );
+      expect(placement.reviewDate).toMatch(/^20\d{2}-\d{2}-\d{2}$/);
+      expect(placement.reviewMethod.length).toBeGreaterThan(40);
+      expect(placement.startSeconds).toBeGreaterThanOrEqual(0);
+      if (placement.endSeconds !== null) {
+        expect(placement.endSeconds).toBeGreaterThan(
+          placement.startSeconds
+        );
+      }
+      expect(getAcademyMedia(placement.mediaId)).not.toBeNull();
+    }
+  });
+
   it("contains unique, validated and captioned permitted media", () => {
     const ids = academyMediaRegistry.map((media) => media.id);
     const expectedAlternativeSourceIds: Record<string, string> = {
@@ -26,17 +60,26 @@ describe("academy media manifest", () => {
       "mit-circuits-basic-analysis": "SRC-MIT-OCW-CIRCUITS-6002"
     };
     expect(new Set(ids).size).toBe(ids.length);
-    expect(academyMediaRegistry.length).toBeGreaterThanOrEqual(4);
+    expect(academyMediaRegistry).toHaveLength(164);
 
     for (const media of academyMediaRegistry) {
       expect(media.provider).toBe("youtube");
       expect(media.providerId).toMatch(/^[A-Za-z0-9_-]{11}$/);
       expect(media.embedPermission).toBe("permitted");
       expect(media.captionsStatus).toBe("available");
-      expect(media.lastValidated).toBe("2026-07-30");
+      expect(media.lastValidated).toBe("2026-07-31");
       expect(media.durationMinutes).toBeGreaterThan(0);
       expect(media.nativeSummaryFallback.length).toBeGreaterThan(120);
       expect(media.offlineFallback.length).toBeGreaterThan(50);
+      expect(media.alternativeSourceId).not.toBeNull();
+      const alternative = academySources.find(
+        (source) => source.id === media.alternativeSourceId
+      );
+      expect(alternative?.id).toBe(media.alternativeSourceId);
+      expect(new URL(alternative?.url ?? "").protocol).toBe("https:");
+    }
+
+    for (const media of academyLegacyMediaRegistry) {
       expect(media.alternativeSourceId).toBe(
         expectedAlternativeSourceIds[media.id]
       );
@@ -66,14 +109,14 @@ describe("academy media manifest", () => {
     const media = academyMediaRegistry[0];
     expect(validateAcademyMediaProviderMetadata(media, {
       title: media.title,
-      author: "MIT OpenCourseWare"
+      author: media.creator
     })).toEqual({
       titleMatches: true,
       authorMatches: true
     });
     expect(validateAcademyMediaProviderMetadata(media, {
       title: "A different lesson",
-      author: "MIT OpenCourseWare"
+      author: media.creator
     })).toEqual({
       titleMatches: false,
       authorMatches: true
@@ -97,6 +140,25 @@ describe("academy media manifest", () => {
     }
   });
 
+  it("accounts explicitly for every mapped lesson or release-blocking media gap", () => {
+    const requiredLessonIds = academyUnits.flatMap((unit) => unit.lessonIds);
+    const mappedLessonIds = Object.keys(academyMediaByLessonId);
+    const gapLessonIds = academyMediaGaps.map((gap) => gap.lessonId);
+
+    expect(requiredLessonIds).toHaveLength(175);
+    expect(new Set(mappedLessonIds).size).toBe(mappedLessonIds.length);
+    expect(new Set(gapLessonIds).size).toBe(gapLessonIds.length);
+    expect(mappedLessonIds.filter((lessonId) => gapLessonIds.includes(lessonId))).toEqual([]);
+    expect([...mappedLessonIds, ...gapLessonIds].sort()).toEqual(
+      [...requiredLessonIds].sort()
+    );
+    for (const gap of academyMediaGaps) {
+      expect(gap.status).toBe("MEDIA_GAP");
+      expect(gap.reason.length).toBeGreaterThan(50);
+      expect(gap.requiredAcceptanceTest.length).toBeGreaterThan(50);
+    }
+  });
+
   it("builds a privacy-enhanced, non-autoplay URL from a validated provider id", () => {
     const media = academyMediaRegistry[0];
     const value = buildPrivacyEmbedUrl(media);
@@ -114,29 +176,6 @@ describe("academy media manifest", () => {
     expect(isThirdPartyMediaViewportEligible(199.99)).toBe(false);
     expect(isThirdPartyMediaViewportEligible(200)).toBe(true);
     expect(isThirdPartyMediaViewportEligible(Number.NaN)).toBe(false);
-  });
-
-  it("requires fresh consent when the component media identity changes", () => {
-    const mediaA = academyMediaRegistry[0];
-    const mediaB = academyMediaRegistry[1];
-    let consentedMediaId: string | null = null;
-
-    expect(
-      isThirdPartyMediaConsentCurrent(consentedMediaId, mediaA.id)
-    ).toBe(false);
-
-    consentedMediaId = mediaA.id;
-    expect(
-      isThirdPartyMediaConsentCurrent(consentedMediaId, mediaA.id)
-    ).toBe(true);
-    expect(
-      isThirdPartyMediaConsentCurrent(consentedMediaId, mediaB.id)
-    ).toBe(false);
-
-    consentedMediaId = mediaB.id;
-    expect(
-      isThirdPartyMediaConsentCurrent(consentedMediaId, mediaB.id)
-    ).toBe(true);
   });
 
   it("adds only a validated caller origin and bounded playback resume position", () => {

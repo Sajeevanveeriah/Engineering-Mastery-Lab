@@ -12,6 +12,7 @@ import {
   thirdPartyMediaLifecycleReducer
 } from "../components/ThirdPartyMedia";
 import {
+  academyLegacyMediaRegistry,
   academyMediaRegistry,
   buildPrivacyEmbedUrl
 } from "../data/academyMedia";
@@ -53,7 +54,7 @@ describe("academy content security policy", () => {
     expect(directives.get("base-uri")).toEqual(["'self'"]);
     expect(directives.get("form-action")).toEqual(["'self'"]);
     expect(content).not.toContain("www.youtube.com");
-    expect(html).toContain('<script src="%BASE_URL%theme-bootstrap.js"></script>');
+    expect(html).toContain('<script type="module" src="/theme-bootstrap.js"></script>');
     expect(html).not.toMatch(/<script(?![^>]*\bsrc=)[^>]*>\s*\S/);
   });
 
@@ -146,7 +147,7 @@ describe("academy media privacy boundary", () => {
 
   it("renders a complete native fallback without a frame for blocked media", () => {
     const blocked: MediaSpec = {
-      ...academyMediaRegistry[0],
+      ...academyLegacyMediaRegistry[0],
       embedPermission: "blocked"
     };
     const html = renderToStaticMarkup(
@@ -154,8 +155,9 @@ describe("academy media privacy boundary", () => {
     );
 
     expect(html).not.toContain("<iframe");
-    expect(html).toContain("Embedded playback unavailable");
-    expect(html).toContain("disabled");
+    expect(html).toContain("Embedded playback is unavailable");
+    expect(html).toContain("Allow embedded videos");
+    expect(html).toContain("Use written lessons only");
     expect(html).toContain("Native lesson fallback");
     expect(html).toContain(blocked.nativeSummaryFallback);
     expect(html).toContain(blocked.offlineFallback);
@@ -174,22 +176,24 @@ describe("academy media privacy boundary", () => {
     expect(html).not.toContain("<iframe");
     expect(html).not.toContain("https://www.youtube-nocookie.com/embed/");
     expect(html).toContain("No player or provider request has been created");
-    expect(html).toContain("Load optional video");
+    expect(html).toContain("Allow embedded videos");
+    expect(html).toContain("Use written lessons only");
   });
 
-  it("wires the iframe branch to consent for the current media identity", () => {
+  it("wires the iframe branch to the shared Academy media preference", () => {
     const mediaSource = readWorkspaceFile("../components/ThirdPartyMedia.tsx");
 
+    expect(mediaSource).toContain("const mediaPreference = useAcademyMediaPreference();");
     expect(mediaSource).toContain(
-      "const [consentedMediaId, setConsentedMediaId] = useState<string | null>(null);"
-    );
-    expect(mediaSource).toContain(
-      "const loadedForCurrentMedia = loaded && consentIsCurrent;"
+      'const loadedForCurrentMedia = loaded && mediaPreference === "allow";'
     );
     expect(mediaSource).toContain(
       "{loadedForCurrentMedia && embedUrl && playerViewportEligible ? ("
     );
-    expect(mediaSource).toContain("setConsentedMediaId(media.id);");
+    expect(mediaSource).toContain(
+      'if (mediaPreference !== "allow" || !canLoad || loaded || loadFailed) return;'
+    );
+    expect(mediaSource).not.toContain("consentedMediaId");
     expect(mediaSource).not.toContain(
       "{loaded && embedUrl && playerViewportEligible ? ("
     );

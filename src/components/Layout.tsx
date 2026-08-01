@@ -1,17 +1,22 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 import { Link, NavLink, Outlet, useLocation, useMatch } from "react-router";
-import { primaryDestinations } from "../data/displayLabels";
+import {
+  mobilePrimaryDestinations,
+  primaryDestinations
+} from "../data/displayLabels";
 import { getRouteInterfaceMode } from "../lib/routeInterfaceMode";
 import { Icon } from "./Icon";
 import { useProgress } from "./ProgressContext";
 import { useWorkbenchSession } from "./WorkbenchContext";
 import { CommandPalette } from "./CommandPalette";
-import { Onboarding } from "./Onboarding";
 import { AcademyHandoffBanner } from "./academy/AcademyHandoffBanner";
 
 const routeTitles: Array<[string, string]> = [
   ["/learn/review", "Learn: Academy Review"],
   ["/learn/courses", "Learn: Engineering Academy"],
+  ["/practice", "Practice"],
+  ["/progress", "Progress"],
+  ["/more", "More"],
   ["/learn/reboot/sessions/", "Learn: Reboot Session"],
   ["/learn/modules/", "Learn: Curriculum Module"],
   ["/learn/roadmap", "Learn: Complete Curriculum"],
@@ -37,42 +42,41 @@ const routeTitles: Array<[string, string]> = [
   ["/learn/skills", "Learn: Skills"],
   ["/learn/bookmarks", "Learn: Bookmarks"],
   ["/learn", "Learn"],
-  ["/projects", "Build"],
-  ["/tools", "Analyse"],
-  ["/portfolio", "Prove"],
+  ["/projects", "Projects"],
+  ["/tools", "More: Tools"],
+  ["/portfolio", "Progress: Evidence"],
   ["/pricing", "Pricing"],
   ["/settings", "Settings"],
   ["/about", "About"],
-  ["/", "Today"]
+  ["/", "Engineering Mastery Lab"]
 ];
 
 const contextualNavigation = {
   learn: [
-    ["/learn/courses", "Academy"],
-    ["/learn/review", "Review"],
-    ["/learn/roadmap", "E0-E4 map"],
-    ["/learn/reboot", "S001-S110"],
-    ["/learn/diagnostics", "Diagnostics"],
-    ["/learn/labs", "Laboratories"]
+    ["/learn", "Academy path"],
+    ["/learn?browse=1", "Browse curriculum"]
   ],
-  build: [
+  practice: [
+    ["/practice", "Recommended"],
+    ["/learn/review", "Review queue"],
+    ["/learn/bookmarks", "Bookmarks"]
+  ],
+  projects: [
     ["/projects", "Projects"],
     ["/projects/releases/P1", "P1"],
     ["/projects/releases/P2", "P2"],
     ["/projects/releases/P3", "P3"],
     ["/projects/releases/P4", "P4"]
   ],
-  analyse: [
-    ["/tools", "Toolbox"],
-    ["/tools/calculators", "Calculators"],
-    ["/tools/engineering", "Workspace"],
+  progress: [
+    ["/progress", "Overview"],
     ["/tools/progress", "Progress"],
-    ["/tools/cad", "CAD Studio"],
-    ["/tools/workbench", "Workbench"]
+    ["/portfolio", "Evidence"]
   ],
-  prove: [
-    ["/portfolio", "Evidence"],
-    ["/portfolio/capstone", "Capstone"]
+  more: [
+    ["/more", "More"],
+    ["/settings", "Settings"],
+    ["/tools", "Tools"]
   ]
 } as const;
 
@@ -97,13 +101,14 @@ function routeTitle(pathname: string): string {
   ))?.[1] ?? "Not Found";
 }
 
-function routeFamily(pathname: string): "today" | "learn" | "build" | "analyse" | "prove" | "secondary" {
-  if (pathname === "/") return "today";
+function routeFamily(pathname: string): "home" | "learn" | "practice" | "projects" | "progress" | "more" | "secondary" {
+  if (pathname === "/") return "home";
   const matchesRouteRoot = (root: string) => pathname === root || pathname.startsWith(`${root}/`);
   if (matchesRouteRoot("/learn")) return "learn";
-  if (matchesRouteRoot("/projects")) return "build";
-  if (matchesRouteRoot("/tools")) return "analyse";
-  if (matchesRouteRoot("/portfolio")) return "prove";
+  if (matchesRouteRoot("/practice")) return "practice";
+  if (matchesRouteRoot("/projects")) return "projects";
+  if (matchesRouteRoot("/progress")) return "progress";
+  if (matchesRouteRoot("/more")) return "more";
   return "secondary";
 }
 
@@ -134,12 +139,15 @@ export function Layout() {
   const currentFamily = routeFamily(location.pathname);
   const interfaceMode = getRouteInterfaceMode(location.pathname);
   const contextLinks = currentFamily === "learn"
-    || currentFamily === "build"
-    || currentFamily === "analyse"
-    || currentFamily === "prove"
+    || currentFamily === "practice"
+    || currentFamily === "projects"
+    || currentFamily === "progress"
+    || currentFamily === "more"
     ? contextualNavigation[currentFamily]
     : [];
-  const shellMode = laboratoryMatch ? "focused" : "standard";
+  const academyLessonRoute = /^\/learn\/courses\/[^/]+\/units\/[^/]+\/lessons\/[^/]+$/
+    .test(location.pathname);
+  const shellMode = laboratoryMatch || academyLessonRoute ? "focused" : "standard";
   const drawerMode = mobileViewport;
 
   const closeMobileMenu = useCallback((restoreFocus = true) => {
@@ -297,7 +305,7 @@ export function Layout() {
         <div className="product-brand">
           <Link to="/" aria-label="Engineering Mastery Lab: Today" onClick={(event) => navigateFromShell(event, "/", true)}>
             <span className="product-brand__mark" aria-hidden="true">EM</span>
-            <span className="product-brand__copy"><strong>Engineering Mastery Lab</strong><small>Learn. Build. Analyse. Prove.</small></span>
+            <span className="product-brand__copy"><strong>Engineering Mastery Lab</strong><small>Learn. Practise. Build. Progress.</small></span>
           </Link>
           {drawerMode && (
             <button ref={mobileMenuCloseRef} className="icon-button product-rail__mobile-close" type="button" aria-label="Close navigation" onClick={() => closeMobileMenu(true)}><Icon name="close" /></button>
@@ -308,7 +316,6 @@ export function Layout() {
             <NavLink
               key={item.route}
               to={item.route}
-              end={item.route === "/"}
               className={({ isActive }) => `primary-navigation__item${isActive ? " active" : ""}`}
               onClick={(event) => navigateFromShell(event, item.route, true)}
               aria-label={item.label}
@@ -387,7 +394,11 @@ export function Layout() {
                 <NavLink
                   key={route}
                   to={route}
-                  end={route === `/${currentFamily === "build" ? "projects" : currentFamily === "analyse" ? "tools" : currentFamily === "prove" ? "portfolio" : "learn"}`}
+                  end={route === "/learn"
+                    || route === "/practice"
+                    || route === "/projects"
+                    || route === "/progress"
+                    || route === "/more"}
                   onClick={(event) => navigateFromShell(event, route)}
                 >
                   {label}
@@ -411,15 +422,14 @@ export function Layout() {
       </div>
 
       <nav className="mobile-bottom-navigation" aria-label="Primary mobile navigation">
-        {primaryDestinations.map((item) => (
-          <NavLink key={item.route} to={item.route} end={item.route === "/"} aria-label={item.label} onClick={(event) => navigateFromShell(event, item.route)}>
+        {mobilePrimaryDestinations.map((item) => (
+          <NavLink key={item.route} to={item.route} aria-label={item.label} onClick={(event) => navigateFromShell(event, item.route)}>
             <Icon name={item.icon} size={20} /><span>{item.label}</span>
           </NavLink>
         ))}
       </nav>
 
       <CommandPalette open={searchOpen} onClose={closeSearch} onRequestNavigate={requestNavigation} />
-      {!progress.onboardingComplete && <Onboarding />}
     </div>
   );
 }
