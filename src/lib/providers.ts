@@ -34,6 +34,7 @@ export interface BillingAvailabilityProvider {
 export interface ProductEventProvider {
   mode: "no-op" | "hosted";
   telemetryCollected: boolean;
+  capability: ProviderCapabilityState;
   record(name: string, properties?: Record<string, string | number | boolean>): void;
 }
 
@@ -65,6 +66,7 @@ export const localBillingProvider: BillingAvailabilityProvider = {
 export const noOpProductEventProvider: ProductEventProvider = {
   mode: "no-op",
   telemetryCollected: false,
+  capability: hostedCapabilityStates.telemetry,
   record: () => undefined
 };
 
