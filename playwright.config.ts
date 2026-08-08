@@ -1,11 +1,17 @@
 import { defineConfig, devices } from "@playwright/test";
+import { randomUUID } from "node:crypto";
 
 const port = 4174;
 const executablePath = process.env.PLAYWRIGHT_EXECUTABLE_PATH?.trim();
 const channel = process.env.PLAYWRIGHT_CHANNEL?.trim();
+const previewShutdownToken = randomUUID();
+
+process.env.ENGINEERING_MASTERY_LAB_PLAYWRIGHT_SHUTDOWN_TOKEN =
+  previewShutdownToken;
 
 export default defineConfig({
   testDir: "./e2e",
+  globalTeardown: "./e2e/global-teardown.ts",
   fullyParallel: false,
   forbidOnly: true,
   retries: 0,
@@ -46,7 +52,10 @@ export default defineConfig({
     launchOptions: executablePath ? { executablePath } : undefined
   },
   webServer: {
-    command: `npm run preview -- --host 127.0.0.1 --port ${port}`,
+    command: "node ./scripts/run-playwright-preview.mjs",
+    env: {
+      ENGINEERING_MASTERY_LAB_PLAYWRIGHT_SHUTDOWN_TOKEN: previewShutdownToken
+    },
     url: `http://127.0.0.1:${port}/Engineering-Mastery-Lab/`,
     reuseExistingServer: false,
     timeout: 120_000

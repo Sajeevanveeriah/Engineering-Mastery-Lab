@@ -21,7 +21,8 @@ describe("ecosystem provider contracts", () => {
       "collaboration",
       "educator-analytics",
       "identity",
-      "synchronisation"
+      "synchronisation",
+      "telemetry"
     ]);
     for (const capability of Object.values(hostedCapabilityStates)) {
       expect(capability.status).toBe("unavailable");

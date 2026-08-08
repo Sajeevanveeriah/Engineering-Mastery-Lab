@@ -35,6 +35,7 @@ export type EcosystemCapabilityId =
   | "collaboration"
   | "curated-content-packs"
   | "educator-analytics"
+  | "telemetry"
   | "billing";
 
 export interface ProviderCapabilityState {
@@ -153,7 +154,7 @@ function unavailableCapability(
 
 export const hostedCapabilityStates: Readonly<
   Record<
-    "identity" | "synchronisation" | "billing" | "collaboration" | "cohorts" | "educator-analytics",
+    "identity" | "synchronisation" | "billing" | "collaboration" | "cohorts" | "educator-analytics" | "telemetry",
     ProviderCapabilityState
   >
 > = Object.freeze({
@@ -180,6 +181,10 @@ export const hostedCapabilityStates: Readonly<
   "educator-analytics": unavailableCapability(
     "educator-analytics",
     "Hosted educator analytics are not connected. No telemetry or real learner data is processed."
+  ),
+  telemetry: unavailableCapability(
+    "telemetry",
+    "Hosted telemetry is not connected. Product event recording remains a local no-op and collects no events."
   )
 });
 

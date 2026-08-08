@@ -37,6 +37,17 @@ describe("existing provider boundaries and local scale foundations", () => {
     eventSpy("fixture-reviewed", { local: true });
     expect(eventSpy).toHaveBeenCalledOnce();
     expect(noOpProductEventProvider.telemetryCollected).toBe(false);
+    expect(noOpProductEventProvider).toMatchObject({
+      mode: "no-op",
+      capability: {
+        id: "telemetry",
+        status: "unavailable",
+        executionBoundary: "none",
+        networkAccess: false,
+        hostedService: false,
+        dataUse: "none"
+      }
+    });
 
     const providers = createLocalScaleFoundationProviders();
     expect(providers.synchronisation.capability).toMatchObject({

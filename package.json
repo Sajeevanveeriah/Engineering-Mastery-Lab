@@ -17,6 +17,7 @@
     "typecheck": "tsc --noEmit",
     "test:e2e": "npm run build && playwright test --project=functional --project=cad-recovery --project=routes",
     "test:visual-review": "npm run build && playwright test --project=visual-review --grep @visual-review",
+    "pilot:dry-run": "node scripts/run-pilot-dry-run.mjs",
     "validate:academy-media": "node --experimental-strip-types scripts/validate-academy-media.mjs",
     "validate:academy-playback:chromium": "node scripts/validate-academy-playback-chromium.mjs",
     "validate:academy-playback:webview2": "node scripts/validate-academy-playback-chromium.mjs --runtime=webview2",
