@@ -37,6 +37,7 @@ const UnitConverter = lazy(() => import("./pages/UnitConverter").then((module) =
 const MaterialsReference = lazy(() => import("./pages/MaterialsReference").then((module) => ({ default: module.MaterialsReference })));
 const Portfolio = lazy(() => import("./pages/Portfolio").then((module) => ({ default: module.Portfolio })));
 const Pricing = lazy(() => import("./pages/Pricing").then((module) => ({ default: module.Pricing })));
+const Support = lazy(() => import("./pages/Support").then((module) => ({ default: module.Support })));
 const Settings = lazy(() => import("./pages/Settings").then((module) => ({ default: module.Settings })));
 const About = lazy(() => import("./pages/About").then((module) => ({ default: module.About })));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage").then((module) => ({ default: module.NotFoundPage })));
@@ -148,6 +149,7 @@ export default function App() {
                   <Route path="/portfolio" element={<Portfolio />} />
                   <Route path="/portfolio/capstone" element={<CapstoneEvidenceRoute />} />
                   <Route path="/pricing" element={<Pricing />} />
+                  <Route path="/support" element={<Support />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/about" element={<About />} />
 

@@ -10,9 +10,11 @@ modes:
 - The Tauri desktop build adds Project Workbench, authorised local workspaces,
   external engineering-tool adapters, run receipts, and evidence reports.
 
-There is no application backend, account, remote sync, payment, or telemetry
-connection. Future hosted capabilities are represented by lean TypeScript
-provider boundaries and declarative entitlement metadata.
+There is no application backend, account, remote sync, hosted payment
+integration, or telemetry connection. The optional Support page exposes one
+user-initiated link to a PayPal-hosted page in the web build. Future hosted
+capabilities are represented by lean TypeScript provider boundaries and
+declarative entitlement metadata.
 
 ## Product and route hierarchy
 
@@ -55,7 +57,7 @@ Engineering Mastery Lab
     Export
 ```
 
-Search, Pricing, Settings, About, and local profile controls sit outside the
+Search, Support, Pricing, Settings, About, and local profile controls sit outside the
 five-item primary navigation.
 
 The primary product labels do not change canonical routes. `HashRouter` remains
@@ -95,7 +97,7 @@ new hierarchy.
 `Layout` renders exactly five primary destinations in the desktop rail and
 mobile bottom navigation. It retains the existing unsaved Project Workbench
 navigation guard. Those destinations are Today, Learn, Build, Analyse and
-Prove. Search, pricing, settings and product information remain secondary.
+Prove. Search, support, pricing, settings and product information remain secondary.
 
 `CommandPalette` opens with Ctrl+K or Meta+K. It searches one declarative
 catalogue covering laboratories, pathways, projects, skills, calculators,
@@ -472,6 +474,25 @@ noOpProductEventProvider
 Open-source preview mode returns every declared current entitlement. Pricing
 metadata may describe future plan differences but cannot lock a local feature.
 No provider performs a network request.
+
+### Voluntary PayPal support boundary
+
+```mermaid
+flowchart LR
+  support["Engineering Mastery Lab Support page"] --> action["Explicit user action"]
+  action --> paypal["PayPal.Me hosted page"]
+  paypal -. "No payment credentials, transaction result or entitlement returns" .-> support
+```
+
+Text equivalent: The Engineering Mastery Lab Support page reaches the
+PayPal.Me hosted page only after an explicit user action. No payment
+credentials, transaction result or entitlement returns to Engineering Mastery
+Lab.
+
+PayPal support is an external optional service, not a billing provider. The web
+build renders one hardcoded HTTPS anchor. The Tauri build renders the address as
+selectable text and does not navigate its privileged webview or add an opener
+permission. Loading the Support page does not contact PayPal.
 
 Phase 5 adds separate provider-neutral local foundations in
 `src/lib/ecosystem/`. They are not wired to a hosted service:

@@ -46,6 +46,7 @@ const routeTitles: Array<[string, string]> = [
   ["/tools", "More: Tools"],
   ["/portfolio", "Progress: Evidence"],
   ["/pricing", "Pricing"],
+  ["/support", "Support"],
   ["/settings", "Settings"],
   ["/about", "About"],
   ["/", "Engineering Mastery Lab"]
@@ -330,6 +331,7 @@ export function Layout() {
             <Icon name="search" size={18} /><span>Search</span><kbd>Ctrl K</kbd>
           </button>
           <nav className="utility-navigation" aria-label="Product information">
+            <Link to="/support" onClick={(event) => navigateFromShell(event, "/support")}>Support</Link>
             <Link to="/pricing" onClick={(event) => navigateFromShell(event, "/pricing")}>Pricing</Link>
             <Link to="/about" onClick={(event) => navigateFromShell(event, "/about")}>About</Link>
           </nav>

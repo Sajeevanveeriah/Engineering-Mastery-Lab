@@ -14,6 +14,7 @@ describe("route interface mode", () => {
     "/pathways",
     "/about",
     "/pricing",
+    "/support",
     "/not-a-route"
   ])("classifies %s as editorial", (pathname) => {
     expect(getRouteInterfaceMode(pathname)).toBe("editorial");

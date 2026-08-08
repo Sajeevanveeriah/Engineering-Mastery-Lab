@@ -31,7 +31,7 @@ The global application has five primary destinations:
 - Prove: the defensible rover capstone, challenge, artefact, reflection, skill,
   project, and manual evidence with print, JSON, and Markdown exports.
 
-Pricing, Settings, About, search, and the local profile are secondary actions
+Support, Pricing, Settings, About, search, and the local profile are secondary actions
 in the top bar.
 
 ## Self-contained engineering academy
@@ -265,6 +265,13 @@ unavailable and no network provider is connected.
 The Pricing page describes possible Free, Pro, and Teams or Educators hosted
 offers without a checkout, form submission, external request, or payment
 collection.
+
+The `/support` page provides one optional, user-initiated web link to
+`https://paypal.me/SajeevanVeeriah95`. It is an external voluntary contribution
+path, not hosted billing. It does not change access, progress, certificates,
+assessment, accreditation or entitlements. The Tauri presentation shows the
+address as selectable text for the user to open in a normal browser because the
+desktop capability boundary grants no external-open permission.
 
 See
 [Product and Monetisation Architecture](docs/20260725-Engineering-Mastery-Lab-Product-And-Monetisation-Architecture-Rev00.md).

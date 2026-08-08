@@ -16,6 +16,7 @@ interface VisualState {
   viewport?: { width: number; height: number };
   fullPage?: boolean;
   preserveScroll?: boolean;
+  preserveFocus?: boolean;
   prepare?: (page: Page) => Promise<void>;
   afterNavigate?: (page: Page) => Promise<void>;
 }
@@ -91,9 +92,11 @@ async function captureState(page: Page, testInfo: TestInfo, state: VisualState):
   }));
   await state.afterNavigate?.(page);
   await expect(page.locator("main#main-content h1").first()).toBeVisible();
-  await page.evaluate(() => {
-    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
-  });
+  if (!state.preserveFocus) {
+    await page.evaluate(() => {
+      if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    });
+  }
   if (state.preserveScroll) {
     const horizontalState = await page.evaluate(() => {
       const top = window.scrollY;
@@ -183,6 +186,88 @@ async function captureState(page: Page, testInfo: TestInfo, state: VisualState):
 }
 
 const reviewStates: VisualState[] = [
+  {
+    name: "support-desktop-light",
+    route: "/support",
+    progress: createV4Progress(emptyProgress, { themePreference: "light" }),
+    viewport: { width: 1440, height: 900 }
+  },
+  {
+    name: "support-desktop-dark",
+    route: "/support",
+    progress: createV4Progress(emptyProgress, { themePreference: "dark" }),
+    viewport: { width: 1440, height: 900 }
+  },
+  {
+    name: "support-mobile-light",
+    route: "/support",
+    progress: createV4Progress(emptyProgress, { themePreference: "light" }),
+    viewport: { width: 390, height: 844 }
+  },
+  {
+    name: "support-mobile-dark",
+    route: "/support",
+    progress: createV4Progress(emptyProgress, { themePreference: "dark" }),
+    viewport: { width: 390, height: 844 }
+  },
+  {
+    name: "support-320-css-pixels",
+    route: "/support",
+    progress: createV4Progress(emptyProgress, { themePreference: "light" }),
+    viewport: { width: 320, height: 844 }
+  },
+  {
+    name: "support-200-percent-zoom",
+    route: "/support",
+    progress: createV4Progress(emptyProgress, { themePreference: "light" }),
+    viewport: { width: 720, height: 450 },
+    prepare: async (page) => {
+      const session = await page.context().newCDPSession(page);
+      await session.send("Emulation.setDeviceMetricsOverride", {
+        width: 720,
+        height: 450,
+        deviceScaleFactor: 2,
+        mobile: false,
+        screenWidth: 1440,
+        screenHeight: 900
+      });
+    },
+    afterNavigate: async (page) => {
+      const metrics = await page.evaluate(() => ({
+        width: window.innerWidth,
+        height: window.innerHeight,
+        scale: window.devicePixelRatio
+      }));
+      expect(metrics).toEqual({ width: 720, height: 450, scale: 2 });
+    }
+  },
+  {
+    name: "support-keyboard-focus",
+    route: "/support",
+    progress: createV4Progress(emptyProgress, { themePreference: "light" }),
+    viewport: { width: 1440, height: 900 },
+    preserveFocus: true,
+    afterNavigate: async (page) => {
+      const supportLink = page.getByRole("link", { name: "Support via PayPal" });
+      for (let attempt = 0; attempt < 30; attempt += 1) {
+        await page.keyboard.press("Tab");
+        if (await supportLink.evaluate((element) => element === document.activeElement)) return;
+      }
+      throw new Error("Support via PayPal was not reachable within 30 keyboard tab steps");
+    }
+  },
+  {
+    name: "support-tauri-presentation",
+    route: "/support",
+    progress: createV4Progress(emptyProgress, { themePreference: "light" }),
+    viewport: { width: 1440, height: 900 },
+    prepare: async (page) => page.addInitScript(() => {
+      Object.defineProperty(window, "__TAURI_INTERNALS__", {
+        configurable: true,
+        value: {}
+      });
+    })
+  },
   { name: "guided-start-new", route: "/" },
   {
     name: "guided-start-returning",

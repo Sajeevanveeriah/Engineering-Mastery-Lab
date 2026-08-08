@@ -29,6 +29,7 @@ const moreSections = [
     links: [
       ["/portfolio", "Portfolio evidence"],
       ["/tools/progress", "Detailed progress analysis"],
+      ["/support", "Support Engineering Mastery Lab"],
       ["/pricing", "Pricing and hosted capability status"],
       ["/about", "About Engineering Mastery Lab"]
     ]

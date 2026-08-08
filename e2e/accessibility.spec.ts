@@ -38,6 +38,7 @@ const criticalRoutes = [
   "/tools/cad",
   "/portfolio",
   "/portfolio/capstone",
+  "/support",
   "/settings"
 ];
 

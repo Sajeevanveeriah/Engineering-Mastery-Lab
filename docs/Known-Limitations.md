@@ -280,6 +280,11 @@ and Pages workflows, and direct verification of the live application.
   available.
 - External open and reveal is not implemented. The current TypeScript bridge,
   UI and Tauri capability manifest expose no such operation.
+- The voluntary Support page links to a PayPal-hosted page only after an
+  explicit action in the web build. PayPal availability, recipient-page
+  presentation, payment processing and receipts remain external to Engineering
+  Mastery Lab. The Tauri build shows the address as selectable text and cannot
+  open it from the privileged webview.
 - There is no cloud sync, collaboration, account system, mobile application,
   auto-update, code signing, notarisation, bundled ngspice or bundled KiCad.
 - There is no FEM, CFD, multibody solver, general CAD geometry kernel or
