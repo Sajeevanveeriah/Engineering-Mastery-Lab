@@ -275,3 +275,7 @@
 [0809/180215.709:ERROR:gpu\command_buffer\service\gl_utils.cc:430] [.WebGL-0x612401de1a00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
 [0809/180331.536:ERROR:gpu\command_buffer\service\gl_utils.cc:430] [.WebGL-0x53c401fd4e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
 [0809/180331.684:ERROR:gpu\command_buffer\service\gl_utils.cc:430] [.WebGL-0x53c401fd4e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)
+[0809/181034.940:ERROR:gpu\command_buffer\service\gl_utils.cc:430] [.WebGL-0x5b1c01e13600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
+[0809/181035.089:ERROR:gpu\command_buffer\service\gl_utils.cc:430] [.WebGL-0x5b1c01e13600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
+[0809/181035.275:ERROR:gpu\command_buffer\service\gl_utils.cc:430] [.WebGL-0x5b1c01e13600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
+[0809/181035.390:ERROR:gpu\command_buffer\service\gl_utils.cc:430] [.WebGL-0x5b1c01e13600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)
