@@ -1,0 +1,127 @@
+.eda-page { max-width: none; }
+.eda-header { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem; }
+.eda-header h1 { margin: 0; }
+.eda-header kbd { padding: 0.1rem 0.3rem; border: 1px solid var(--border); border-radius: 4px; background: var(--bg-inset); font-size: 0.68rem; }
+.eda-status { display: flex; min-height: 34px; align-items: center; justify-content: space-between; gap: 0.8rem; padding: 0.4rem 0.65rem; border: 1px solid var(--border); border-radius: 8px 8px 0 0; background: var(--bg-inset); color: var(--text-dim); font-size: 0.74rem; font-variant-numeric: tabular-nums; }
+.eda-toolbar, .eda-workspace-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; }
+.eda-toolbar { padding: 0.45rem; border: 1px solid var(--border); border-top: 0; background: var(--bg-card); }
+.eda-toolbar button, .eda-workspace-actions button { min-height: 34px; padding: 0.35rem 0.55rem; font-size: 0.75rem; }
+.eda-toolbar label { display: flex; align-items: center; gap: 0.35rem; }
+.eda-toolbar select { width: auto; min-height: 34px; padding-block: 0.3rem; }
+.eda-view-tabs, .eda-result-tabs { display: flex; gap: 0.2rem; padding: 0.2rem; border: 1px solid var(--border); border-radius: 7px; background: var(--bg-inset); }
+.eda-view-tabs button[aria-selected="true"], .eda-result-tabs button[aria-selected="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--text); }
+.eda-shell { display: grid; min-height: 620px; grid-template-columns: var(--eda-left) minmax(420px, 1fr) var(--eda-right); border-inline: 1px solid var(--border); transition: grid-template-columns 150ms var(--ease-out); }
+.eda-panel { min-width: 0; padding: 0.7rem; overflow: auto; border-right: 1px solid var(--border); background: var(--bg-card); transition: padding 150ms var(--ease-out); }
+.eda-properties { border-right: 0; border-left: 1px solid var(--border); }
+.eda-panel.is-collapsed { padding: 0.3rem; overflow: hidden; }
+.eda-panel-heading { display: flex; min-height: 38px; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.eda-panel-heading h2 { margin: 0; font-size: 0.95rem; }
+.eda-panel-heading .icon-button { min-width: 34px; min-height: 34px; font-family: var(--font-mono); }
+.eda-resizer { display: grid; margin-bottom: 0.65rem; gap: 0.2rem; font-size: 0.68rem; }
+.eda-palette-list { display: grid; gap: 0.35rem; }
+.eda-palette-list button { display: flex; align-items: center; justify-content: space-between; text-align: left; }
+.eda-palette-list button small { color: var(--text-dim); font-weight: 500; }
+.eda-palette > button { width: 100%; margin-bottom: 0.35rem; }
+.eda-workspace { display: grid; width: auto; min-width: 0; min-height: 0; padding: 0; grid-template-rows: auto auto minmax(0, 1fr); background: var(--bg-inset); }
+.eda-workspace-actions { padding: 0.45rem; border-bottom: 1px solid var(--border); background: var(--bg-card); }
+.eda-workspace-actions label { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0 0.35rem; }
+.eda-authoring { padding: 0.6rem; border-bottom: 1px solid var(--border); background: var(--bg-card); }
+.eda-authoring form { display: grid; gap: 0.55rem; }
+.eda-authoring label { display: grid; gap: 0.25rem; }
+.eda-authoring-tabs { display: flex; flex-wrap: wrap; gap: 0.25rem; margin: 0.45rem 0; }
+.eda-authoring-tabs button { min-height: 32px; padding: 0.3rem 0.55rem; font-size: 0.74rem; }
+.eda-authoring-tabs button[aria-selected="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.eda-coordinate-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.45rem; }
+.eda-authoring-actions { display: flex; flex-wrap: wrap; align-items: end; gap: 0.4rem; }
+.eda-authoring-actions label { min-width: 150px; }
+.eda-authoring textarea { resize: vertical; }
+.eda-canvas-stack { display: grid; min-width: 0; align-content: start; gap: 0.6rem; padding: 0.65rem; overflow: auto; }
+.eda-canvas { display: block; width: 100%; min-width: 500px; max-height: 500px; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--bg-card); }
+.eda-grid-dot { fill: color-mix(in srgb, var(--text-dim) 36%, transparent); }
+.eda-wire { cursor: pointer; stroke: var(--success); stroke-width: 2.5; }
+.eda-wire.is-selected { stroke: var(--accent); stroke-width: 6; }
+.eda-junction { fill: var(--success); }
+.eda-pin { fill: var(--bg-card); stroke: var(--accent); stroke-width: 1.5; }
+.eda-net-label { fill: var(--accent); font-size: 11px; font-weight: 700; }
+.eda-net-label.is-selected { paint-order: stroke; stroke: var(--warn); stroke-width: 3; }
+.eda-symbol, .eda-footprint { cursor: pointer; color: var(--text); }
+.eda-symbol rect, .eda-footprint rect { fill: var(--bg-card); stroke: var(--text); stroke-width: 1.5; }
+.eda-symbol text, .eda-footprint text { fill: var(--text); font-size: 9px; pointer-events: none; }
+.eda-symbol.is-selected rect, .eda-footprint.is-selected rect { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 4; }
+.eda-outline { fill: color-mix(in srgb, var(--success) 7%, transparent); stroke: var(--warn); stroke-width: 2; }
+.eda-track { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.eda-track--front { stroke: #d93f5d; }
+.eda-track--back { stroke: #287fd1; }
+.eda-track.is-highlighted { filter: drop-shadow(0 0 4px var(--warn)); stroke-width: 6 !important; }
+.eda-track.is-selected { filter: drop-shadow(0 0 5px var(--accent)); stroke-width: 7 !important; }
+.eda-via { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 2; }
+.eda-via.is-selected { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 4; }
+.eda-pad { fill: var(--warn-soft); stroke: var(--text); stroke-width: 1; }
+.eda-pad.is-highlighted { fill: var(--warn); stroke-width: 3; }
+.eda-ratsnest { stroke: var(--text-dim); stroke-width: 1; stroke-dasharray: 5 4; }
+.eda-ratsnest.is-highlighted { stroke: var(--warn); stroke-width: 3; }
+.eda-entity-table { min-width: 540px; }
+.eda-entity-table tr.is-selected { background: var(--accent-soft); }
+.eda-properties h3 { margin-top: 1rem; }
+.eda-property-grid { display: grid; gap: 0.55rem; }
+.eda-property-grid label { display: grid; gap: 0.25rem; }
+.eda-net-list { display: grid; gap: 0.25rem; margin: 0.5rem 0; padding: 0; list-style: none; }
+.eda-net-list button { width: 100%; min-height: 34px; justify-content: space-between; padding: 0.3rem 0.5rem; font-size: 0.76rem; }
+.eda-net-list button span { color: var(--text-dim); font-size: 0.68rem; }
+.eda-net-list button.is-active { border-color: var(--accent); background: var(--accent-soft); }
+.eda-layer-list { display: grid; margin-bottom: 0.6rem; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+.eda-layer-list label { display: flex; align-items: center; gap: 0.25rem; }
+.eda-results { border: 1px solid var(--border); background: var(--bg-card); }
+.eda-results > .eda-panel-heading { padding: 0.45rem 0.7rem; border-bottom: 1px solid var(--border); }
+.eda-results.is-collapsed > .eda-panel-heading { border-bottom: 0; }
+.eda-result-tabs { margin: 0.6rem; overflow-x: auto; }
+.eda-result-tabs button { min-height: 34px; flex: 0 0 auto; padding: 0.35rem 0.65rem; }
+.eda-results [role="tabpanel"] { padding: 0 0.7rem 0.8rem; }
+.eda-result-heading { display: flex; align-items: start; justify-content: space-between; gap: 1rem; }
+.eda-result-heading h3 { margin-bottom: 0.15rem; }
+.eda-plot { width: min(100%, 760px); margin-bottom: 0.6rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-inset); }
+.eda-plot line { stroke: var(--border-strong); }
+.eda-plot polyline { fill: none; stroke-width: 3; }
+.eda-plot__input { stroke: var(--accent); }
+.eda-plot__output { stroke: var(--success); }
+.eda-plot text { fill: var(--text-dim); font-size: 11px; }
+.eda-fabrication-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+.eda-kicad-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; }
+.eda-kicad-grid > section { min-width: 0; padding: 0.7rem; border: 1px solid var(--border); border-radius: 8px; }
+.eda-kicad-grid h4 { margin-top: 0; }
+.eda-loss-preview { display: grid; margin-top: 0.7rem; gap: 0.6rem; }
+.eda-loss-preview code { display: block; max-width: 28rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.eda-confirm { display: flex; align-items: start; gap: 0.45rem; }
+.eda-fabrication-grid h4 { margin-top: 0; }
+.eda-results details { margin-top: 0.8rem; }
+.eda-results summary { cursor: pointer; font-weight: 700; }
+.eda-results pre { max-height: 280px; padding: 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-inset); font-size: 0.72rem; }
+.eda-boundary { margin-top: 0.8rem; padding: 0.7rem; border-left: 3px solid var(--warn); background: var(--warn-soft); color: var(--text); font-size: 0.8rem; }
+.eda-import { cursor: pointer; }
+.eda-command-backdrop { position: fixed; z-index: 100; inset: 0; display: grid; padding: 1rem; place-items: start center; background: rgb(0 0 0 / 45%); }
+.eda-command-dialog { width: min(620px, 100%); max-height: 80vh; margin-top: 8vh; padding: 1rem; overflow: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-card); box-shadow: var(--shadow-md); }
+.eda-command-dialog label { display: grid; gap: 0.3rem; }
+.eda-command-list { display: grid; gap: 0.25rem; margin: 0.6rem 0; }
+.eda-command-list button { justify-content: start; }
+
+@media (max-width: 1180px) {
+  .eda-shell { grid-template-columns: var(--eda-left) minmax(400px, 1fr); }
+  .eda-properties { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8rem; border-top: 1px solid var(--border); border-left: 0; }
+  .eda-properties > .eda-panel-heading, .eda-properties > .eda-resizer { grid-column: 1 / -1; }
+}
+
+@media (max-width: 760px) {
+  .eda-header, .eda-status { align-items: stretch; flex-direction: column; }
+  .eda-shell { display: block; }
+  .eda-panel { border: 0; border-bottom: 1px solid var(--border); }
+  .eda-properties { display: block; }
+  .eda-workspace { min-height: 580px; }
+  .eda-fabrication-grid { grid-template-columns: 1fr; }
+  .eda-kicad-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eda-shell, .eda-panel { transition-duration: 0.01ms; }
+}
+
+[data-motion="reduced"] .eda-shell, [data-motion="reduced"] .eda-panel { transition-duration: 0.01ms; }

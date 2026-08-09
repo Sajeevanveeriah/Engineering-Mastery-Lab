@@ -252,6 +252,7 @@ test.describe("representative zoom reflow", () => {
     ["/learn/labs/pid?stage=simulate", 4],
     ["/tools/calculators", 4],
     ["/tools/cad", 2],
+    ["/tools/eda", 2],
     ["/learn/roadmap", 2],
     ["/learn/reboot/sessions/S110", 4],
     ["/learn/modules/EML-E2-D11", 4]

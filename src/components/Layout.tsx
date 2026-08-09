@@ -35,6 +35,7 @@ const routeTitles: Array<[string, string]> = [
   ["/tools/converter", "Analyse: Unit Converter"],
   ["/tools/materials", "Analyse: Materials Reference"],
   ["/tools/cad", "Analyse: CAD Studio"],
+  ["/tools/eda", "Analyse: EDA Studio"],
   ["/tools/workbench", "Analyse: Project Workbench"],
   ["/tools/diagnostics", "Analyse: Desktop Diagnostics"],
   ["/learn/pathways", "Learn: Pathways"],

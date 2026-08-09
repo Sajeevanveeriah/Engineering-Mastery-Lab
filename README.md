@@ -216,14 +216,40 @@ The Tauri desktop build additionally provides Project Workbench:
 ngspice and KiCad are not bundled. Their missing states remain explicit and do
 not disable the learning product.
 
-CAD Studio is lazy-loaded and uses Three.js only inside its route chunk. It
-supports bounded plate, flange, spacer, and angle templates with 3D and drawing
-previews, validation, mass properties, local draft storage, and STL, OpenSCAD,
-SVG, and JSON exports. A WebGL capability check, defensive renderer creation,
-local fallback and route recovery keep parameters, drawing preview and exports
-usable when 3D rendering is unavailable. It is not a general CAD kernel or
-manufacturing-certified CAD. Project Workbench and Diagnostics are also
-lazy-loaded behind local route recovery.
+CAD Studio at `/tools/cad` is lazy-loaded. It keeps the existing bounded
+templates and adds three deliberately separate authorities:
+
+- STL and 3MF import as triangle-mesh references with hashes, bounds, explicit
+  unit handling, hostile-package preflight and worker cancellation;
+- EML CAD JSON v2 as the editable document, dependency and command-history
+  authority; and
+- one lazy, terminable OCCT worker through `replicad@0.23.1` and
+  `replicad-opencascadejs@0.23.0` for the tested sketch-to-solid B-rep slice.
+
+The exact slice covers box, cylinder and sphere primitives, XY/XZ/YZ sketches,
+line, polyline, rectangle, circle and arc entities, pad or extrude, pocket,
+revolve, booleans, suppression, rebuild, rollback after a failed feature, STL
+export and STEP export. STEP import provides an explicitly lossy tessellated
+preview with assumed millimetres and machine-readable fidelity metadata. That
+preview is tested, but retained exact topology, hierarchy and source units
+remain `NOT_VERIFIED`. IGES and native BREP import remain
+unsupported because the selected single-kernel adapter does not expose them.
+Meshes and exchange files do not acquire editable EML feature history. General
+constraint solving, stable topological naming, assemblies,
+drawings, surfacing, sheet metal, CAM and solver workflows remain roadmap work.
+
+EDA Studio at `/tools/eda` is a separate lazy route. Its neutral EML EDA JSON
+v1 document, original offline palette, schematic and two-layer PCB command
+model, connectivity, ERC, DRC, BOM, pick-and-place and bounded KiCad 6+
+S-expression subset are local code. KiCad and ngspice remain separately
+installed desktop tools behind the existing typed Tauri authority boundary.
+Fixture-backed adapter evidence is `FIXTURE_VERIFIED`; neither tool was found
+on this development host, so real execution is `NOT_VERIFIED`.
+
+The Academy production service-worker manifest remains Academy-only. CAD and
+EDA can operate without a service after their route assets are loaded, but
+their chunks and the OCCT WASM are not claimed as pre-cached browser-offline
+assets. Packaged desktop assets are a separate offline boundary.
 
 ## Desktop security boundary
 
@@ -389,6 +415,13 @@ as:
 - [Development Setup](docs/Development-Setup.md)
 - [Known Limitations](docs/Known-Limitations.md)
 - [Adapter Authoring Guide](docs/Adapter-Authoring-Guide.md)
+- [Engineering Design Studio](docs/Engineering-Design-Studio.md)
+- [Engineering Design Capability Matrix](docs/Engineering-Design-Capability-Matrix.md)
+- [CAD and EDA File Formats](docs/CAD-EDA-File-Formats.md)
+- [Engineering Design Test Fixtures](docs/Test-Fixtures.md)
+- [Engineering Design User Workflow](docs/User-Workflow.md)
+- [Engineering Design Source Register](docs/Source-Register.md)
+- [Third-party Licences](docs/Third-Party-Licences.md)
 - [Security](SECURITY.md)
 - [Architecture Decision Records](docs/adr)
 

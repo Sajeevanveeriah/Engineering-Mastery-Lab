@@ -102,6 +102,7 @@ describe("catalogue integrity", () => {
       "/tools/materials",
       "/tools/engineering",
       "/tools/cad",
+      "/tools/eda",
       "/tools/workbench",
       "/tools/diagnostics"
     ]));
@@ -135,7 +136,7 @@ describe("catalogue integrity", () => {
     expect(calculatorItems.every((item) => item.route === "/tools/calculators")).toBe(true);
   });
 
-  it("requires useful labels, supported capability values, and bounded CAD copy", () => {
+  it("requires useful labels, supported capability values, and bounded design-studio copy", () => {
     const supportedCapabilities = new Set(["Web", "Desktop", "Web and Desktop"]);
     for (const item of commandCatalogue) {
       expect(item.id.trim()).not.toBe("");
@@ -147,8 +148,13 @@ describe("catalogue integrity", () => {
     }
 
     const cad = toolsCatalogue.find((item) => item.id === "cad-studio");
-    expect(cad?.description).toMatch(/3D preview/i);
-    expect(cad?.description).toMatch(/STL.*OpenSCAD.*SVG.*JSON/i);
-    expect(cad?.description).toMatch(/not general or certified CAD/i);
+    expect(cad?.description).toMatch(/STL.*3MF.*reference meshes/i);
+    expect(cad?.description).toMatch(/bounded local parametric CAD/i);
+    expect(cad?.description).toMatch(/verification limits/i);
+
+    const eda = toolsCatalogue.find((item) => item.id === "eda-studio");
+    expect(eda?.description).toMatch(/schematics.*two-layer PCBs/i);
+    expect(eda?.description).toMatch(/ERC.*DRC/i);
+    expect(eda?.description).toMatch(/fixture-backed interchange evidence/i);
   });
 });

@@ -98,11 +98,21 @@ export const toolsCatalogue: SearchableCatalogueItem[] = [
   {
     id: "cad-studio",
     title: "CAD Studio",
-    description: "Create bounded parameter-driven plates, flanges, spacers, and angle brackets with local 3D preview, validation, mass properties, and STL, OpenSCAD, SVG, and JSON export. Concept modelling only, not general or certified CAD.",
+    description: "Inspect STL and 3MF reference meshes and build bounded local parametric CAD models with explicit verification limits.",
     type: "Tool",
     discipline: "Mechanical Design",
     route: "/tools/cad",
-    keywords: ["cad", "3d", "stl", "openscad", "svg", "json", "parametric"],
+    keywords: ["cad", "3d", "stl", "3mf", "step", "openscad", "svg", "json", "parametric"],
+    capability: "Web and Desktop"
+  },
+  {
+    id: "eda-studio",
+    title: "EDA Studio",
+    description: "Author bounded local schematics and two-layer PCBs with deterministic ERC, DRC and fixture-backed interchange evidence.",
+    type: "Tool",
+    discipline: "Electronics Design",
+    route: "/tools/eda",
+    keywords: ["eda", "schematic", "pcb", "erc", "drc", "kicad", "ngspice"],
     capability: "Web and Desktop"
   },
   {
@@ -146,8 +156,8 @@ export const toolPurposeGroups: ToolPurposeGroup[] = [
   },
   {
     id: "design",
-    title: "Design parts",
-    toolIds: ["cad-studio"]
+    title: "Design parts and circuits",
+    toolIds: ["cad-studio", "eda-studio"]
   },
   {
     id: "verify-document",

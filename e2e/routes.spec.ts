@@ -69,6 +69,7 @@ const canonicalRoutes = [
   "/tools/converter",
   "/tools/materials",
   "/tools/cad",
+  "/tools/eda",
   "/tools/workbench",
   "/tools/diagnostics",
   "/portfolio",
@@ -121,6 +122,7 @@ const legacyRoutes = [
   ["/pathways", "/learn/pathways"],
   ["/toolbox", "/tools"],
   ["/cad", "/tools/cad"],
+  ["/eda", "/tools/eda"],
   ["/workbench", "/tools/workbench"],
   ["/diagnostics", "/tools/diagnostics"]
 ] as const;

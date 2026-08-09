@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" role="img" aria-labelledby="title desc">
+  <title id="title">Engineering Design Studio capability verification model</title>
+  <desc id="desc">The model branches rather than forming one automatic promotion ladder. Roadmap may lead to experimental. Experimental work may be classified as implemented and tested for in-process code, or fixture verified for an external boundary. Only fixture evidence plus a named installed tool and inspected run can support real-tool verified. Not verified and failed are non-completion outcomes and may apply whenever evidence is absent or a gate fails.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#17324d"/>
+    </marker>
+    <marker id="warn-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8a1c1c"/>
+    </marker>
+    <style>
+      .title { font: 700 26px system-ui, sans-serif; fill: #102a43; }
+      .subtitle { font: 600 15px system-ui, sans-serif; fill: #334e68; }
+      .label { font: 700 15px system-ui, sans-serif; fill: #102a43; }
+      .detail { font: 500 13px system-ui, sans-serif; fill: #243b53; }
+      .roadmap { fill: #eef2f6; stroke: #52667a; stroke-width: 2.5; }
+      .experimental { fill: #fff3bf; stroke: #9c6500; stroke-width: 2.5; }
+      .implemented { fill: #e6f6ff; stroke: #0967a1; stroke-width: 2.5; }
+      .fixture { fill: #f4efff; stroke: #6b46a5; stroke-width: 2.5; }
+      .verified { fill: #e8f8ef; stroke: #18794e; stroke-width: 3; }
+      .negative { fill: #fff0f0; stroke: #9b2c2c; stroke-width: 2.5; }
+      .label-bg { fill: #ffffff; stroke: #829ab1; stroke-width: 1.5; }
+      .flow { fill: none; stroke: #17324d; stroke-width: 2.5; marker-end: url(#arrow); }
+      .negative-flow { fill: none; stroke: #8a1c1c; stroke-width: 2.5; stroke-dasharray: 7 6; marker-end: url(#warn-arrow); }
+    </style>
+  </defs>
+
+  <rect width="1200" height="560" fill="#ffffff"/>
+  <text class="title" x="40" y="48">Capability verification branches by evidence type</text>
+  <text class="subtitle" x="40" y="76">Classification paths are not automatic promotion and do not claim product parity.</text>
+
+  <rect class="roadmap" x="55" y="130" width="220" height="84" rx="12"/>
+  <text class="label" x="165" y="166" text-anchor="middle">ROADMAP</text>
+  <text class="detail" x="165" y="190" text-anchor="middle">Planned capability</text>
+
+  <rect class="experimental" x="370" y="130" width="220" height="84" rx="12"/>
+  <text class="label" x="480" y="166" text-anchor="middle">EXPERIMENTAL</text>
+  <text class="detail" x="480" y="190" text-anchor="middle">Incomplete or release-gated</text>
+
+  <rect class="implemented" x="700" y="112" width="270" height="96" rx="12"/>
+  <text class="label" x="835" y="151" text-anchor="middle">IMPLEMENTED_AND_TESTED</text>
+  <text class="detail" x="835" y="178" text-anchor="middle">In-process code evidence</text>
+
+  <rect class="fixture" x="700" y="264" width="270" height="96" rx="12"/>
+  <text class="label" x="835" y="303" text-anchor="middle">FIXTURE_VERIFIED</text>
+  <text class="detail" x="835" y="330" text-anchor="middle">External boundary fixture evidence</text>
+
+  <rect class="verified" x="700" y="416" width="270" height="100" rx="12"/>
+  <text class="label" x="835" y="455" text-anchor="middle">REAL_TOOL_VERIFIED</text>
+  <text class="detail" x="835" y="480" text-anchor="middle">Named installed tool</text>
+  <text class="detail" x="835" y="499" text-anchor="middle">and inspected real run</text>
+
+  <rect class="negative" x="1010" y="112" width="150" height="96" rx="12"/>
+  <text class="label" x="1085" y="151" text-anchor="middle">NOT_VERIFIED</text>
+  <text class="detail" x="1085" y="177" text-anchor="middle">Evidence absent</text>
+
+  <rect class="negative" x="1010" y="264" width="150" height="96" rx="12"/>
+  <text class="label" x="1085" y="303" text-anchor="middle">FAILED</text>
+  <text class="detail" x="1085" y="329" text-anchor="middle">A gate failed</text>
+
+  <line class="flow" x1="275" y1="172" x2="370" y2="172"/>
+  <path class="flow" d="M 590 172 L 642 172 L 642 160 L 700 160"/>
+  <path class="flow" d="M 590 172 L 642 172 L 642 312 L 700 312"/>
+  <line class="flow" x1="835" y1="360" x2="835" y2="416"/>
+
+  <path class="negative-flow" d="M 590 151 L 620 151 L 620 96 L 1085 96 L 1085 112"/>
+  <path class="negative-flow" d="M 590 193 L 660 193 L 660 232 L 1085 232 L 1085 264"/>
+
+  <text class="detail" x="315" y="151" text-anchor="middle">work starts</text>
+  <rect class="label-bg" x="590" y="116" width="110" height="30" rx="8"/>
+  <text class="detail" x="645" y="136" text-anchor="middle">internal path</text>
+  <rect class="label-bg" x="455" y="260" width="130" height="30" rx="8"/>
+  <text class="detail" x="520" y="280" text-anchor="middle">external path</text>
+  <rect class="label-bg" x="675" y="370" width="140" height="26" rx="8"/>
+  <text class="detail" x="745" y="388" text-anchor="middle">real-tool gate only</text>
+
+  <rect x="55" y="312" width="535" height="186" rx="12" fill="#f7fafc" stroke="#829ab1" stroke-width="2"/>
+  <text class="label" x="82" y="347">Interpretation rules</text>
+  <text class="detail" x="82" y="377">1. A label describes one narrow capability row.</text>
+  <text class="detail" x="82" y="407">2. IMPLEMENTED_AND_TESTED is not external-tool proof.</text>
+  <text class="detail" x="82" y="437">3. FIXTURE_VERIFIED is not REAL_TOOL_VERIFIED.</text>
+  <text class="detail" x="82" y="467">4. NOT_VERIFIED and FAILED never imply completion.</text>
+
+  <rect x="40" y="556" width="1120" height="54" rx="12" fill="#f7fafc" stroke="#829ab1" stroke-width="2"/>
+  <text class="subtitle" x="60" y="589">Every release still requires the full build, browser, desktop, package, security, licence, performance and visual gates.</text>
+</svg>

@@ -100,8 +100,18 @@ export class KicadAdapter implements EngineAdapter {
     if (!detection.ready) {
       return failureResult(request.capabilityId, "tool-missing", `${detection.error} ${detection.remediation ?? ""}`.trim());
     }
-    const version = parseKicadVersion(detection.version ?? "");
-    if (version && version.major < spec.minMajor) {
+    let version;
+    try {
+      version = parseKicadVersion(detection.version ?? "");
+    } catch (error) {
+      return failureResult(
+        request.capabilityId,
+        "failed",
+        `The detected KiCad executable returned an unsupported version banner: ${error instanceof Error ? error.message : String(error)}`,
+        { toolVersion: detection.version }
+      );
+    }
+    if (version.major < spec.minMajor) {
       return failureResult(
         request.capabilityId,
         "failed",
@@ -116,17 +126,27 @@ export class KicadAdapter implements EngineAdapter {
       return failureResult(request.capabilityId, "invalid-input", `Input file "${inputRelPath}" does not exist in the workspace.`);
     }
 
-    const runId = `${request.capabilityId.replace(/\./g, "-")}-${sanitize(inputRelPath)}`;
+    const executionId = globalThis.crypto.randomUUID().replace(/-/g, "");
+    const outputDirRelPath = `results/kicad/${executionId}`;
     const outputRelPath = spec.outputIsDir
-      ? `results/${runId}`
-      : `results/${runId}.${outputExtension(spec)}`;
-    await bridge.createDirAll(root, spec.outputIsDir ? outputRelPath : "results");
+      ? outputDirRelPath
+      : `${outputDirRelPath}/${outputFilename(spec)}`;
+    await bridge.createDirAll(root, outputDirRelPath);
+    const existingOutputEntries = await bridge.listDir(root, outputDirRelPath);
+    if (existingOutputEntries.length > 0) {
+      return failureResult(
+        request.capabilityId,
+        "failed",
+        "A generated KiCad output path already contains files. The operation was stopped before execution; retry to use a fresh path.",
+        { toolVersion: detection.version }
+      );
+    }
 
     // Guard against a stale report being read as a fresh result: overwrite the
     // output file with a sentinel before the run. kicad-cli erc/drc exits 0
     // even with violations, so "did the tool write a fresh report" is the
     // reliable success signal, not the exit code.
-    const sentinel = `__ewb_no_report__${runId}__`;
+    const sentinel = `__ewb_no_report__${executionId}__`;
     const isReportRun = spec.subcommand === "sch-erc" || spec.subcommand === "pcb-drc";
     if (isReportRun && !spec.outputIsDir) {
       await bridge.writeTextFileAtomic(root, outputRelPath, sentinel);
@@ -246,23 +266,19 @@ export class KicadAdapter implements EngineAdapter {
   }
 }
 
-function outputExtension(spec: CapabilitySpec): string {
+function outputFilename(spec: CapabilitySpec): string {
   switch (spec.outputKind) {
     case "report":
       return "report.json";
     case "csv":
       return "bom.csv";
     case "netlist":
-      return "net";
+      return "netlist.net";
     case "image":
-      return "png";
+      return "render.png";
     default:
-      return "out";
+      return "output.bin";
   }
-}
-
-function sanitize(relPath: string): string {
-  return relPath.replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-+|-+$/g, "").toLowerCase();
 }
 
 function firstLine(text: string): string {

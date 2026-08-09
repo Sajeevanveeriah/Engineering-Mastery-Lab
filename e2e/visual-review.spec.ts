@@ -1,4 +1,13 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
+import { writeFile } from "node:fs/promises";
+import {
+  createAsciiCubeStl,
+  createBinaryColouredCubeStl,
+  createLargeBinaryStl,
+  createOneInch3mf,
+  createTwoComponentMillimetre3mf
+} from "../src/lib/cad/meshFixtures";
+import { independentKicadProjectFixture } from "../src/tests/fixtures/edaKicad";
 import {
   createV4Progress,
   emptyProgress,
@@ -183,6 +192,66 @@ async function captureState(page: Page, testInfo: TestInfo, state: VisualState):
     animations: "disabled",
     fullPage: state.fullPage ?? true
   });
+}
+
+async function freezeCadFramebuffer(page: Page): Promise<void> {
+  const canvas = page.locator("canvas[data-cad-preview]");
+  await expect(canvas).toBeVisible();
+  const previousScroll = await page.evaluate(() => ({ x: window.scrollX, y: window.scrollY }));
+  await canvas.evaluate((element) => element.scrollIntoView({ block: "center", inline: "nearest" }));
+  await page.evaluate(() => new Promise<void>((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  }));
+  await canvas.evaluate(async (element) => {
+    if (element.parentElement?.querySelector("[data-cad-framebuffer-snapshot]")) return;
+    const dataUrl = await new Promise<string>((resolve) => {
+      document.dispatchEvent(new Event("visibilitychange"));
+      requestAnimationFrame(() => resolve(element.toDataURL("image/png")));
+    });
+    const framebuffer = document.createElement("img");
+    framebuffer.src = dataUrl;
+    framebuffer.alt = "";
+    framebuffer.dataset.cadFramebufferSnapshot = "true";
+    framebuffer.style.position = "absolute";
+    framebuffer.style.inset = "0";
+    framebuffer.style.width = "100%";
+    framebuffer.style.height = "100%";
+    await framebuffer.decode();
+    const probe = document.createElement("canvas");
+    probe.width = 32;
+    probe.height = 32;
+    const context = probe.getContext("2d", { willReadFrequently: true });
+    if (!context) throw new Error("CAD framebuffer probe could not create a 2D context.");
+    context.drawImage(framebuffer, 0, 0, probe.width, probe.height);
+    const pixels = context.getImageData(0, 0, probe.width, probe.height).data;
+    const colours = new Set<string>();
+    for (let index = 0; index < pixels.length; index += 4) {
+      colours.add(`${pixels[index]},${pixels[index + 1]},${pixels[index + 2]}`);
+      if (colours.size >= 8) break;
+    }
+    if (colours.size < 8) throw new Error("CAD framebuffer snapshot is visually blank.");
+    element.style.visibility = "hidden";
+    element.parentElement?.prepend(framebuffer);
+  });
+  await page.evaluate(({ x, y }) => window.scrollTo(x, y), previousScroll);
+}
+
+async function importCadBytes(
+  page: Page,
+  name: string,
+  mimeType: string,
+  bytes: Uint8Array
+): Promise<void> {
+  await page.getByLabel("Choose a CAD document, STL, 3MF, STEP, IGES or BREP file").setInputFiles({
+    name,
+    mimeType,
+    buffer: Buffer.from(bytes)
+  });
+}
+
+async function assertEdaShell(page: Page): Promise<void> {
+  await expect(page.getByRole("heading", { level: 1, name: "Engineering Design Studio" })).toBeVisible();
+  await expect(page.getByRole("table", { name: "Schematic symbols and pin geometry" })).toBeVisible();
 }
 
 const reviewStates: VisualState[] = [
@@ -620,29 +689,324 @@ const reviewStates: VisualState[] = [
     }
   },
   {
+    name: "cad-ascii-cube",
+    route: "/tools/cad",
+    viewport: { width: 1440, height: 900 },
+    afterNavigate: async (page) => {
+      await importCadBytes(page, "ascii-cube.stl", "model/stl", createAsciiCubeStl());
+      await expect(page.getByText("ascii-cube.stl", { exact: true }).first()).toBeVisible();
+      await expect(page.getByText("12 triangles", { exact: true })).toBeVisible();
+      await expect(page.getByText(/STL stores no units/)).toBeVisible();
+      await freezeCadFramebuffer(page);
+    }
+  },
+  {
+    name: "cad-binary-coloured-stl",
+    route: "/tools/cad",
+    viewport: { width: 1440, height: 900 },
+    afterNavigate: async (page) => {
+      await importCadBytes(page, "binary-coloured-cube.stl", "model/stl", createBinaryColouredCubeStl());
+      await expect(page.getByText("binary-coloured-cube.stl", { exact: true }).first()).toBeVisible();
+      await expect(page.getByText("12 triangles", { exact: true })).toBeVisible();
+      await expect(page.getByText("STL", { exact: true }).first()).toBeVisible();
+      await freezeCadFramebuffer(page);
+    }
+  },
+  {
+    name: "cad-two-component-mm-3mf",
+    route: "/tools/cad",
+    viewport: { width: 1440, height: 900 },
+    afterNavigate: async (page) => {
+      await importCadBytes(page, "two-component-mm.3mf", "model/3mf", createTwoComponentMillimetre3mf());
+      await expect(page.getByText(/3MF source unit: millimeter\. Components: 2\. Materials: 1\./)).toBeVisible();
+      await expect(page.getByText("24 triangles", { exact: true })).toBeVisible();
+      await expect(page.getByText("two-component-mm.3mf", { exact: true }).first()).toBeVisible();
+      await freezeCadFramebuffer(page);
+    }
+  },
+  {
+    name: "cad-one-inch-3mf-25-40-mm",
+    route: "/tools/cad",
+    viewport: { width: 1440, height: 900 },
+    afterNavigate: async (page) => {
+      await importCadBytes(page, "one-inch-cube.3mf", "model/3mf", createOneInch3mf());
+      await expect(page.getByText(/3MF source unit: inch\. Components: 0\. Materials: 1\./)).toBeVisible();
+      await expect(page.getByText("25.40 x 25.40 x 25.40 mm", { exact: true })).toBeVisible();
+      await expect(page.getByText("12 triangles", { exact: true })).toBeVisible();
+      await freezeCadFramebuffer(page);
+    }
+  },
+  {
+    name: "cad-brep-pad-pocket",
+    route: "/tools/cad",
+    viewport: { width: 1440, height: 900 },
+    afterNavigate: async (page) => {
+      await page.getByRole("button", { name: "Pad and pocket" }).click();
+      await expect(page.getByText(/Selected: Sketch, pad and pocket/)).toBeVisible({ timeout: 60_000 });
+      await expect(page.getByText(/model rebuilt/)).toBeVisible();
+      await expect(page.getByText(/exact-mesh triangles/)).toBeVisible();
+      await expect(page.getByText("Native feature history", { exact: true }).first()).toBeVisible();
+      await freezeCadFramebuffer(page);
+    }
+  },
+  {
+    name: "cad-invalid-fillet-rollback",
+    route: "/tools/cad",
+    viewport: { width: 1440, height: 900 },
+    afterNavigate: async (page) => {
+      await page.getByRole("button", { name: "Invalid fillet fixture" }).click();
+      await expect(page.getByText(/Selected: Invalid fillet rollback/)).toBeVisible({ timeout: 60_000 });
+      await expect(page.getByText(/FEATURE_FAILED/).first()).toBeVisible();
+      await expect(page.getByText(/Last-valid geometry retained: yes/)).toBeVisible();
+      await expect(page.getByText(/rolled back to last valid body/)).toBeVisible();
+      await freezeCadFramebuffer(page);
+    }
+  },
+  {
+    name: "eda-voltage-divider",
+    route: "/tools/eda",
+    viewport: { width: 1440, height: 900 },
+    afterNavigate: async (page) => {
+      await page.getByRole("button", { name: "Voltage divider", exact: true }).click();
+      await assertEdaShell(page);
+      const symbols = page.getByRole("table", { name: "Schematic symbols and pin geometry" });
+      await expect(symbols).toContainText("V1");
+      await expect(symbols).toContainText("R1");
+      await expect(symbols).toContainText("R2");
+      await expect(page.getByRole("img", { name: "Schematic editor" })).toBeVisible();
+    }
+  },
+  {
+    name: "eda-led-board",
+    route: "/tools/eda",
+    viewport: { width: 1440, height: 900 },
+    afterNavigate: async (page) => {
+      await page.getByRole("button", { name: "LED board", exact: true }).click();
+      await page.getByRole("tab", { name: "PCB", exact: true }).click();
+      const footprints = page.getByRole("table", { name: "Footprints and pad geometry" });
+      await expect(footprints).toContainText("J1");
+      await expect(footprints).toContainText("D1");
+      await expect(page.getByRole("table", { name: "Tracks, vias and ratsnest" })).toContainText("B.Cu");
+      await expect(page.getByRole("img", { name: "PCB editor" })).toBeVisible();
+    }
+  },
+  {
+    name: "eda-erc-issue",
+    route: "/tools/eda",
+    viewport: { width: 1440, height: 900 },
+    afterNavigate: async (page) => {
+      await page.getByRole("button", { name: "Voltage divider", exact: true }).click();
+      await page.getByRole("button", { name: "Introduce ERC issue" }).click();
+      await expect(page.getByText("ERC_CONNECTED_NO_CONNECT", { exact: true })).toBeVisible();
+      await expect(page.getByRole("table").filter({ hasText: "ERC_CONNECTED_NO_CONNECT" })).toBeVisible();
+      await expect(page.getByRole("status")).toContainText("Deliberate connected no-connect ERC issue");
+    }
+  },
+  {
+    name: "eda-drc-issue",
+    route: "/tools/eda",
+    viewport: { width: 1440, height: 900 },
+    afterNavigate: async (page) => {
+      await page.getByRole("button", { name: "LED board", exact: true }).click();
+      await page.getByRole("tab", { name: "PCB", exact: true }).click();
+      await page.getByRole("button", { name: "Introduce DRC issue" }).click();
+      await expect(page.getByText("DRC_TRACK_WIDTH", { exact: true }).first()).toBeVisible();
+      await expect(page.getByRole("status")).toContainText("Deliberate DRC issue introduced");
+      await expect(page.getByRole("table", { name: "Tracks, vias and ratsnest" })).toBeVisible();
+    }
+  },
+  {
+    name: "eda-repaired-board",
+    route: "/tools/eda",
+    viewport: { width: 1440, height: 900 },
+    afterNavigate: async (page) => {
+      await page.getByRole("button", { name: "LED board", exact: true }).click();
+      await page.getByRole("tab", { name: "PCB", exact: true }).click();
+      await page.getByRole("button", { name: "Introduce DRC issue" }).click();
+      await expect(page.getByText("DRC_TRACK_WIDTH", { exact: true }).first()).toBeVisible();
+      await page.getByRole("button", { name: "Repair and recheck" }).click();
+      await expect(page.getByText("DRC_TRACK_WIDTH", { exact: true })).toHaveCount(0);
+      await expect(page.getByRole("status")).toContainText("Current-document DRC finding repaired");
+      await expect(page.getByText("PASS: no findings.", { exact: true })).toBeVisible();
+    }
+  },
+  {
+    name: "eda-ngspice-fixture-unavailable",
+    route: "/tools/eda",
+    viewport: { width: 1440, height: 900 },
+    afterNavigate: async (page) => {
+      await page.getByRole("tab", { name: "Simulation" }).click();
+      await expect(page.getByText("FIXTURE_VERIFIED", { exact: true }).first()).toBeVisible();
+      await expect(page.getByText("REAL_TOOL_NOT_VERIFIED", { exact: true }).first()).toBeVisible();
+      await expect(page.getByText("Adapters invoked: false", { exact: false }).first()).toBeVisible();
+      await expect(page.getByRole("img", { name: "Voltage over time" })).toBeVisible();
+      await expect(page.getByRole("table").filter({ hasText: "Time (s)" })).toBeVisible();
+    }
+  },
+  {
+    name: "eda-kicad-fixture-unavailable-loss-preview",
+    route: "/tools/eda",
+    viewport: { width: 1440, height: 900 },
+    afterNavigate: async (page) => {
+      const fixture = independentKicadProjectFixture(8);
+      await page.getByRole("tab", { name: "KiCad", exact: true }).click();
+      await page.getByLabel("KiCad schematic (.kicad_sch)").setInputFiles({
+        name: "fixture-v8.kicad_sch",
+        mimeType: "text/plain",
+        buffer: Buffer.from(fixture.schematicText)
+      });
+      await page.getByLabel("Optional KiCad PCB (.kicad_pcb)").setInputFiles({
+        name: "fixture-v8.kicad_pcb",
+        mimeType: "text/plain",
+        buffer: Buffer.from(fixture.pcbText)
+      });
+      await page.getByRole("button", { name: "Preview KiCad import" }).click();
+      await expect(page.getByText("FIXTURE_VERIFIED", { exact: true }).first()).toBeVisible();
+      await expect(page.getByText("REAL_TOOL_NOT_VERIFIED", { exact: true }).first()).toBeVisible();
+      const losses = page.getByRole("table", { name: "KiCad import loss report" });
+      await expect(losses).toBeVisible();
+      expect(await losses.getByRole("row").count()).toBeGreaterThan(1);
+      await expect(page.getByRole("checkbox", { name: /confirm replacement/ })).toBeVisible();
+    }
+  },
+  {
+    name: "cad-constrained-laptop",
+    route: "/tools/cad",
+    viewport: { width: 1024, height: 720 },
+    afterNavigate: async (page) => {
+      await page.getByRole("button", { name: "front", exact: true }).click();
+      await expect(page.getByRole("button", { name: "front", exact: true })).toHaveAttribute("aria-pressed", "true");
+      await expect(page.getByRole("region", { name: "CAD viewport" })).toBeVisible();
+      await expect(page.getByRole("tree", { name: "CAD document model tree" })).toBeVisible();
+      await freezeCadFramebuffer(page);
+    }
+  },
+  {
+    name: "eda-constrained-laptop",
+    route: "/tools/eda",
+    viewport: { width: 1024, height: 720 },
+    afterNavigate: async (page) => {
+      await page.getByRole("tab", { name: "PCB", exact: true }).click();
+      await expect(page.getByRole("img", { name: "PCB editor" })).toBeVisible();
+      await expect(page.getByRole("table", { name: "Footprints and pad geometry" })).toBeVisible();
+    }
+  },
+  {
+    name: "cad-200-percent-css-equivalent",
+    route: "/tools/cad",
+    viewport: { width: 720, height: 450 },
+    prepare: async (page) => {
+      const session = await page.context().newCDPSession(page);
+      await session.send("Emulation.setDeviceMetricsOverride", { width: 720, height: 450, deviceScaleFactor: 2, mobile: false, screenWidth: 1440, screenHeight: 900 });
+    },
+    afterNavigate: async (page) => {
+      await page.getByRole("button", { name: "front", exact: true }).click();
+      await expect(page.getByRole("region", { name: "CAD viewport" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "front", exact: true })).toHaveAttribute("aria-pressed", "true");
+      await expect.poll(() => page.evaluate(() => window.devicePixelRatio)).toBe(2);
+      await freezeCadFramebuffer(page);
+    }
+  },
+  {
+    name: "eda-200-percent-css-equivalent",
+    route: "/tools/eda",
+    viewport: { width: 720, height: 450 },
+    prepare: async (page) => {
+      const session = await page.context().newCDPSession(page);
+      await session.send("Emulation.setDeviceMetricsOverride", { width: 720, height: 450, deviceScaleFactor: 2, mobile: false, screenWidth: 1440, screenHeight: 900 });
+    },
+    afterNavigate: async (page) => {
+      await page.getByRole("tab", { name: "PCB", exact: true }).click();
+      await expect(page.getByRole("img", { name: "PCB editor" })).toBeVisible();
+      await expect(page.getByRole("table", { name: "Footprints and pad geometry" })).toBeVisible();
+      await expect.poll(() => page.evaluate(() => window.devicePixelRatio)).toBe(2);
+    }
+  },
+  {
+    name: "cad-smaller-responsive",
+    route: "/tools/cad",
+    viewport: { width: 720, height: 900 },
+    afterNavigate: async (page) => {
+      await page.getByRole("button", { name: /Commands/ }).click();
+      await expect(page.getByRole("dialog", { name: "CAD commands" })).toBeVisible();
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("region", { name: "CAD viewport" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Parameters" })).toBeVisible();
+      await freezeCadFramebuffer(page);
+    }
+  },
+  {
+    name: "eda-smaller-responsive",
+    route: "/tools/eda",
+    viewport: { width: 720, height: 900 },
+    afterNavigate: async (page) => {
+      await page.getByRole("tab", { name: "Simulation" }).click();
+      await expect(page.getByRole("img", { name: "Voltage over time" })).toBeVisible();
+      await expect(page.getByText("REAL_TOOL_NOT_VERIFIED", { exact: true }).first()).toBeVisible();
+    }
+  },
+  {
+    name: "cad-keyboard-focus",
+    route: "/tools/cad",
+    viewport: { width: 1440, height: 900 },
+    preserveFocus: true,
+    afterNavigate: async (page) => {
+      const commands = page.getByRole("button", { name: /Commands/ });
+      for (let attempt = 0; attempt < 40; attempt += 1) {
+        await page.keyboard.press("Tab");
+        if (await commands.evaluate((element) => element === document.activeElement)) break;
+      }
+      await expect(commands).toBeFocused();
+      await freezeCadFramebuffer(page);
+    }
+  },
+  {
+    name: "eda-keyboard-focus",
+    route: "/tools/eda",
+    viewport: { width: 1440, height: 900 },
+    preserveFocus: true,
+    afterNavigate: async (page) => {
+      const schematic = page.getByRole("tab", { name: "Schematic", exact: true });
+      for (let attempt = 0; attempt < 40; attempt += 1) {
+        await page.keyboard.press("Tab");
+        if (await schematic.evaluate((element) => element === document.activeElement)) break;
+      }
+      await expect(schematic).toBeFocused();
+      await assertEdaShell(page);
+    }
+  },
+  {
+    name: "cad-reduced-motion",
+    route: "/tools/cad",
+    progress: { ...structuredClone(emptyProgress), accessibility: { reducedMotion: true, highContrast: false } },
+    viewport: { width: 1024, height: 900 },
+    prepare: async (page) => page.emulateMedia({ reducedMotion: "reduce" }),
+    afterNavigate: async (page) => {
+      await page.getByRole("button", { name: "front", exact: true }).click();
+      await expect(page.getByRole("region", { name: "CAD viewport" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "front", exact: true })).toHaveAttribute("aria-pressed", "true");
+      await expect.poll(() => page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches)).toBe(true);
+      await freezeCadFramebuffer(page);
+    }
+  },
+  {
+    name: "eda-reduced-motion",
+    route: "/tools/eda",
+    progress: { ...structuredClone(emptyProgress), accessibility: { reducedMotion: true, highContrast: false } },
+    viewport: { width: 1024, height: 900 },
+    prepare: async (page) => page.emulateMedia({ reducedMotion: "reduce" }),
+    afterNavigate: async (page) => {
+      await page.getByRole("tab", { name: "Simulation" }).click();
+      await expect(page.getByRole("img", { name: "Voltage over time" })).toBeVisible();
+      await expect(page.getByText("FIXTURE_VERIFIED", { exact: true }).first()).toBeVisible();
+      await expect.poll(() => page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches)).toBe(true);
+    }
+  },
+  {
     name: "cad-webgl",
     route: "/tools/cad",
     viewport: { width: 1440, height: 1100 },
-    afterNavigate: async (page) => {
-      const canvas = page.locator("canvas[data-cad-preview]");
-      await expect(canvas).toBeVisible();
-      await canvas.evaluate(async (element) => {
-        const dataUrl = await new Promise<string>((resolve) => {
-          document.dispatchEvent(new Event("visibilitychange"));
-          requestAnimationFrame(() => resolve(element.toDataURL("image/png")));
-        });
-        const framebuffer = document.createElement("img");
-        framebuffer.src = dataUrl;
-        framebuffer.alt = "";
-        framebuffer.dataset.cadFramebufferSnapshot = "true";
-        framebuffer.style.position = "absolute";
-        framebuffer.style.inset = "0";
-        framebuffer.style.width = "100%";
-        framebuffer.style.height = "100%";
-        element.style.visibility = "hidden";
-        element.parentElement?.prepend(framebuffer);
-      });
-    }
+    afterNavigate: freezeCadFramebuffer
   },
   {
     name: "cad-fallback",
@@ -744,3 +1108,90 @@ for (const state of reviewStates) {
     await captureState(page, testInfo, state);
   });
 }
+
+test.describe("CAD large-mesh visual acceptance", () => {
+  test.describe.configure({ mode: "serial" });
+
+  test("@visual-review capture: cad-large-mesh-cancel-and-recover", async ({ page }, testInfo) => {
+    test.setTimeout(60_000);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await installProgress(page, emptyProgress);
+    await page.goto("#/tools/cad");
+    const input = page.getByLabel("Choose a CAD document, STL, 3MF, STEP, IGES or BREP file");
+    await input.setInputFiles({
+      name: "prior-model.stl",
+      mimeType: "model/stl",
+      buffer: Buffer.from(createAsciiCubeStl())
+    });
+    await expect(page.getByText("prior-model.stl", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("12 triangles", { exact: true })).toBeVisible();
+
+    const largeFixturePath = testInfo.outputPath("large-600k.stl");
+    const largeFixture = createLargeBinaryStl();
+    await writeFile(largeFixturePath, largeFixture);
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send("Target.setAutoAttach", {
+      autoAttach: true,
+      waitForDebuggerOnStart: true,
+      flatten: true
+    });
+    const started = Date.now();
+    try {
+      await input.setInputFiles(largeFixturePath);
+      await expect(page.getByRole("status").filter({
+        hasText: /Building transferable render mesh/
+      })).toBeVisible();
+      await page.locator(".cad-ds-import").evaluate((element) => {
+        element.scrollIntoView({ block: "center", inline: "nearest" });
+      });
+      await page.screenshot({
+        path: testInfo.outputPath("cad-large-mesh-progress.png"),
+        animations: "disabled",
+        fullPage: false
+      });
+      await page.getByRole("button", { name: "Cancel", exact: true }).click();
+    } finally {
+      await cdp.send("Target.setAutoAttach", {
+        autoAttach: false,
+        waitForDebuggerOnStart: false,
+        flatten: true
+      });
+      await cdp.detach();
+    }
+    await expect(page.getByText(/Mesh import cancelled/)).toBeVisible();
+    await expect(page.getByText("prior-model.stl", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("12 triangles", { exact: true })).toBeVisible();
+    await expect(page.getByRole("table", { name: "Diagnostics" })).toContainText("cancelled");
+    const elapsedMs = Date.now() - started;
+    expect(elapsedMs).toBeLessThan(5_000);
+    await freezeCadFramebuffer(page);
+    await page.evaluate(async () => {
+      if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+      window.scrollTo({ left: 0, top: 0, behavior: "instant" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    });
+    await expect.poll(() => page.evaluate(() => ({ activeTag: document.activeElement?.tagName ?? "", scrollY: window.scrollY }))).toEqual({ activeTag: "BODY", scrollY: 0 });
+    const skipLink = page.getByText("Skip to main content", { exact: true });
+    await expect(skipLink).not.toBeFocused();
+    await expect.poll(async () => (await skipLink.boundingBox())?.y ?? 0).toBeLessThan(0);
+    await expect(page.getByText("prior-model.stl", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText(/Mesh import cancelled/)).toBeVisible();
+    await expect(page.getByRole("table", { name: "Diagnostics" })).toContainText("cancelled");
+    await page.screenshot({
+      path: testInfo.outputPath("cad-large-mesh-recovered.png"),
+      animations: "disabled",
+      fullPage: true
+    });
+    await testInfo.attach("cad-large-mesh-visual-metrics.json", {
+      body: JSON.stringify({
+        bytes: largeFixture.byteLength,
+        elapsedMs,
+        recoveredModel: "prior-model.stl",
+        triangles: 600_000
+      }),
+      contentType: "application/json"
+    });
+  });
+});

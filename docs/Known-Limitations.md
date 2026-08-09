@@ -45,6 +45,10 @@ and Pages workflows, and direct verification of the live application.
   selected root is rejected rather than silently opening another location.
 - Recent identifiers and tool-path overrides are local browser-profile state,
   not portable workspace data.
+- Imported STL and 3MF blobs may be retained in a bounded browser-profile
+  IndexedDB cache keyed by SHA-256. They are not embedded in CAD JSON or
+  written to a workspace. Users can clear them explicitly, after which saved
+  mesh references require source-file reselection on the next reopen.
 - Desktop workbench manifest schema version 1 and receipt schema version 2 are
   supported. Newer, missing or malformed versions are rejected; these desktop
   files have no migration framework.
@@ -166,18 +170,24 @@ and Pages workflows, and direct verification of the live application.
 
 ## CAD boundaries
 
-- CAD Studio is a bounded template-based modelling layer, not a general
-  boundary representation, or B-rep, geometry kernel.
-- Supported templates are mounting plates, circular flanges, spacers or
-  bushings, and angle brackets. There are no free-form sketches, general
-  booleans, arbitrary fillets or chamfers, threads, sheet-metal features,
-  surfaces or direct modelling.
-- There are no assemblies, mates, geometric or dimensional constraints,
-  configurations, feature suppression, collaborative revision control or
-  product lifecycle management integration.
-- STEP, IGES and native commercial CAD formats are not supported. Exports are
-  binary STL, OpenSCAD source, SVG drawing and Engineering Mastery Lab design
-  JSON.
+- The OCCT path is a bounded vertical slice, not FreeCAD, Fusion, Inventor or
+  SolidWorks parity. It has primitives, simple sketches, pad/extrude, pocket,
+  revolve, three booleans, suppression, rollback, fillet/chamfer fixtures and
+  STL/STEP export. It has no general constraint solver, persistent
+  topological-naming solution, assemblies, drawings, surfacing, sheet metal,
+  threads, CAM, FEM or CFD.
+- Fillet and chamfer currently apply to the selected feature's whole exposed
+  edge set. Stable user-selected edge references are not yet a release-grade
+  capability.
+- STEP export is tested. STEP import is implemented only as a tessellated
+  preview with assumed millimetres and explicit metadata stating that exact
+  topology, hierarchy and source units are not retained. It is `NOT_VERIFIED`
+  as immutable exchange import and must not be described as an exact base.
+  IGES and BREP import return an explicit unsupported-format
+  result. Native commercial CAD files are unsupported.
+- STL and 3MF remain triangle meshes even when their display looks solid. They
+  are reference-only, do not contain exact topology and cannot be edited as
+  native features.
 - STL does not encode units. The exporter models dimensions in millimetres and
   the receiving application must be set to millimetres explicitly.
 - SVG output is a template drawing aid, not a standards-compliant production
@@ -192,6 +202,28 @@ and Pages workflows, and direct verification of the live application.
   requirements or captured in an evidence receipt.
 - Exported geometry must be inspected in the production CAD or CAM system used
   for release.
+
+## EDA boundaries
+
+- EDA Studio is a bounded schematic and two-layer PCB editor, not EasyEDA,
+  Eagle, KiCad or Altium parity. Hierarchical sheets, buses, zones, planes,
+  multilayer stack-ups, differential pairs, length tuning, controlled
+  impedance, shove routing and autorouting remain roadmap items.
+- The local palette is intentionally small and original. It does not include
+  third-party vendor libraries, SPICE model libraries or verified procurement
+  data.
+- Connectivity, ERC and DRC cover only the documented subset. A clean in-app
+  result is not an electrical-safety, signal-integrity, manufacturability or
+  fabrication approval.
+- KiCad 6+ interchange is a bounded semantic S-expression subset. Unsupported
+  hierarchy, zones, rules, properties and library graphics are retained where
+  safe and reported. A loss acknowledgement permits deliberate export; it does
+  not make the conversion lossless.
+- KiCad and ngspice were not found on the current development host. Their
+  deterministic adapter and parser evidence is `FIXTURE_VERIFIED`; real
+  installed-tool execution is `NOT_VERIFIED`.
+- Gerber and Excellon remain controlled KiCad CLI outputs, not native EDA
+  exporters. They require independent inspection before fabrication.
 
 ## Curriculum and learning-record boundaries
 

@@ -45,7 +45,7 @@ describe("academy content security policy", () => {
     const directives = cspDirectives(content as string);
 
     expect(directives.get("default-src")).toEqual(["'self'"]);
-    expect(directives.get("script-src")).toEqual(["'self'"]);
+    expect(directives.get("script-src")).toEqual(["'self'", "'wasm-unsafe-eval'"]);
     expect(directives.get("font-src")).toEqual(["'self'", "data:"]);
     expect(directives.get("frame-src")).toEqual([
       "https://www.youtube-nocookie.com"
@@ -54,6 +54,7 @@ describe("academy content security policy", () => {
     expect(directives.get("base-uri")).toEqual(["'self'"]);
     expect(directives.get("form-action")).toEqual(["'self'"]);
     expect(content).not.toContain("www.youtube.com");
+    expect(content).not.toMatch(/(?:^|\s)'unsafe-eval'(?:\s|$)/);
     expect(html).toContain('<script type="module" src="/theme-bootstrap.js"></script>');
     expect(html).not.toMatch(/<script(?![^>]*\bsrc=)[^>]*>\s*\S/);
   });
@@ -72,13 +73,14 @@ describe("academy content security policy", () => {
     const directives = cspDirectives(config.app.security.csp);
 
     expect(directives.get("default-src")).toEqual(["'self'"]);
-    expect(directives.get("script-src")).toEqual(["'self'"]);
+    expect(directives.get("script-src")).toEqual(["'self'", "'wasm-unsafe-eval'"]);
     expect(directives.get("font-src")).toEqual(["'self'", "data:"]);
     expect(directives.get("frame-src")).toEqual([
       "https://www.youtube-nocookie.com"
     ]);
     expect(directives.get("object-src")).toEqual(["'none'"]);
     expect(config.app.security.csp).not.toContain("www.youtube.com");
+    expect(config.app.security.csp).not.toMatch(/(?:^|\s)'unsafe-eval'(?:\s|$)/);
     expect(config.app.security.dangerousRemoteDomainIpcAccess).toBeUndefined();
   });
 
