@@ -17,6 +17,7 @@ const workspaceRouteRoots = [
   "/labs",
   "/toolbox",
   "/cad",
+  "/eda",
   "/workbench",
   "/diagnostics",
   "/skills"

@@ -11,11 +11,32 @@ export interface KicadVersion {
   patch: number;
 }
 
-/** Parse `kicad-cli version` output, e.g. "8.0.4" or "9.0.0-rc1". */
-export function parseKicadVersion(output: string): KicadVersion | null {
-  const m = output.trim().match(/(\d+)\.(\d+)\.(\d+)/);
-  if (!m) return null;
-  return { raw: output.trim().split(/\r?\n/)[0], major: Number(m[1]), minor: Number(m[2]), patch: Number(m[3]) };
+const MIN_SUPPORTED_KICAD_MAJOR = 7;
+const MAX_SUPPORTED_KICAD_MAJOR = 10;
+
+/** Parse a KiCad CLI version banner, e.g. "8.0.4", "KiCad 9.0.0", or "kicad-cli 10.0". */
+export function parseKicadVersion(output: string): KicadVersion {
+  const lines = output.trim().split(/\r?\n/).filter((line) => line.trim().length > 0);
+  if (lines.length !== 1) {
+    throw new Error("KiCad version output must contain exactly one non-empty banner line.");
+  }
+
+  const raw = lines[0].trim();
+  const match = raw.match(
+    /^(?:(?:kicad-cli|kicad)(?:\s+version)?\s*:?\s*)?(\d+)\.(\d+)(?:\.(\d+))?(?:[-+][0-9a-z.-]+)?$/i
+  );
+  if (!match) {
+    throw new Error(`KiCad version output is not a recognised kicad-cli banner: "${raw}".`);
+  }
+
+  const major = Number(match[1]);
+  if (major < MIN_SUPPORTED_KICAD_MAJOR || major > MAX_SUPPORTED_KICAD_MAJOR) {
+    throw new Error(
+      `KiCad ${major} is unsupported; recognised major versions are ${MIN_SUPPORTED_KICAD_MAJOR} through ${MAX_SUPPORTED_KICAD_MAJOR}.`
+    );
+  }
+
+  return { raw, major, minor: Number(match[2]), patch: Number(match[3] ?? 0) };
 }
 
 interface ReportViolation {
@@ -54,12 +75,11 @@ function summarise(diagnostics: Diagnostic[]): KicadFindings {
 /** Parse a `kicad-cli pcb drc --format json` report. */
 export function parseDrcReport(json: string): KicadFindings {
   const parsed = parseJsonObject(json, "DRC");
+  requireSchema(parsed, "DRC", "https://schemas.kicad.org/drc.v1.json");
   const diagnostics: Diagnostic[] = [];
   for (const key of ["violations", "unconnected_items", "schematic_parity"] as const) {
-    const list = parsed[key];
-    if (Array.isArray(list)) {
-      for (const v of list) diagnostics.push(toDiagnostic(v as ReportViolation, `kicad-cli drc:${key}`));
-    }
+    const list = requireObjectArray(parsed[key], `DRC report field "${key}"`);
+    for (const v of list) diagnostics.push(toDiagnostic(v as ReportViolation, `kicad-cli drc:${key}`));
   }
   return summarise(diagnostics);
 }
@@ -67,19 +87,33 @@ export function parseDrcReport(json: string): KicadFindings {
 /** Parse a `kicad-cli sch erc --format json` report (violations grouped by sheet). */
 export function parseErcReport(json: string): KicadFindings {
   const parsed = parseJsonObject(json, "ERC");
+  requireSchema(parsed, "ERC", "https://schemas.kicad.org/erc.v1.json");
   const diagnostics: Diagnostic[] = [];
-  const sheets = parsed.sheets;
-  if (Array.isArray(sheets)) {
-    for (const sheet of sheets) {
-      const s = sheet as { path?: string; violations?: ReportViolation[] };
-      if (Array.isArray(s.violations)) {
-        for (const v of s.violations) diagnostics.push(toDiagnostic(v, "kicad-cli erc", s.path));
-      }
+  const sheets = requireObjectArray(parsed.sheets, 'ERC report field "sheets"');
+  for (const sheet of sheets) {
+    const violations = requireObjectArray(sheet.violations, 'ERC report sheet field "violations"');
+    const path = typeof sheet.path === "string" ? sheet.path : undefined;
+    for (const v of violations) {
+      diagnostics.push(toDiagnostic(v as ReportViolation, "kicad-cli erc", path));
     }
-  } else if (Array.isArray(parsed.violations)) {
-    for (const v of parsed.violations) diagnostics.push(toDiagnostic(v as ReportViolation, "kicad-cli erc"));
   }
   return summarise(diagnostics);
+}
+
+function requireSchema(parsed: Record<string, unknown>, label: string, expected: string): void {
+  if (parsed.$schema !== expected) {
+    throw new Error(`${label} report uses an unsupported schema; expected "${expected}".`);
+  }
+}
+
+function requireObjectArray(value: unknown, label: string): Record<string, unknown>[] {
+  if (!Array.isArray(value)) {
+    throw new Error(`${label} must be an array.`);
+  }
+  if (value.some((entry) => typeof entry !== "object" || entry === null || Array.isArray(entry))) {
+    throw new Error(`${label} must contain only JSON objects.`);
+  }
+  return value as Record<string, unknown>[];
 }
 
 function parseJsonObject(json: string, label: string): Record<string, unknown> {

@@ -147,3 +147,23 @@ Before registration or release:
    TypeScript checks, Rust formatting, Clippy and Rust tests.
 6. Run the real tool only when it is installed and explicitly in scope. Label
    fixture-only evidence honestly when it is not.
+
+## Engineering Design Studio interchange
+
+The in-process KiCad S-expression converter is not a native process adapter and
+does not gain filesystem or execution authority. It accepts a bounded KiCad 6+
+schematic/PCB subset, reports unsupported constructs and requires exact loss
+acknowledgement before a lossy re-export. Parser evidence is
+`IMPLEMENTED_AND_TESTED`; it is not proof that KiCad accepted the generated
+files.
+
+The existing KiCad CLI adapter remains the authoritative real-tool seam for
+ERC, DRC, netlist, BOM, Gerber, drill and board rendering. Each run uses a
+unique `results/kicad/<run-id>/` directory, verifies non-empty fresh outputs and
+hashes the result inventory. KiCad 7, 8, 9 and 10 command/version fixtures are
+`FIXTURE_VERIFIED`. A named installed version plus an inspected controlled run
+is required for `REAL_TOOL_VERIFIED`.
+
+The voltage-divider ngspice path follows the same rule. Its generated bounded
+deck and parsed accessible fixture series are `FIXTURE_VERIFIED`; the fixture
+must not be relabelled as an installed ngspice run.

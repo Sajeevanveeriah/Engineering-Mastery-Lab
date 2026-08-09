@@ -293,6 +293,7 @@ describe("academy offline boundary", () => {
       collectViteGraph: (
         manifest: Record<string, {
           file: string;
+          css?: string[];
           imports?: string[];
           dynamicImports?: string[];
         }>,
@@ -308,7 +309,8 @@ describe("academy offline boundary", () => {
         imports: ["_shared.js"],
         dynamicImports: [
           "src/pages/AcademyLessonPage.tsx",
-          "src/pages/CadStudioPage.tsx"
+          "src/pages/CadStudioPage.tsx",
+          "src/pages/EdaStudioPage.tsx"
         ]
       },
       "_shared.js": { file: "assets/shared.js" },
@@ -322,6 +324,11 @@ describe("academy offline boundary", () => {
       "src/pages/CadStudioPage.tsx": {
         file: "assets/CadStudioPage.js",
         imports: ["_three.js", "index.html"]
+      },
+      "src/pages/EdaStudioPage.tsx": {
+        file: "assets/EdaStudioPage.js",
+        css: ["assets/EdaStudioPage.css"],
+        imports: ["index.html"]
       },
       "_three.js": { file: "assets/three.js" }
     };
@@ -344,6 +351,8 @@ describe("academy offline boundary", () => {
       "assets/E0.js"
     ]));
     expect(assets).not.toContain("assets/CadStudioPage.js");
+    expect(assets).not.toContain("assets/EdaStudioPage.js");
+    expect(assets).not.toContain("assets/EdaStudioPage.css");
     expect(assets).not.toContain("assets/three.js");
     expect(containsThreeRuntime("const warning = 'THREE.WebGLRenderer:';")).toBe(true);
     expect(containsThreeRuntime("Three dimensional lesson visual")).toBe(false);

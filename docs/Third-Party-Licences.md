@@ -1,8 +1,10 @@
 # Third-party dependency and licence inventory
 
-Release target v0.2.0, refreshed 2026-07-30 from `package-lock.json` and
-`src-tauri/Cargo.lock`. This records declared lockfile licence metadata and is
-not an independent legal opinion.
+Release target v0.2.0. Direct Engineering Design Studio dependencies were
+refreshed on 2026-08-09 from exact installed package metadata and licence
+files. The complete lockfile inventory below was regenerated on 2026-08-09
+from the current `package-lock.json`. This inventory is not an independent
+legal opinion.
 
 ## Direct npm dependencies (production)
 
@@ -13,23 +15,65 @@ not an independent legal opinion.
 | react 19.2.7 | MIT |
 | react-dom 19.2.7 | MIT |
 | react-router 8.3.0 | MIT |
+| replicad 0.23.1 | MIT |
+| replicad-opencascadejs 0.23.0 | MIT for the wrapper; distributed OCCT payload is LGPL-2.1 with Open CASCADE Exception 1.0 |
 | three 0.185.1 | MIT |
 
-The production npm tree contains nine lockfile entries: eight MIT entries and
-one Apache-2.0 OR MIT entry. The three transitive production packages are
-`commander` 8.3.0, `cookie-es` 3.1.1 and `scheduler` 0.27.0, all MIT.
+### Current complete npm snapshot from 2026-08-09
 
-The complete npm lockfile contains 239 package entries and every entry declares
-a licence. The declaration counts are 170 MIT, 20 Apache-2.0, 14 MPL-2.0,
-13 Apache-2.0 OR MIT, 11 ISC, six BSD-2-Clause, two BSD-3-Clause, and one each
-for CC-BY-4.0, BlueOak-1.0.0 and 0BSD. Direct development dependencies are
-MIT, Apache-2.0, Apache-2.0 OR MIT, or MPL-2.0; the MPL-2.0 direct dependency is
+The complete npm lockfile contains 247 installed package entries and every
+entry declares a licence. The declaration counts are 176 MIT, 20 Apache-2.0,
+14 MPL-2.0, 13 Apache-2.0 OR MIT, 13 ISC, six BSD-2-Clause, two BSD-3-Clause,
+and one each for CC-BY-4.0, BlueOak-1.0.0 and 0BSD. The production subset has
+17 package entries excluding the project root: 14 MIT, two ISC and one
+Apache-2.0 OR MIT. No current production or development lockfile entry has a
+missing licence declaration. Direct development dependencies are MIT,
+Apache-2.0, Apache-2.0 OR MIT, or MPL-2.0; the MPL-2.0 direct dependency is
 `@axe-core/playwright` 4.12.1.
 
-## Rust crate tree (`src-tauri`, `cargo metadata --locked --offline`, 2026-07-29)
+## Engineering Design Studio CAD distribution
+
+| Component | Exact evidence | Distributed relationship | Required action |
+|---|---|---|---|
+| Replicad | `replicad@0.23.1`, source commit `45b9b8b7c594cd5dc38617edaf220ab4cd72778f`, MIT | High-level JavaScript modelling API | Retain MIT notice in `docs/licenses/replicad-0.23.1-MIT.txt` |
+| Replicad OpenCascade.js wrapper | `replicad-opencascadejs@0.23.0`, source commit `19fb8212e0bb12a07a7a49f96950f8903903d469`, MIT | Loader, bindings and one tailored WASM build | Retain MIT notice in `docs/licenses/replicad-opencascadejs-0.23.0-MIT.txt` |
+| Open CASCADE Technology | Binary strings identify OCCT 7.6 in `replicad_single.wasm` | Dynamically replaceable WASM payload used through the wrapper | Supply LGPL-2.1 and exception texts, corresponding source/build information, user notice and practical replacement instructions |
+
+The reviewed development payload is
+`node_modules/replicad-opencascadejs/src/replicad_single.wasm`, 10,855,736
+bytes, SHA-256
+`2E07C45B83267B38D3102EC411FAD11E7CE2ED71854084E461C5AB5FEE94AAFF`.
+Production code imports this single path. The package also contains a build
+with exceptions; it is not an authorised release asset. The final build must
+prove the emitted asset list contains exactly one OCCT WASM before packaging.
+
+The About route imports this inventory, `Source-Register.md` and all four
+licence texts as same-origin user-accessible assets. Final web and packaged
+desktop inspection must prove those six notice/source files are emitted,
+readable and matched to the distributed build. Their presence in source is not
+itself a release pass.
+
+Licence texts are retained at:
+
+- `docs/licenses/replicad-0.23.1-MIT.txt`;
+- `docs/licenses/replicad-opencascadejs-0.23.0-MIT.txt`;
+- `docs/licenses/OCCT-7.6-LGPL-2.1.txt`; and
+- `docs/licenses/OCCT-7.6-Open-CASCADE-Exception-1.0.txt`.
+
+Corresponding source and rebuild pointers are recorded in
+`docs/Source-Register.md`. A recipient can replace the same-origin
+`replicad_single.wasm` asset with a compatible modified build and rebuild the
+application from the public source checkout. The exact upstream wrapper build
+script uses an unpinned OpenCascade.js Docker image, so bit-for-bit OCCT
+reproduction is `NOT_VERIFIED`; this limitation must remain visible until the
+toolchain and image digest are pinned and independently rebuilt.
+
+## Rust crate tree (`src-tauri`, `cargo metadata --locked --offline`, 2026-08-09)
 
 The locked metadata contains 467 packages and every package declares a
-licence. The exact declaration counts are:
+licence. All 467 manifest paths resolved in the local Cargo cache or workspace,
+and the 467 `[[package]]` records in `Cargo.lock` independently match the
+metadata package count. The exact declaration counts are:
 
 | Count | Licence expression |
 |---:|---|

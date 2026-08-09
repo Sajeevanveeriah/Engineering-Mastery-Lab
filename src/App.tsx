@@ -8,12 +8,14 @@ import { ProgressProvider } from "./components/ProgressContext";
 
 const loadToolboxPage = () => import("./pages/ToolboxPage").then((module) => ({ default: module.ToolboxPage }));
 const loadCadStudioPage = () => import("./pages/CadStudioPage").then((module) => ({ default: module.CadStudioPage }));
+const loadEdaStudioPage = () => import("./pages/EdaStudioPage").then((module) => ({ default: module.EdaStudioPage }));
 const loadWorkbenchPage = () => import("./pages/WorkbenchPage").then((module) => ({ default: module.WorkbenchPage }));
 const loadDiagnosticsPage = () => import("./pages/DiagnosticsPage").then((module) => ({ default: module.DiagnosticsPage }));
 const loadFlagshipWorkflowPage = () => import("./pages/FlagshipWorkflowPage").then((module) => ({ default: module.FlagshipWorkflowPage }));
 const loadEngineeringWorkspacePage = () => import("./pages/EngineeringWorkspacePage").then((module) => ({ default: module.EngineeringWorkspacePage }));
 const ToolboxRoute = lazy(loadToolboxPage);
 const CadStudioRoute = lazy(loadCadStudioPage);
+const EdaStudioRoute = lazy(loadEdaStudioPage);
 const WorkbenchRoute = lazy(loadWorkbenchPage);
 const DiagnosticsRoute = lazy(loadDiagnosticsPage);
 const FlagshipWorkflowRoute = lazy(loadFlagshipWorkflowPage);
@@ -139,6 +141,10 @@ export default function App() {
                     element={<ToolRouteBoundary component={CadStudioRoute} toolName="CAD Studio" />}
                   />
                   <Route
+                    path="/tools/eda"
+                    element={<ToolRouteBoundary component={EdaStudioRoute} toolName="EDA Studio" />}
+                  />
+                  <Route
                     path="/tools/workbench"
                     element={<ToolRouteBoundary component={WorkbenchRoute} toolName="Project Workbench" />}
                   />
@@ -159,6 +165,7 @@ export default function App() {
                   <Route path="/pathways" element={<Navigate to="/learn/pathways" replace />} />
                   <Route path="/toolbox" element={<Navigate to="/tools" replace />} />
                   <Route path="/cad" element={<Navigate to="/tools/cad" replace />} />
+                  <Route path="/eda" element={<Navigate to="/tools/eda" replace />} />
                   <Route path="/workbench" element={<Navigate to="/tools/workbench" replace />} />
                   <Route path="/diagnostics" element={<Navigate to="/tools/diagnostics" replace />} />
                   <Route path="*" element={<NotFoundPage />} />

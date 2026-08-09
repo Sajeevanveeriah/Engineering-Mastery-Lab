@@ -77,11 +77,34 @@ identity or billing authority.
     providers make no network request. Hosted identity, synchronisation,
     billing, collaboration, cohorts and educator analytics are explicitly
     unavailable. Synthetic cohort providers reject provider-managed data.
+16. **Bounded CAD archives and meshes.** STL and 3MF imports enforce file,
+    triangle, entry, expanded-byte and compression-ratio limits. 3MF traversal,
+    absolute or backslash paths, encrypted entries, unsupported compression,
+    external relationships and unsafe URI schemes fail before rendering.
+17. **Isolated exact modelling.** OCCT initialisation and synchronous geometry
+    work occur in a dedicated terminable worker. Typed job IDs, progress,
+    cancellation, timeout replacement and transferable tessellation keep
+    kernel objects outside the renderer. The production source imports only
+    `replicad_single.wasm`; no second OCCT build is authorised.
+18. **Bounded engineering documents.** CAD v2 and EDA v1 validate finite
+    geometry, stable unique IDs, versions and referential integrity before
+    persistence or derived output. Rebuild failure preserves the last valid
+    CAD result. EDA commands use bounded grouped history.
+19. **Bounded KiCad subset.** The S-expression parser caps input bytes, node
+    count, nesting depth, atom length and string length. Unsupported constructs
+    are reported and must be explicitly acknowledged before lossy re-export.
+    Parsed content remains data and cannot create process authority.
 
 ## Residual risks and boundaries
 
 - Real ngspice and KiCad end-to-end execution has not been verified on this
   completion branch.
+- Browser cold-start offline support is not established for CAD, EDA or the
+  OCCT payload. The production service worker is Academy-only. Desktop packaged
+  assets and browser route caching require separate evidence.
+- OCCT is memory-unsafe native C++ compiled to WASM. Worker termination limits
+  persistence and hangs but does not prove the absence of parser or geometry
+  defects. Imported STEP must remain bounded and untrusted.
 - Tool identity is not cryptographically attested. A deliberately substituted
   binary could imitate a valid file name and version banner.
 - Process-tree containment uses a Windows Job Object or a Unix process group.

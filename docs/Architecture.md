@@ -529,6 +529,12 @@ CAD Studio uses Three.js inside its isolated route chunk for bounded parametric
 OpenSCAD, SVG, and JSON export preparation without moving Three.js into the
 initial application bundle.
 
+Engineering Design Studio adds `/tools/eda` as a second isolated route. Neither
+route is imported by Home, Academy or unrelated tools. The Academy service
+worker intentionally excludes CAD, EDA, Three.js and OCCT assets; Academy
+offline evidence must not be reused as proof that a cold CAD or EDA route is
+browser-offline.
+
 Each high-risk lazy tool is wrapped by a route-local error boundary. Route
 changes reset obsolete tool error state while the product shell remains
 mounted. A retry remounts an ordinary failed tool render; a rejected browser
@@ -538,6 +544,45 @@ construction and still catches construction failures after a positive check.
 Its local fallback keeps the deterministic drawing, parameters and non-WebGL
 exports available. The global boundary remains the last safety net and exposes
 no stack trace or local path to normal users.
+
+## Engineering Design Studio authority flow
+
+![Engineering Design Studio architecture and authority boundary](assets/engineering-design-studio-architecture.svg)
+
+```mermaid
+flowchart LR
+  UI["Lazy CAD and EDA routes"] --> NATIVE["EML CAD v2 and EDA v1"]
+  NATIVE --> PURE["Validation, history, connectivity, ERC and DRC"]
+  PURE --> MESH["Bounded mesh worker and Three.js"]
+  PURE --> OCCT["One terminable OCCT worker"]
+  NATIVE --> OPEN["STL, 3MF, STEP and KiCad subset adapters"]
+  NATIVE --> BRIDGE["PlatformBridge"]
+  BRIDGE --> RUST["Typed Tauri authority"]
+  RUST --> EXT["Separately installed KiCad and ngspice"]
+```
+
+Text equivalent: lazy routes edit versioned EML documents. Pure modules own
+validation and derived engineering checks. Triangle work is bounded and
+rendered through Three.js. Exact modelling is isolated in one worker using one
+`replicad_single.wasm` payload. Browser import and download do not grant native
+authority. Desktop file or process work crosses `PlatformBridge`, where Rust
+retains exact tool IDs, session roots, fixed argument construction, no shell,
+containment, cancellation and output limits.
+
+The geometry authorities are not interchangeable. STL and 3MF are reference
+meshes. STEP export and the explicitly lossy tessellated-preview import are
+tested. The preview assumes millimetres and reports that topology, hierarchy
+and source units are not retained; exact immutable-base import is therefore
+`NOT_VERIFIED`. Native parametric history exists only in
+EML CAD JSON. EDA persistence
+similarly belongs to EML EDA JSON; KiCad conversion is a declared semantic
+subset with deterministic losses and explicit acknowledgement before a lossy
+re-export.
+
+The About route exposes the exact-CAD third-party notice, four reviewed licence
+texts, `Third-Party-Licences.md` and `Source-Register.md` as same-origin assets.
+The final web and desktop build inspection must prove all six files are emitted
+and accessible; source imports alone are not a packaging pass.
 
 ## Desktop command boundary
 
@@ -617,10 +662,12 @@ Project Workbench capability.
 
 - The desktop app is a controlled orchestrator around bounded local
   capabilities, not a general SPICE or PCB engine.
-- CAD Studio provides template-based parametric parts, 3D inspection, drawing
-  output, and bounded exports. It is not a general B-rep kernel,
-  manufacturing-certified CAD, or a substitute for production CAD or CAM
-  verification.
+- CAD Studio contains a bounded real OCCT B-rep vertical slice, but is not a
+  general CAD system, a solved topological-naming system,
+  manufacturing-certified CAD or a substitute for production CAD/CAM review.
+- EDA Studio contains a bounded schematic and two-layer PCB vertical slice.
+  It is not KiCad, EasyEDA, Eagle or Altium parity and its basic ERC/DRC is not
+  fabrication approval.
 - Material properties are indicative learning references, not design
   allowables.
 - No cloud identity, database, sync, billing, or telemetry is connected.
@@ -639,4 +686,7 @@ Project Workbench capability.
 - [Project Pack Format](Project-Pack-Format.md)
 - [Migration Guide](Migration-Guide.md)
 - [Adapter Authoring Guide](Adapter-Authoring-Guide.md)
+- [Engineering Design Studio](Engineering-Design-Studio.md)
+- [Engineering Design Capability Matrix](Engineering-Design-Capability-Matrix.md)
+- [Engineering Design Source Register](Source-Register.md)
 - [Future Hosted-Provider Integration](Future_Supabase_Integration.md)

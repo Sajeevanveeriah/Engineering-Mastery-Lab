@@ -283,6 +283,7 @@ test("an offscreen CAD viewport stops rendering and resumes after re-entry", asy
 });
 
 test("render-on-demand settles, redraws on resize and preserves OrbitControls updates", async ({ page }) => {
+  test.setTimeout(60_000);
   await installCadRenderProbe(page);
   const runtimeErrors = monitorRuntimeErrors(page);
   await page.goto("#/tools/cad");
@@ -328,18 +329,28 @@ test("render-on-demand settles, redraws on resize and preserves OrbitControls up
   await expect.poll(() => canvas.evaluate((element, initialSize) => (
     element.width !== initialSize.width || element.height !== initialSize.height
   ), initialCanvasSize)).toBe(true);
-  await canvas.scrollIntoViewIfNeeded();
+  await canvas.evaluate((element) => element.scrollIntoView({ block: "center", inline: "center" }));
   await expect.poll(() => cadDrawCalls(page)).toBeGreaterThan(themeIdleDrawCalls);
-  await page.waitForTimeout(100);
+  await expect.poll(() => cadRenderingIsIdle(page), { timeout: 15_000 }).toBe(true);
   const resizedIdleDrawCalls = await cadDrawCalls(page);
   await page.waitForTimeout(250);
   expect(await cadDrawCalls(page)).toBe(resizedIdleDrawCalls);
 
-  const bounds = await canvas.boundingBox();
-  if (!bounds) throw new Error("CAD preview canvas did not expose pointer bounds.");
-  await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+  const pointer = await canvas.evaluate((element) => {
+    const bounds = element.getBoundingClientRect();
+    const left = Math.max(1, bounds.left);
+    const right = Math.min(window.innerWidth - 1, bounds.right);
+    const top = Math.max(1, bounds.top);
+    const bottom = Math.min(window.innerHeight - 1, bounds.bottom);
+    if (right - left < 160 || bottom - top < 100) throw new Error("CAD canvas has no stable visible pointer area.");
+    const x = left + (right - left - 64) / 2;
+    const y = top + (bottom - top - 24) / 2;
+    return { x, y, hitsCanvas: document.elementFromPoint(x, y) === element };
+  });
+  expect(pointer.hitsCanvas).toBe(true);
+  await page.mouse.move(pointer.x, pointer.y);
   await page.mouse.down();
-  await page.mouse.move(bounds.x + bounds.width / 2 + 64, bounds.y + bounds.height / 2 + 24, { steps: 4 });
+  await page.mouse.move(pointer.x + 64, pointer.y + 24, { steps: 4 });
   await page.mouse.up();
   await expect.poll(() => cadDrawCalls(page)).toBeGreaterThan(resizedIdleDrawCalls);
   const firstDampedDrawCalls = await cadDrawCalls(page);

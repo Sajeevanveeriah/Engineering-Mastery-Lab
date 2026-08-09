@@ -27,6 +27,7 @@ describe("route interface mode", () => {
     "/tools",
     "/tools/calculators",
     "/tools/engineering/project",
+    "/tools/eda",
     "/portfolio",
     "/portfolio/capstone",
     "/settings",
@@ -50,6 +51,7 @@ describe("route interface mode", () => {
     "/labs/pid",
     "/toolbox",
     "/cad",
+    "/eda",
     "/workbench",
     "/diagnostics",
     "/skills"
@@ -68,6 +70,8 @@ describe("route interface mode", () => {
     "/learn/courses-preview",
     "/learn/reviewer",
     "/cadence",
+    "/edamame",
+    "/eda-preview",
     "/skills-preview"
   ])("does not treat the partial segment %s as a workspace route", (pathname) => {
     expect(getRouteInterfaceMode(pathname)).toBe("editorial");

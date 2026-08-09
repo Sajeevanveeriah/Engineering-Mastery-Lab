@@ -62,3 +62,41 @@ workload.
 packages (Development-Setup.md).
 **SmartScreen/Gatekeeper warnings**: expected for unsigned v0.2 artefacts;
 verify SHA-256 checksums instead.
+
+## CAD and EDA Studio
+
+**An STL is the wrong size**: STL has no unit metadata. Reimport or change the
+source-unit interpretation and confirm the resulting millimetre bounds. The
+assumed-mm warning is expected until the interpretation is confirmed.
+
+**A 3MF is rejected before display**: the package may exceed file, entry,
+expanded-byte or compression-ratio limits, contain unsafe paths, use encrypted
+or unsupported entries, or reference an external resource. Do not weaken the
+preflight to make the file open. Simplify and re-export it from a trusted tool.
+
+**An exact CAD job times out or is cancelled**: the worker is terminated and
+replaced. The last valid visible result is retained. Reduce feature complexity
+or isolate the failing feature; do not treat a retained shape as a successful
+rebuild.
+
+**STEP, IGES or BREP import is unavailable as exact authority**: STEP import is
+only an explicitly lossy tessellated preview with assumed millimetres. It does
+not retain topology, hierarchy, source units or features. IGES and BREP are
+explicitly unsupported by the selected Replicad API. Retain the
+source file and use a trusted CAD tool for exact inspection. Do not convert
+through an unreviewed online service.
+
+**A KiCad import reports losses**: inspect every loss code and preserved value.
+Unsupported hierarchy, zones, rules, properties and library graphics can
+change intent. Re-export requires an acknowledgement token but that does not
+make the result lossless.
+
+**KiCad or ngspice says fixture verified**: this confirms deterministic local
+contracts only. Select an authorised desktop workspace and detect a compatible
+installed executable for real-tool evidence. The renderer cannot accept an
+arbitrary executable or argument list.
+
+**CAD or EDA is unavailable after an offline browser restart**: the service
+worker pre-caches Academy content only. Load the route while connected or use a
+verified packaged desktop build. Do not interpret Academy offline status as a
+CAD/EDA cache guarantee.

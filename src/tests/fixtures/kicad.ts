@@ -1,8 +1,9 @@
 // Representative kicad-cli outputs used as fixtures (schemas.kicad.org drc/erc v1).
 
-export const VERSION_OUTPUT_8 = "8.0.4\n";
+export const VERSION_OUTPUT_8 = "KiCad 8.0.4\n";
 export const VERSION_OUTPUT_7 = "7.0.11\n";
-export const VERSION_OUTPUT_9 = "9.0.0\n";
+export const VERSION_OUTPUT_9 = "kicad-cli 9.0.0\n";
+export const VERSION_OUTPUT_10 = "KiCad 10.0\n";
 
 export const DRC_REPORT_CLEAN = JSON.stringify({
   $schema: "https://schemas.kicad.org/drc.v1.json",
@@ -84,5 +85,40 @@ export const ERC_REPORT_WITH_VIOLATIONS = JSON.stringify({
     }
   ]
 });
+
+export const DRC_REPORT_CLEAN_10 = DRC_REPORT_CLEAN.replace('"kicad_version":"8.0.4"', '"kicad_version":"10.0.0"');
+export const DRC_REPORT_WITH_VIOLATIONS_10 = DRC_REPORT_WITH_VIOLATIONS.replace(
+  '"kicad_version":"8.0.4"',
+  '"kicad_version":"10.0.0"'
+);
+export const ERC_REPORT_CLEAN_10 = ERC_REPORT_CLEAN.replace('"kicad_version":"8.0.4"', '"kicad_version":"10.0.0"');
+export const ERC_REPORT_WITH_VIOLATIONS_10 = ERC_REPORT_WITH_VIOLATIONS.replace(
+  '"kicad_version":"8.0.4"',
+  '"kicad_version":"10.0.0"'
+);
+
+export const DRC_REPORT_UNKNOWN_SCHEMA = JSON.stringify({
+  $schema: "https://schemas.kicad.org/drc.v2.json",
+  violations: [],
+  unconnected_items: [],
+  schematic_parity: []
+});
+
+export const ERC_REPORT_UNKNOWN_SCHEMA = JSON.stringify({
+  $schema: "https://schemas.kicad.org/erc.v2.json",
+  sheets: []
+});
+
+export const NETLIST_OUTPUT = "(export (version D) (components (comp (ref R1))))\n";
+export const BOM_OUTPUT = '"Reference","Value","Footprint"\n"R1","10k","Resistor_SMD:R_0603"\n';
+export const GERBER_OUTPUTS = {
+  "board-F_Cu.gtl": "G04 front copper fixture*\nM02*\n",
+  "board-B_Cu.gbl": "G04 back copper fixture*\nM02*\n"
+} as const;
+export const DRILL_OUTPUTS = {
+  "board-PTH.drl": "M48\n; plated drill fixture\nM30\n",
+  "board-NPTH.drl": "M48\n; non-plated drill fixture\nM30\n"
+} as const;
+export const RENDER_OUTPUT = "PNG_FIXTURE_BYTES_KICAD_9\n";
 
 export const KICAD_ERROR_STDERR = "Error: Unable to load the schematic file 'design.kicad_sch'\n";

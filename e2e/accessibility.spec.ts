@@ -36,6 +36,7 @@ const criticalRoutes = [
   "/tools/engineering",
   "/tools/calculators",
   "/tools/cad",
+  "/tools/eda",
   "/portfolio",
   "/portfolio/capstone",
   "/support",
