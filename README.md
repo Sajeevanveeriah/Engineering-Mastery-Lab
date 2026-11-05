@@ -436,3 +436,7 @@ user-supplied data. Calculations, reference values, completion records, and
 exports do not demonstrate standards compliance, accreditation, professional
 licensure, or certified engineering validity. Validate every real-world
 engineering decision independently.
+
+## Project handoff
+
+Read the [project handoff](HANDOFF.md) for current work, checks and the next step.

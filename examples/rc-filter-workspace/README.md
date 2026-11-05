@@ -22,3 +22,7 @@ requirements → circuits → ngspice simulations → results → evidence repor
 
 Without ngspice installed, the project still opens and validates; simulation runs
 report a structured "tool missing" result with remediation guidance.
+
+## Project handoff
+
+Read the [project handoff](../../HANDOFF.md) for current work, checks and the next step.
